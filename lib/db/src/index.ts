@@ -14,3 +14,6 @@ export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
 
 export * from "./schema";
+// Export operators from the same Drizzle instance as the schema. Optional peer
+// dependencies can otherwise cause pnpm to resolve two nominal SQL type copies.
+export { and, eq, desc, inArray, sql } from "drizzle-orm";
