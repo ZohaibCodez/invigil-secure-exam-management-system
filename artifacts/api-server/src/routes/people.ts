@@ -1,3 +1,4 @@
+import { ZodError } from "zod";
 import { Router, type IRouter } from "express";
 import { and, eq, desc } from "@workspace/db";
 import { fromNodeHeaders } from "better-auth/node";
@@ -101,7 +102,10 @@ router.post("/imports", async (req, res): Promise<void> => {
       }
       valid.push(row);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Invalid row.";
+      // Human-readable row errors: "marks: must be at least 1; difficulty: use easy, medium or hard".
+      const message = err instanceof ZodError
+        ? err.issues.map(i => `${i.path.join(".") || "row"}: ${i.code === "invalid_value" && "values" in i ? `use ${(i.values as unknown[]).join(", ")}` : i.message.replace(/^Too small: expected (\w+) to have >=(\d+) characters?$/, "needs at least $2 characters").replace(/^Too small: expected number to be >=(\S+)$/, "must be at least $1")}`).join("; ")
+        : err instanceof Error ? err.message : "Invalid row.";
       errors.push({ row: i + 1, message: message.slice(0, 600) });
     }
   }

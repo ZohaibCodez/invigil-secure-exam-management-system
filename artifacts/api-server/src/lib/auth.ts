@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
-import { pool } from "@workspace/db";
+import { APIError } from "better-auth/api";
+import { pool, db, users, eq } from "@workspace/db";
 
 // Vercel injects these system variables (hostnames, no scheme) on every deployment.
 const vercelOrigins = [
@@ -47,4 +48,15 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins,
+  databaseHooks: {
+    session: {
+      create: {
+        // Deactivated accounts are refused at sign-in, not only on later API calls.
+        async before(session) {
+          const [u] = await db.select({ active: users.active }).from(users).where(eq(users.id, session.userId));
+          if (u && !u.active) throw new APIError("FORBIDDEN", { message: "This account has been deactivated. Contact an administrator." });
+        },
+      },
+    },
+  },
 });
