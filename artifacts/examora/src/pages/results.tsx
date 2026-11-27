@@ -133,7 +133,7 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
                   {qu.type === 'written' && ai.isPending && !ans?.aiSuggestion && ans?.score == null && <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />AI is checking this answer…</p>}
                   <div className="mt-3 grid gap-2 sm:grid-cols-[110px_1fr]">
                     <Input aria-label={`Marks for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-score-${qu.id}`} type="number" min={0} max={qu.marks} step="0.5" placeholder={`/ ${qu.marks}`} value={e.score} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, score: ev.target.value } }))} />
-                    <Textarea aria-label={`Feedback for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-feedback-${qu.id}`} rows={1} placeholder={qu.type === 'written' ? "Feedback for the candidate" : "Automatically graded · exact-match marking"} value={e.feedback} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, feedback: ev.target.value } }))} />
+                    <Textarea aria-label={`Feedback for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-feedback-${qu.id}`} rows={1} placeholder={qu.type === 'written' ? "Feedback for the candidate" : qu.scoring === "partial" ? "Automatically graded · partial credit, wrong picks penalised" : "Automatically graded · exact-match marking"} value={e.feedback} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, feedback: ev.target.value } }))} />
                   </div>
                 </div>
               );

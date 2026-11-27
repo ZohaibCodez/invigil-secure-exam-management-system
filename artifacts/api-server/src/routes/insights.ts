@@ -3,10 +3,10 @@ import { currentRealAttempt } from "../lib/real-attempt";
 import { settingsFor } from "../lib/delivery";
 import { and, eq, desc, inArray } from "@workspace/db";
 import { db, exams, attempts, users, incidents, activities, questions, enrollments } from "@workspace/db";
-import { GetDashboardResponse, ListResultsResponse, GetAnalyticsResponse, GetMonitorResponse } from "@workspace/api-zod";
-import { visibleExams, ownedExam, requireStaff, paramId } from "../lib/access";
+import { GetDashboardResponse, ListResultsResponse, GetAnalyticsResponse, GetAnalyticsQueryParams, GetMonitorResponse } from "@workspace/api-zod";
+import { visibleExams, ownedExam, requireStaff, paramId, HttpError } from "../lib/access";
 import { examView, getAnnouncements } from "../lib/examination";
-import { expireExamAttempts, hasAnswer } from "../lib/attempts";
+import { expireExamAttempts, hasAnswer, selectedOptions } from "../lib/attempts";
 
 const router: IRouter = Router();
 const average = (values: number[]) => values.length ? Math.round(values.reduce((s, v) => s + v, 0) / values.length * 10) / 10 : 0;
@@ -75,27 +75,68 @@ router.get("/results", async (req, res): Promise<void> => {
 });
 router.get("/analytics", async (req, res): Promise<void> => {
   requireStaff(req.appUser);
-  const { examRows, rows } = await scopedAttempts(req.appUser);
+  const { examId } = GetAnalyticsQueryParams.parse(req.query);
+  const scope = await scopedAttempts(req.appUser);
+  // Voided attempts carry a disciplinary zero, not performance, so they are left out of statistics.
+  const examRows = examId ? scope.examRows.filter(e => e.id === examId) : scope.examRows;
+  if (examId && !examRows.length) throw new HttpError(404, "Examination not found.");
+  const rows = scope.rows.filter(r => !r.attempt.voidedAt && (!examId || r.attempt.examId === examId));
   const finished = rows.filter(r => r.attempt.status !== "active");
   const scored = finished.filter(r => r.attempt.score !== null);
-  const metrics = new Map<string, { id: string; text: string; category: string; difficulty: string; attempts: number; skipped: number; correct: number }>();
+  const percent = (r: (typeof rows)[number]) => r.attempt.totalMarks ? r.attempt.score! / r.attempt.totalMarks * 100 : 0;
+  const passMark = (r: (typeof rows)[number]) => examRows.find(e => e.id === r.attempt.examId)?.passPercent ?? 50;
+  type Metric = { id: string; text: string; category: string; difficulty: string; attempts: number; skipped: number; correct: number; wrong: Map<string, { text: string; count: number }> };
+  const metrics = new Map<string, Metric>();
   for (const { attempt: a } of finished) for (const q of a.questions) {
     // Written responses require qualitative evaluation, so accuracy covers objective items only.
     if (q.type === "written") continue;
-    const metric = metrics.get(q.id) ?? { id: q.id, text: q.text, category: q.category, difficulty: q.difficulty, attempts: 0, skipped: 0, correct: 0 };
+    const metric = metrics.get(q.id) ?? { id: q.id, text: q.text, category: q.category, difficulty: q.difficulty, attempts: 0, skipped: 0, correct: 0, wrong: new Map() };
     metric.attempts++;
     const ans = a.answers.find(ans => ans.questionId === q.id);
     if (!hasAnswer(q, ans?.value)) metric.skipped++;
     if (ans?.score === q.marks) metric.correct++;
+    for (const id of selectedOptions(ans?.value ?? "")) {
+      if (q.correctAnswers.includes(id)) continue;
+      const opt = q.options.find(o => o.id === id);
+      if (!opt) continue;
+      const w = metric.wrong.get(id) ?? { text: opt.text, count: 0 };
+      w.count++; metric.wrong.set(id, w);
+    }
     metrics.set(q.id, metric);
   }
-  const percentages = scored.map(r => r.attempt.score! / r.attempt.totalMarks * 100);
+  const observed = (accuracy: number, n: number) => n < 2 ? null : accuracy >= 70 ? "easy" : accuracy >= 40 ? "medium" : "hard";
+  const percentages = scored.map(percent);
+  const median = (v: number[]) => {
+    if (!v.length) return null;
+    const s = [...v].sort((x, y) => x - y), m = Math.floor(s.length / 2);
+    return Math.round((s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2) * 10) / 10;
+  };
+  const round = (v: number) => Math.round(v * 10) / 10;
   res.json(GetAnalyticsResponse.parse({
     totalAttempts: rows.length, averageScore: average(percentages),
-    passRate: scored.length ? Math.round(scored.filter(r => r.attempt.score! / r.attempt.totalMarks * 100 >= examRows.find(e => e.id === r.attempt.examId)!.passPercent).length / scored.length * 1000) / 10 : 0,
+    passRate: scored.length ? Math.round(scored.filter(r => percent(r) >= passMark(r)).length / scored.length * 1000) / 10 : 0,
     completionRate: rows.length ? Math.round(finished.length / rows.length * 1000) / 10 : 0,
-    questions: [...metrics.values()].map(m => ({ ...m, accuracy: Math.round(m.correct / m.attempts * 1000) / 10 })),
+    questions: [...metrics.values()].map(({ wrong, ...m }) => {
+      const accuracy = Math.round(m.correct / m.attempts * 1000) / 10;
+      const obs = observed(accuracy, m.attempts);
+      const top = [...wrong.entries()].sort((x, y) => y[1].count - x[1].count)[0];
+      return {
+        ...m, accuracy, observedDifficulty: obs, difficultyMismatch: obs !== null && obs !== m.difficulty,
+        commonWrong: top ? { optionId: top[0], text: top[1].text, count: top[1].count, share: round(top[1].count / m.attempts * 100) } : null,
+      };
+    }),
     distribution: ["0–19", "20–39", "40–59", "60–79", "80–100"].map((label, i) => ({ label, count: percentages.filter(p => p >= i * 20 && (i === 4 ? p <= 100 : p < (i + 1) * 20)).length })),
+    // Summaries always cover every visible exam, so the picker can switch between them.
+    exams: scope.examRows.filter(e => e.status !== "draft").map(e => {
+      const own = scope.rows.filter(r => r.attempt.examId === e.id && !r.attempt.voidedAt && r.attempt.status !== "active");
+      const graded = own.filter(r => r.attempt.score !== null).map(percent);
+      return {
+        examId: e.id, title: e.title, submissions: own.length, graded: graded.length,
+        mean: graded.length ? average(graded) : null, median: median(graded),
+        highest: graded.length ? round(Math.max(...graded)) : null, lowest: graded.length ? round(Math.min(...graded)) : null,
+        passRate: graded.length ? round(graded.filter(p => p >= e.passPercent).length / graded.length * 100) : null,
+      };
+    }),
   }));
 });
 export default router;

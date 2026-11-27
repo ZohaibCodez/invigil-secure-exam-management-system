@@ -60,6 +60,7 @@ function QuestionEditor({ initial, onDone }: { initial: Question | null; onDone:
   const [difficulty, setDifficulty] = useState<QuestionInputDifficulty>(initial?.difficulty ?? 'medium');
   const [marks, setMarks] = useState(String(initial?.marks ?? 2));
   const [explanation, setExplanation] = useState(initial?.explanation ?? '');
+  const [scoring, setScoring] = useState<'exact' | 'partial'>(initial?.scoring === 'partial' ? 'partial' : 'exact');
   const [options, setOptions] = useState(initial?.options?.length ? initial.options : [newOpt(), newOpt()]);
   const [correct, setCorrect] = useState<string[]>(initial?.correctAnswers ?? []);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,7 @@ function QuestionEditor({ initial, onDone }: { initial: Question | null; onDone:
       if (type === 'multiple' && corr.length < 1) return setError('Mark at least one correct option.');
     }
     setError(null);
-    const data: QuestionInput = { text: text.trim(), type, category: category.trim(), difficulty, marks: m, options: opts, correctAnswers: corr, explanation: explanation.trim() };
+    const data: QuestionInput = { text: text.trim(), type, category: category.trim(), difficulty, marks: m, options: opts, correctAnswers: corr, explanation: explanation.trim(), scoring: type === 'multiple' ? scoring : 'exact' };
     const opt = {
       onSuccess: () => {
         qc.invalidateQueries({ queryKey: getListQuestionsQueryKey() });
@@ -155,6 +156,17 @@ function QuestionEditor({ initial, onDone }: { initial: Question | null; onDone:
           </AnimatePresence>
           {options.length < 10 && <Button type="button" variant="ghost" size="sm" onClick={() => setOptions((os) => [...os, newOpt()])} data-testid="button-add-option"><Plus className="mr-1 h-3.5 w-3.5" />Add option</Button>}
         </div>
+      )}
+      {type === 'multiple' && (
+        <Field label="Marking rule" hint={scoring === 'partial' ? 'Each correct pick earns its share of the marks; each wrong pick cancels one share. Never below 0.' : 'Full marks only when exactly the correct options are selected.'}>
+          <Select value={scoring} onValueChange={(v) => setScoring(v as 'exact' | 'partial')}>
+            <SelectTrigger data-testid="select-scoring"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="exact">All or nothing</SelectItem>
+              <SelectItem value="partial">Partial credit, wrong picks penalised</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
       )}
       <Field label="Explanation / marking guide" hint={type === 'written' ? 'Shown to graders alongside the candidate answer.' : 'Optional rationale.'}>
         <Textarea data-testid="input-question-explanation" rows={2} value={explanation} onChange={(e) => setExplanation(e.target.value)} />
