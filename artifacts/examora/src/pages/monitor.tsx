@@ -103,7 +103,7 @@ export default function Monitor() {
               </div>
             </div>
           </div>
-          <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+          <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-[1.6fr_1fr]">
             <Panel title="Candidates" bodyClass="p-0">
               {data.attempts.length === 0 ? (
                 <p className="p-8 text-center text-sm text-muted-foreground">No one has started yet.</p>

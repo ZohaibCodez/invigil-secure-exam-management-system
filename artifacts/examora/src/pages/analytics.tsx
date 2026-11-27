@@ -106,7 +106,7 @@ export default function Analytics() {
             )}
           </Panel>
 
-          <div className="grid gap-6 xl:grid-cols-[1fr_1.5fr]">
+          <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-[1fr_1.5fr]">
             <Panel title="Score distribution">
               <div className="flex h-56 items-end gap-2">
                 {d.distribution.map((b, i) => (

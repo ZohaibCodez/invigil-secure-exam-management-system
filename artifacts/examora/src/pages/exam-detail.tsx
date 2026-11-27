@@ -336,7 +336,7 @@ function AnnouncementsTab({ exam }: { exam: ExamDetailT }) {
   const create = useCreateAnnouncement();
   const [msg, setMsg] = useState('');
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_1.2fr]">
+    <div className="grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1fr_1.2fr]">
       <Panel title="Broadcast to candidates">
         <Textarea data-testid="input-announcement" rows={4} value={msg} maxLength={2000} onChange={(e) => setMsg(e.target.value)} placeholder="Clarification for Q4: assume ideal gas behaviour." />
         <div className="mt-3 flex items-center justify-between">

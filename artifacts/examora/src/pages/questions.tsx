@@ -204,17 +204,17 @@ export default function Questions() {
       {q.isError ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : q.isLoading ? <SkeletonRows rows={6} /> : rows.length === 0 ? (
         <EmptyState icon={<Library className="h-5 w-5" />} title={q.data?.length ? 'No matches' : 'The bank is empty'} body={q.data?.length ? 'Loosen a filter.' : 'Write a question or import a CSV of them.'} action={!q.data?.length && <Button onClick={() => setEditing('new')}>Write the first one</Button>} />
       ) : (
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 [&>*]:min-w-0 md:grid-cols-2">
           <AnimatePresence initial={false}>
             {rows.map((x, i) => {
               const M = TYPE_META[x.type];
               return (
                 <motion.article layout key={x.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ delay: Math.min(i, 10) * 0.02 }} data-testid={`card-question-${x.id}`} className="group flex flex-col rounded-xl border bg-card p-4 transition hover:border-foreground/20">
-                  <div className="mb-2 flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                  <div className="mb-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground">
                     <M.icon className="h-3.5 w-3.5" /> {M.label}<span>·</span>{x.category}<span>·</span><span className={diffTone[x.difficulty]}>{x.difficulty}</span>
                     <span className="ml-auto rounded bg-secondary px-1.5 py-0.5 text-foreground tnum">{x.marks}m</span>
                   </div>
-                  <p className="line-clamp-3 text-sm">{x.text}</p>
+                  <p className="line-clamp-3 text-sm [overflow-wrap:anywhere]">{x.text}</p>
                   {x.options.length > 0 && (
                     <ul className="mt-3 space-y-1 text-xs">
                       {x.options.slice(0, 4).map((o, k) => (

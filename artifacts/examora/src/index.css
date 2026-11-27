@@ -526,3 +526,8 @@ input:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 4px hsl(var(--ac
 @media (prefers-reduced-motion: reduce) {
   .lift, .lift:hover { transform: none; transition: none; }
 }
+
+/* Mobile safety net: never let one wide element make the whole page slide sideways.
+   Wide data (tables) scrolls inside its own container instead. */
+html, body { max-width: 100%; overflow-x: clip; }
+main { min-width: 0; }

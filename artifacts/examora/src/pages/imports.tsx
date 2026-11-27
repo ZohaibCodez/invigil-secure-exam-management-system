@@ -102,7 +102,7 @@ export default function Imports() {
           );
         })}
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1fr_1.3fr]">
+      <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-[1fr_1.3fr]">
         <Panel title="Source" action={<button className="text-xs text-muted-foreground hover:text-accent" onClick={() => { setText(SAMPLES[kind]); reset(); }} data-testid="button-load-sample">Load example</button>}>
           <div
             onDragOver={(e) => e.preventDefault()}

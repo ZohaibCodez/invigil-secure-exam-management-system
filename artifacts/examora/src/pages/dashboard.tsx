@@ -126,7 +126,7 @@ export default function Dashboard() {
             <Stat index={2} label="Submissions" value={d.submissions} hint={`Avg ${d.averageScore.toFixed(1)}%`} />
             <Stat index={3} label="To grade" value={d.pendingGrading} accent={d.pendingGrading > 0} hint={<Link href="/results" className="hover:text-accent">Open grading queue</Link>} />
           </div>
-          <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
+          <div className="grid gap-6 [&>*]:min-w-0 xl:grid-cols-[1.6fr_1fr]">
             <Panel title="Examinations" action={<Link href="/exams" className="text-xs text-muted-foreground hover:text-accent">All exams</Link>} bodyClass="p-0">
               {d.exams.length === 0 ? (
                 <div className="p-4"><EmptyState icon={<FileText className="h-5 w-5" />} title="No exams yet" body="Draft your first examination, then assign questions from the bank." action={<Button asChild><Link href="/exams?new=1">Draft an exam</Link></Button>} /></div>
