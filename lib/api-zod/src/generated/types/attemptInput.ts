@@ -8,4 +8,6 @@
 
 export interface AttemptInput {
   sandbox?: boolean;
+  /** @maxLength 100 */
+  policyVersion?: string;
 }

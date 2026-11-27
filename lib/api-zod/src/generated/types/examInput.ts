@@ -5,6 +5,7 @@
  * Examora secure examination platform
  * OpenAPI spec version: 1.0.0
  */
+import type { AssistancePolicyInput } from './assistancePolicyInput';
 
 export interface ExamInput {
   /**
@@ -34,4 +35,5 @@ export interface ExamInput {
      * @maximum 100
      */
   passPercent?: number;
+  assistancePolicy?: AssistancePolicyInput | null;
 }

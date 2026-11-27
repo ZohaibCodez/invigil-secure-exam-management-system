@@ -5,9 +5,13 @@
  * Examora secure examination platform
  * OpenAPI spec version: 1.0.0
  */
+import type { SaveReceiptConflict } from './saveReceiptConflict';
 
 export interface SaveReceipt {
   savedAt: string;
   serverNow: string;
   accepted: boolean;
+  conflict?: SaveReceiptConflict;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
 }

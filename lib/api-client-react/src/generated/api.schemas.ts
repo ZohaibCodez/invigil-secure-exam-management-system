@@ -132,6 +132,25 @@ export type Question = QuestionInput & {
   createdAt?: string;
 };
 
+export type AssistancePolicyInputMode = typeof AssistancePolicyInputMode[keyof typeof AssistancePolicyInputMode];
+
+
+export const AssistancePolicyInputMode = {
+  closed_book: 'closed_book',
+  open_book: 'open_book',
+  ai_disclosed: 'ai_disclosed',
+} as const;
+
+export interface AssistancePolicyInput {
+  mode: AssistancePolicyInputMode;
+  /**
+     * @minLength 5
+     * @maxLength 5000
+     */
+  resources: string;
+  requireDisclosure: boolean;
+}
+
 export interface ExamInput {
   /**
      * @minLength 3
@@ -160,7 +179,12 @@ export interface ExamInput {
      * @maximum 100
      */
   passPercent?: number;
+  assistancePolicy?: AssistancePolicyInput | null;
 }
+
+export type AssistancePolicy = AssistancePolicyInput & {
+  version: string;
+};
 
 export type ExamStatus = typeof ExamStatus[keyof typeof ExamStatus];
 
@@ -193,6 +217,7 @@ export interface Exam {
   /** @nullable */
   attemptStatus?: string | null;
   createdAt?: string;
+  assistancePolicy?: AssistancePolicy | null;
 }
 
 export interface Announcement {
@@ -230,6 +255,8 @@ export interface EnrollmentInput {
 
 export interface AttemptInput {
   sandbox?: boolean;
+  /** @maxLength 100 */
+  policyVersion?: string;
 }
 
 export interface Answer {
@@ -258,6 +285,8 @@ export interface AnswerBatch {
   answers: Answer[];
   /** @maxLength 50000 */
   scratchpad?: string;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
 }
 
 export interface IncidentStatementInput {
@@ -341,10 +370,21 @@ export interface IncidentDossier {
   browserEvents: BrowserEventEvidence[];
 }
 
+export type SaveReceiptConflict = typeof SaveReceiptConflict[keyof typeof SaveReceiptConflict];
+
+
+export const SaveReceiptConflict = {
+  answer: 'answer',
+  scratchpad: 'scratchpad',
+} as const;
+
 export interface SaveReceipt {
   savedAt: string;
   serverNow: string;
   accepted: boolean;
+  conflict?: SaveReceiptConflict;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
 }
 
 export type AttemptStatus = typeof AttemptStatus[keyof typeof AttemptStatus];
@@ -374,7 +414,84 @@ export interface Attempt {
   /** @nullable */
   score?: number | null;
   scratchpad: string;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
   announcements: Announcement[];
+}
+
+export interface DisclosureInput {
+  /** @maxLength 5000 */
+  disclosure: string;
+}
+
+export interface AuthorshipInput {
+  questionId: string;
+  /**
+     * @minLength 10
+     * @maxLength 5000
+     */
+  prompt: string;
+  /**
+     * @minimum 1
+     * @maximum 168
+     */
+  hours: number;
+}
+
+export interface AuthorshipResponseInput {
+  /**
+     * @minLength 10
+     * @maxLength 10000
+     */
+  response: string;
+}
+
+export type AuthorshipDecisionInputOutcome = typeof AuthorshipDecisionInputOutcome[keyof typeof AuthorshipDecisionInputOutcome];
+
+
+export const AuthorshipDecisionInputOutcome = {
+  satisfactory: 'satisfactory',
+  further_review: 'further_review',
+} as const;
+
+export interface AuthorshipDecisionInput {
+  outcome: AuthorshipDecisionInputOutcome;
+  /**
+     * @minLength 10
+     * @maxLength 5000
+     */
+  reason: string;
+}
+
+export interface AuthorshipReview {
+  id: string;
+  attemptId: string;
+  questionId: string;
+  prompt: string;
+  requestedAt: string;
+  responseDeadline: string;
+  /** @nullable */
+  response: string | null;
+  /** @nullable */
+  respondedAt: string | null;
+  /** @nullable */
+  outcome: string | null;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+}
+
+export interface IntegrityRecord {
+  attemptId: string;
+  policy: AssistancePolicy | null;
+  /** @nullable */
+  acknowledgedAt: string | null;
+  disclosure: string;
+  reviews: AuthorshipReview[];
+  serverNow: string;
+  attemptStatus: string;
+  sandbox: boolean;
 }
 
 export interface AnnouncementInput {

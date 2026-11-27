@@ -351,6 +351,78 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/IncidentCase" }
+  /attempts/{id}/integrity:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: getIntegrityRecord
+      responses:
+        "200":
+          description: Authorized policy, disclosure and human authorship review
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrityRecord" }
+    put:
+      operationId: saveDisclosure
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DisclosureInput" }
+      responses:
+        "200":
+          description: Disclosure saved without changing answers or marks
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IntegrityRecord" }
+  /attempts/{id}/authorship:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: requestAuthorshipReview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AuthorshipInput" }
+      responses:
+        "201":
+          description: Question-linked explanation requested after submission
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthorshipReview" }
+  /authorship-reviews/{id}/response:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    put:
+      operationId: respondToAuthorship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AuthorshipResponseInput" }
+      responses:
+        "200":
+          description: Immutable candidate explanation or identical retry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthorshipReview" }
+  /authorship-reviews/{id}/decision:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: decideAuthorship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AuthorshipDecisionInput" }
+      responses:
+        "200":
+          description: Advisory human outcome without grade changes
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthorshipReview" }
   /attempts/{id}/grade:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -479,6 +551,24 @@ components:
         questionIds: { type: array, items: { type: string }, maxItems: 200 }
         randomize: { type: boolean, default: true }
         passPercent: { type: integer, minimum: 0, maximum: 100, default: 50 }
+        assistancePolicy:
+          anyOf:
+            - { $ref: "#/components/schemas/AssistancePolicyInput" }
+            - { type: "null" }
+    AssistancePolicyInput:
+      type: object
+      required: [mode, resources, requireDisclosure]
+      properties:
+        mode: { type: string, enum: [closed_book, open_book, ai_disclosed] }
+        resources: { type: string, minLength: 5, maxLength: 5000 }
+        requireDisclosure: { type: boolean }
+    AssistancePolicy:
+      allOf:
+        - { $ref: "#/components/schemas/AssistancePolicyInput" }
+        - type: object
+          required: [version]
+          properties:
+            version: { type: string }
     Exam:
       type: object
       required: [id, title, subject, instructions, duration, startsAt, endsAt, status, totalMarks, questionCount, enrolledCount, submittedCount, resultsPublished, randomize, passPercent]
@@ -501,6 +591,10 @@ components:
         attemptId: { type: [string, "null"] }
         attemptStatus: { type: [string, "null"] }
         createdAt: { type: string }
+        assistancePolicy:
+          anyOf:
+            - { $ref: "#/components/schemas/AssistancePolicy" }
+            - { type: "null" }
     ExamDetail:
       allOf:
         - { $ref: "#/components/schemas/Exam" }
@@ -524,6 +618,7 @@ components:
       type: object
       properties:
         sandbox: { type: boolean, default: false }
+        policyVersion: { type: string, maxLength: 100 }
     Answer:
       type: object
       required: [questionId, value, markedForReview, revision]
@@ -541,6 +636,7 @@ components:
         operationId: { type: string, minLength: 8, maxLength: 100 }
         answers: { type: array, items: { $ref: "#/components/schemas/Answer" }, maxItems: 200 }
         scratchpad: { type: string, maxLength: 50000 }
+        scratchpadVersion: { type: integer, minimum: 0 }
     IncidentStatementInput:
       type: object
       required: [statement]
@@ -606,6 +702,8 @@ components:
         savedAt: { type: string }
         serverNow: { type: string }
         accepted: { type: boolean }
+        conflict: { type: string, enum: [answer, scratchpad] }
+        scratchpadVersion: { type: integer, minimum: 0 }
     Attempt:
       type: object
       required: [id, examId, examTitle, candidateName, status, startedAt, deadline, serverNow, questions, answers, sandbox, totalMarks, scratchpad, announcements]
@@ -625,7 +723,61 @@ components:
         totalMarks: { type: number }
         score: { type: [number, "null"] }
         scratchpad: { type: string }
+        scratchpadVersion: { type: integer, minimum: 0 }
         announcements: { type: array, items: { $ref: "#/components/schemas/Announcement" } }
+    DisclosureInput:
+      type: object
+      required: [disclosure]
+      properties:
+        disclosure: { type: string, maxLength: 5000 }
+    AuthorshipInput:
+      type: object
+      required: [questionId, prompt, hours]
+      properties:
+        questionId: { type: string }
+        prompt: { type: string, minLength: 10, maxLength: 5000 }
+        hours: { type: integer, minimum: 1, maximum: 168 }
+    AuthorshipResponseInput:
+      type: object
+      required: [response]
+      properties:
+        response: { type: string, minLength: 10, maxLength: 10000 }
+    AuthorshipDecisionInput:
+      type: object
+      required: [outcome, reason]
+      properties:
+        outcome: { type: string, enum: [satisfactory, further_review] }
+        reason: { type: string, minLength: 10, maxLength: 5000 }
+    AuthorshipReview:
+      type: object
+      required: [id, attemptId, questionId, prompt, requestedAt, responseDeadline, response, respondedAt, outcome, reason, reviewedAt]
+      properties:
+        id: { type: string }
+        attemptId: { type: string }
+        questionId: { type: string }
+        prompt: { type: string }
+        requestedAt: { type: string }
+        responseDeadline: { type: string }
+        response: { type: [string, "null"] }
+        respondedAt: { type: [string, "null"] }
+        outcome: { type: [string, "null"] }
+        reason: { type: [string, "null"] }
+        reviewedAt: { type: [string, "null"] }
+    IntegrityRecord:
+      type: object
+      required: [attemptId, policy, acknowledgedAt, disclosure, reviews, serverNow, attemptStatus, sandbox]
+      properties:
+        attemptId: { type: string }
+        policy:
+          anyOf:
+            - { $ref: "#/components/schemas/AssistancePolicy" }
+            - { type: "null" }
+        acknowledgedAt: { type: [string, "null"] }
+        disclosure: { type: string }
+        reviews: { type: array, items: { $ref: "#/components/schemas/AuthorshipReview" } }
+        serverNow: { type: string }
+        attemptStatus: { type: string }
+        sandbox: { type: boolean }
     AnnouncementInput:
       type: object
       required: [message]

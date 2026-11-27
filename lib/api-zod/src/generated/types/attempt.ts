@@ -28,5 +28,7 @@ export interface Attempt {
   /** @nullable */
   score?: number | null;
   scratchpad: string;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
   announcements: Announcement[];
 }

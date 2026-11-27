@@ -26,6 +26,11 @@ export const GetSessionResponse = zod.object({
 })
 
 
+export const getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMin = 5;
+export const getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMax = 5000;
+
+
+
 export const GetDashboardResponse = zod.object({
   "totalExams": zod.int(),
   "activeExams": zod.int(),
@@ -52,7 +57,14 @@ export const GetDashboardResponse = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMin).max(getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 })),
   "activity": zod.array(zod.object({
   "id": zod.string(),
@@ -62,6 +74,11 @@ export const GetDashboardResponse = zod.object({
   "type": zod.string()
 }))
 })
+
+
+export const listExamsResponseAssistancePolicyOneOneResourcesMin = 5;
+export const listExamsResponseAssistancePolicyOneOneResourcesMax = 5000;
+
 
 
 export const ListExamsResponseItem = zod.object({
@@ -82,7 +99,14 @@ export const ListExamsResponseItem = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(listExamsResponseAssistancePolicyOneOneResourcesMin).max(listExamsResponseAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 })
 export const ListExamsResponse = zod.array(ListExamsResponseItem)
 
@@ -104,6 +128,9 @@ export const createExamBodyPassPercentDefault = 50;
 export const createExamBodyPassPercentMin = 0;
 export const createExamBodyPassPercentMax = 100;
 
+export const createExamBodyAssistancePolicyOneResourcesMin = 5;
+export const createExamBodyAssistancePolicyOneResourcesMax = 5000;
+
 
 
 export const CreateExamBody = zod.object({
@@ -115,8 +142,18 @@ export const CreateExamBody = zod.object({
   "endsAt": zod.coerce.date(),
   "questionIds": zod.array(zod.string()).max(createExamBodyQuestionIdsMax),
   "randomize": zod.boolean().default(createExamBodyRandomizeDefault),
-  "passPercent": zod.int().min(createExamBodyPassPercentMin).max(createExamBodyPassPercentMax).default(createExamBodyPassPercentDefault)
+  "passPercent": zod.int().min(createExamBodyPassPercentMin).max(createExamBodyPassPercentMax).default(createExamBodyPassPercentDefault),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(createExamBodyAssistancePolicyOneResourcesMin).max(createExamBodyAssistancePolicyOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}),zod.null()]).optional()
 })
+
+export const createExamResponseAssistancePolicyOneOneResourcesMin = 5;
+export const createExamResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+
 
 export const CreateExamResponse = zod.object({
   "id": zod.string(),
@@ -136,13 +173,23 @@ export const CreateExamResponse = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(createExamResponseAssistancePolicyOneOneResourcesMin).max(createExamResponseAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 })
 
 
 export const GetExamParams = zod.object({
   "id": zod.coerce.string()
 })
+
+export const getExamResponseOneAssistancePolicyOneOneResourcesMin = 5;
+export const getExamResponseOneAssistancePolicyOneOneResourcesMax = 5000;
 
 export const getExamResponseTwoQuestionsItemOneTextMin = 5;
 export const getExamResponseTwoQuestionsItemOneTextMax = 10000;
@@ -179,7 +226,14 @@ export const GetExamResponse = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(getExamResponseOneAssistancePolicyOneOneResourcesMin).max(getExamResponseOneAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 }).and(zod.object({
   "questions": zod.array(zod.object({
   "text": zod.string().min(getExamResponseTwoQuestionsItemOneTextMin).max(getExamResponseTwoQuestionsItemOneTextMax),
@@ -234,6 +288,9 @@ export const updateExamBodyPassPercentDefault = 50;
 export const updateExamBodyPassPercentMin = 0;
 export const updateExamBodyPassPercentMax = 100;
 
+export const updateExamBodyAssistancePolicyOneResourcesMin = 5;
+export const updateExamBodyAssistancePolicyOneResourcesMax = 5000;
+
 
 
 export const UpdateExamBody = zod.object({
@@ -245,8 +302,18 @@ export const UpdateExamBody = zod.object({
   "endsAt": zod.coerce.date(),
   "questionIds": zod.array(zod.string()).max(updateExamBodyQuestionIdsMax),
   "randomize": zod.boolean().default(updateExamBodyRandomizeDefault),
-  "passPercent": zod.int().min(updateExamBodyPassPercentMin).max(updateExamBodyPassPercentMax).default(updateExamBodyPassPercentDefault)
+  "passPercent": zod.int().min(updateExamBodyPassPercentMin).max(updateExamBodyPassPercentMax).default(updateExamBodyPassPercentDefault),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(updateExamBodyAssistancePolicyOneResourcesMin).max(updateExamBodyAssistancePolicyOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}),zod.null()]).optional()
 })
+
+export const updateExamResponseAssistancePolicyOneOneResourcesMin = 5;
+export const updateExamResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+
 
 export const UpdateExamResponse = zod.object({
   "id": zod.string(),
@@ -266,7 +333,14 @@ export const UpdateExamResponse = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(updateExamResponseAssistancePolicyOneOneResourcesMin).max(updateExamResponseAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 })
 
 
@@ -287,6 +361,11 @@ export const ExamActionBody = zod.object({
   "action": zod.enum(['publish', 'complete', 'publish-results'])
 })
 
+export const examActionResponseAssistancePolicyOneOneResourcesMin = 5;
+export const examActionResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+
+
 export const ExamActionResponse = zod.object({
   "id": zod.string(),
   "title": zod.string(),
@@ -305,7 +384,14 @@ export const ExamActionResponse = zod.object({
   "passPercent": zod.int(),
   "attemptId": zod.string().nullish(),
   "attemptStatus": zod.string().nullish(),
-  "createdAt": zod.string().optional()
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(examActionResponseAssistancePolicyOneOneResourcesMin).max(examActionResponseAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional()
 })
 
 
@@ -331,9 +417,13 @@ export const StartAttemptParams = zod.object({
 })
 
 export const startAttemptBodySandboxDefault = false;
+export const startAttemptBodyPolicyVersionMax = 100;
+
+
 
 export const StartAttemptBody = zod.object({
-  "sandbox": zod.boolean().default(startAttemptBodySandboxDefault)
+  "sandbox": zod.boolean().default(startAttemptBodySandboxDefault),
+  "policyVersion": zod.string().max(startAttemptBodyPolicyVersionMax).optional()
 })
 
 export const startAttemptResponseQuestionsItemOneTextMin = 5;
@@ -354,6 +444,8 @@ export const startAttemptResponseQuestionsItemOneExplanationMax = 5000;
 export const startAttemptResponseAnswersItemValueMax = 20000;
 
 export const startAttemptResponseAnswersItemRevisionMin = 0;
+
+export const startAttemptResponseScratchpadVersionMin = 0;
 
 
 
@@ -395,6 +487,7 @@ export const StartAttemptResponse = zod.object({
   "totalMarks": zod.number(),
   "score": zod.number().nullish(),
   "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(startAttemptResponseScratchpadVersionMin).optional(),
   "announcements": zod.array(zod.object({
   "id": zod.string(),
   "message": zod.string(),
@@ -732,6 +825,8 @@ export const getAttemptResponseAnswersItemValueMax = 20000;
 
 export const getAttemptResponseAnswersItemRevisionMin = 0;
 
+export const getAttemptResponseScratchpadVersionMin = 0;
+
 
 
 export const GetAttemptResponse = zod.object({
@@ -772,6 +867,7 @@ export const GetAttemptResponse = zod.object({
   "totalMarks": zod.number(),
   "score": zod.number().nullish(),
   "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(getAttemptResponseScratchpadVersionMin).optional(),
   "announcements": zod.array(zod.object({
   "id": zod.string(),
   "message": zod.string(),
@@ -795,6 +891,8 @@ export const saveAnswersBodyAnswersMax = 200;
 
 export const saveAnswersBodyScratchpadMax = 50000;
 
+export const saveAnswersBodyScratchpadVersionMin = 0;
+
 
 
 export const SaveAnswersBody = zod.object({
@@ -807,13 +905,20 @@ export const SaveAnswersBody = zod.object({
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish()
 })).max(saveAnswersBodyAnswersMax),
-  "scratchpad": zod.string().max(saveAnswersBodyScratchpadMax).optional()
+  "scratchpad": zod.string().max(saveAnswersBodyScratchpadMax).optional(),
+  "scratchpadVersion": zod.int().min(saveAnswersBodyScratchpadVersionMin).optional()
 })
+
+export const saveAnswersResponseScratchpadVersionMin = 0;
+
+
 
 export const SaveAnswersResponse = zod.object({
   "savedAt": zod.string(),
   "serverNow": zod.string(),
-  "accepted": zod.boolean()
+  "accepted": zod.boolean(),
+  "conflict": zod.enum(['answer', 'scratchpad']).optional(),
+  "scratchpadVersion": zod.int().min(saveAnswersResponseScratchpadVersionMin).optional()
 })
 
 
@@ -839,6 +944,8 @@ export const submitAttemptResponseQuestionsItemOneExplanationMax = 5000;
 export const submitAttemptResponseAnswersItemValueMax = 20000;
 
 export const submitAttemptResponseAnswersItemRevisionMin = 0;
+
+export const submitAttemptResponseScratchpadVersionMin = 0;
 
 
 
@@ -880,6 +987,7 @@ export const SubmitAttemptResponse = zod.object({
   "totalMarks": zod.number(),
   "score": zod.number().nullish(),
   "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(submitAttemptResponseScratchpadVersionMin).optional(),
   "announcements": zod.array(zod.object({
   "id": zod.string(),
   "message": zod.string(),
@@ -1001,6 +1109,181 @@ export const ReviewIncidentResponse = zod.object({
 })
 
 
+export const GetIntegrityRecordParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const getIntegrityRecordResponsePolicyOneOneResourcesMin = 5;
+export const getIntegrityRecordResponsePolicyOneOneResourcesMax = 5000;
+
+
+
+export const GetIntegrityRecordResponse = zod.object({
+  "attemptId": zod.string(),
+  "policy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(getIntegrityRecordResponsePolicyOneOneResourcesMin).max(getIntegrityRecordResponsePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]),
+  "acknowledgedAt": zod.string().nullable(),
+  "disclosure": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "attemptId": zod.string(),
+  "questionId": zod.string(),
+  "prompt": zod.string(),
+  "requestedAt": zod.string(),
+  "responseDeadline": zod.string(),
+  "response": zod.string().nullable(),
+  "respondedAt": zod.string().nullable(),
+  "outcome": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable()
+})),
+  "serverNow": zod.string(),
+  "attemptStatus": zod.string(),
+  "sandbox": zod.boolean()
+})
+
+
+export const SaveDisclosureParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const saveDisclosureBodyDisclosureMax = 5000;
+
+
+
+export const SaveDisclosureBody = zod.object({
+  "disclosure": zod.string().max(saveDisclosureBodyDisclosureMax)
+})
+
+export const saveDisclosureResponsePolicyOneOneResourcesMin = 5;
+export const saveDisclosureResponsePolicyOneOneResourcesMax = 5000;
+
+
+
+export const SaveDisclosureResponse = zod.object({
+  "attemptId": zod.string(),
+  "policy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "resources": zod.string().min(saveDisclosureResponsePolicyOneOneResourcesMin).max(saveDisclosureResponsePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]),
+  "acknowledgedAt": zod.string().nullable(),
+  "disclosure": zod.string(),
+  "reviews": zod.array(zod.object({
+  "id": zod.string(),
+  "attemptId": zod.string(),
+  "questionId": zod.string(),
+  "prompt": zod.string(),
+  "requestedAt": zod.string(),
+  "responseDeadline": zod.string(),
+  "response": zod.string().nullable(),
+  "respondedAt": zod.string().nullable(),
+  "outcome": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable()
+})),
+  "serverNow": zod.string(),
+  "attemptStatus": zod.string(),
+  "sandbox": zod.boolean()
+})
+
+
+export const RequestAuthorshipReviewParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const requestAuthorshipReviewBodyPromptMin = 10;
+export const requestAuthorshipReviewBodyPromptMax = 5000;
+
+export const requestAuthorshipReviewBodyHoursMax = 168;
+
+
+
+export const RequestAuthorshipReviewBody = zod.object({
+  "questionId": zod.string(),
+  "prompt": zod.string().min(requestAuthorshipReviewBodyPromptMin).max(requestAuthorshipReviewBodyPromptMax),
+  "hours": zod.int().min(1).max(requestAuthorshipReviewBodyHoursMax)
+})
+
+export const RequestAuthorshipReviewResponse = zod.object({
+  "id": zod.string(),
+  "attemptId": zod.string(),
+  "questionId": zod.string(),
+  "prompt": zod.string(),
+  "requestedAt": zod.string(),
+  "responseDeadline": zod.string(),
+  "response": zod.string().nullable(),
+  "respondedAt": zod.string().nullable(),
+  "outcome": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable()
+})
+
+
+export const RespondToAuthorshipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const respondToAuthorshipBodyResponseMin = 10;
+export const respondToAuthorshipBodyResponseMax = 10000;
+
+
+
+export const RespondToAuthorshipBody = zod.object({
+  "response": zod.string().min(respondToAuthorshipBodyResponseMin).max(respondToAuthorshipBodyResponseMax)
+})
+
+export const RespondToAuthorshipResponse = zod.object({
+  "id": zod.string(),
+  "attemptId": zod.string(),
+  "questionId": zod.string(),
+  "prompt": zod.string(),
+  "requestedAt": zod.string(),
+  "responseDeadline": zod.string(),
+  "response": zod.string().nullable(),
+  "respondedAt": zod.string().nullable(),
+  "outcome": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable()
+})
+
+
+export const DecideAuthorshipParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const decideAuthorshipBodyReasonMin = 10;
+export const decideAuthorshipBodyReasonMax = 5000;
+
+
+
+export const DecideAuthorshipBody = zod.object({
+  "outcome": zod.enum(['satisfactory', 'further_review']),
+  "reason": zod.string().min(decideAuthorshipBodyReasonMin).max(decideAuthorshipBodyReasonMax)
+})
+
+export const DecideAuthorshipResponse = zod.object({
+  "id": zod.string(),
+  "attemptId": zod.string(),
+  "questionId": zod.string(),
+  "prompt": zod.string(),
+  "requestedAt": zod.string(),
+  "responseDeadline": zod.string(),
+  "response": zod.string().nullable(),
+  "respondedAt": zod.string().nullable(),
+  "outcome": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable()
+})
+
+
 export const GradeAttemptParams = zod.object({
   "id": zod.coerce.string()
 })
@@ -1039,6 +1322,8 @@ export const gradeAttemptResponseQuestionsItemOneExplanationMax = 5000;
 export const gradeAttemptResponseAnswersItemValueMax = 20000;
 
 export const gradeAttemptResponseAnswersItemRevisionMin = 0;
+
+export const gradeAttemptResponseScratchpadVersionMin = 0;
 
 
 
@@ -1080,6 +1365,7 @@ export const GradeAttemptResponse = zod.object({
   "totalMarks": zod.number(),
   "score": zod.number().nullish(),
   "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(gradeAttemptResponseScratchpadVersionMin).optional(),
   "announcements": zod.array(zod.object({
   "id": zod.string(),
   "message": zod.string(),

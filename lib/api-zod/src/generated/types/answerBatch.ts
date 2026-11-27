@@ -17,4 +17,6 @@ export interface AnswerBatch {
   answers: Answer[];
   /** @maxLength 50000 */
   scratchpad?: string;
+  /** @minimum 0 */
+  scratchpadVersion?: number;
 }

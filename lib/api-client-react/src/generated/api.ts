@@ -31,7 +31,12 @@ import type {
   AnswerBatch,
   Attempt,
   AttemptInput,
+  AuthorshipDecisionInput,
+  AuthorshipInput,
+  AuthorshipResponseInput,
+  AuthorshipReview,
   Dashboard,
+  DisclosureInput,
   EnrollmentInput,
   EventInput,
   Exam,
@@ -46,6 +51,7 @@ import type {
   IncidentDecisionInput,
   IncidentDossier,
   IncidentStatementInput,
+  IntegrityRecord,
   Message,
   Monitor,
   Question,
@@ -2479,6 +2485,433 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getReviewIncidentMutationOptions(options), queryClient);
+    }
+
+export const getGetIntegrityRecordUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/integrity`
+}
+
+export const getIntegrityRecord = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<IntegrityRecord> => {
+
+  return customFetch<IntegrityRecord>(getGetIntegrityRecordUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIntegrityRecordQueryKey = (id: string,) => {
+    return [
+    `/api/attempts/${id}/integrity`
+    ] as const;
+    }
+
+
+export const getGetIntegrityRecordQueryOptions = <TData = Awaited<ReturnType<typeof getIntegrityRecord>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIntegrityRecordQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIntegrityRecord>>> = ({ signal }) => getIntegrityRecord(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetIntegrityRecordQueryResult = NonNullable<Awaited<ReturnType<typeof getIntegrityRecord>>>
+export type GetIntegrityRecordQueryError = ErrorType<unknown>
+
+
+export function useGetIntegrityRecord<TData = Awaited<ReturnType<typeof getIntegrityRecord>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrityRecord>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrityRecord>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrityRecord<TData = Awaited<ReturnType<typeof getIntegrityRecord>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrityRecord>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrityRecord>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIntegrityRecord<TData = Awaited<ReturnType<typeof getIntegrityRecord>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetIntegrityRecord<TData = Awaited<ReturnType<typeof getIntegrityRecord>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIntegrityRecord>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetIntegrityRecordQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSaveDisclosureUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/integrity`
+}
+
+export const saveDisclosure = async (id: string,
+    disclosureInput: DisclosureInput, options?: Parameters<typeof customFetch>[1]): Promise<IntegrityRecord> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IntegrityRecord>(getSaveDisclosureUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(disclosureInput)
+  }
+);}
+
+
+
+
+
+export const getSaveDisclosureMutationKey = () => ['saveDisclosure'] as const;
+
+export const getSaveDisclosureMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDisclosure>>, TError,SaveDisclosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof saveDisclosure>>, TError,SaveDisclosureMutationVariables, TContext> => {
+
+const mutationKey = getSaveDisclosureMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof saveDisclosure>>, SaveDisclosureMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  saveDisclosure(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SaveDisclosureMutationResult = NonNullable<Awaited<ReturnType<typeof saveDisclosure>>>
+    export type SaveDisclosureMutationBody = BodyType<DisclosureInput>
+    export type SaveDisclosureMutationError = ErrorType<unknown>
+    export type SaveDisclosureMutationVariables = {id: string;data: BodyType<DisclosureInput>}
+
+    export const useSaveDisclosure = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof saveDisclosure>>, TError,SaveDisclosureMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof saveDisclosure>>,
+        TError,
+        SaveDisclosureMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSaveDisclosureMutationOptions(options), queryClient);
+    }
+
+export const getRequestAuthorshipReviewUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/authorship`
+}
+
+export const requestAuthorshipReview = async (id: string,
+    authorshipInput: AuthorshipInput, options?: Parameters<typeof customFetch>[1]): Promise<AuthorshipReview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AuthorshipReview>(getRequestAuthorshipReviewUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorshipInput)
+  }
+);}
+
+
+
+
+
+export const getRequestAuthorshipReviewMutationKey = () => ['requestAuthorshipReview'] as const;
+
+export const getRequestAuthorshipReviewMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAuthorshipReview>>, TError,RequestAuthorshipReviewMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestAuthorshipReview>>, TError,RequestAuthorshipReviewMutationVariables, TContext> => {
+
+const mutationKey = getRequestAuthorshipReviewMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAuthorshipReview>>, RequestAuthorshipReviewMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  requestAuthorshipReview(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestAuthorshipReviewMutationResult = NonNullable<Awaited<ReturnType<typeof requestAuthorshipReview>>>
+    export type RequestAuthorshipReviewMutationBody = BodyType<AuthorshipInput>
+    export type RequestAuthorshipReviewMutationError = ErrorType<unknown>
+    export type RequestAuthorshipReviewMutationVariables = {id: string;data: BodyType<AuthorshipInput>}
+
+    export const useRequestAuthorshipReview = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAuthorshipReview>>, TError,RequestAuthorshipReviewMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestAuthorshipReview>>,
+        TError,
+        RequestAuthorshipReviewMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestAuthorshipReviewMutationOptions(options), queryClient);
+    }
+
+export const getRespondToAuthorshipUrl = (id: string,) => {
+
+
+
+
+  return `/api/authorship-reviews/${id}/response`
+}
+
+export const respondToAuthorship = async (id: string,
+    authorshipResponseInput: AuthorshipResponseInput, options?: Parameters<typeof customFetch>[1]): Promise<AuthorshipReview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AuthorshipReview>(getRespondToAuthorshipUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorshipResponseInput)
+  }
+);}
+
+
+
+
+
+export const getRespondToAuthorshipMutationKey = () => ['respondToAuthorship'] as const;
+
+export const getRespondToAuthorshipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToAuthorship>>, TError,RespondToAuthorshipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof respondToAuthorship>>, TError,RespondToAuthorshipMutationVariables, TContext> => {
+
+const mutationKey = getRespondToAuthorshipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof respondToAuthorship>>, RespondToAuthorshipMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  respondToAuthorship(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RespondToAuthorshipMutationResult = NonNullable<Awaited<ReturnType<typeof respondToAuthorship>>>
+    export type RespondToAuthorshipMutationBody = BodyType<AuthorshipResponseInput>
+    export type RespondToAuthorshipMutationError = ErrorType<unknown>
+    export type RespondToAuthorshipMutationVariables = {id: string;data: BodyType<AuthorshipResponseInput>}
+
+    export const useRespondToAuthorship = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof respondToAuthorship>>, TError,RespondToAuthorshipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof respondToAuthorship>>,
+        TError,
+        RespondToAuthorshipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRespondToAuthorshipMutationOptions(options), queryClient);
+    }
+
+export const getDecideAuthorshipUrl = (id: string,) => {
+
+
+
+
+  return `/api/authorship-reviews/${id}/decision`
+}
+
+export const decideAuthorship = async (id: string,
+    authorshipDecisionInput: AuthorshipDecisionInput, options?: Parameters<typeof customFetch>[1]): Promise<AuthorshipReview> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<AuthorshipReview>(getDecideAuthorshipUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(authorshipDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getDecideAuthorshipMutationKey = () => ['decideAuthorship'] as const;
+
+export const getDecideAuthorshipMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAuthorship>>, TError,DecideAuthorshipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideAuthorship>>, TError,DecideAuthorshipMutationVariables, TContext> => {
+
+const mutationKey = getDecideAuthorshipMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideAuthorship>>, DecideAuthorshipMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  decideAuthorship(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideAuthorshipMutationResult = NonNullable<Awaited<ReturnType<typeof decideAuthorship>>>
+    export type DecideAuthorshipMutationBody = BodyType<AuthorshipDecisionInput>
+    export type DecideAuthorshipMutationError = ErrorType<unknown>
+    export type DecideAuthorshipMutationVariables = {id: string;data: BodyType<AuthorshipDecisionInput>}
+
+    export const useDecideAuthorship = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAuthorship>>, TError,DecideAuthorshipMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideAuthorship>>,
+        TError,
+        DecideAuthorshipMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideAuthorshipMutationOptions(options), queryClient);
     }
 
 export const getGradeAttemptUrl = (id: string,) => {
