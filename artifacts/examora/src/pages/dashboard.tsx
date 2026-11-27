@@ -7,7 +7,6 @@ import {
   useStartAttempt,
   getGetDashboardQueryKey,
   getListExamsQueryKey,
-  getListResultsQueryKey,
   type Exam,
 } from '@workspace/api-client-react';
 import { PageHeader, Stat, Panel, StatusPill, EmptyState, ErrorState, SkeletonRows, Meter } from '@/components/kit';

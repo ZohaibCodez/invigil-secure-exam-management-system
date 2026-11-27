@@ -1,7 +1,7 @@
 import express, { type Express, type ErrorRequestHandler } from "express";
 import pinoHttp from "pino-http";
 import { toNodeHandler } from "better-auth/node";
-import { ZodError } from "zod";
+import { ZodError } from "zod/v4";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { auth } from "./lib/auth";

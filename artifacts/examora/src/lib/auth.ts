@@ -16,8 +16,9 @@ async function post(path: string, body: unknown) {
     data = null;
   }
   if (!res.ok) {
+    const m = data && typeof data === 'object' && 'message' in data ? String((data as { message: unknown }).message) : '';
     const msg =
-      (data && typeof data === 'object' && 'message' in data && String((data as { message: unknown }).message)) ||
+      m ||
       (res.status === 401 ? 'Email or password is incorrect.' : `Sign-in failed (${res.status}).`);
     throw new Error(msg);
   }

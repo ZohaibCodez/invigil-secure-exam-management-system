@@ -34,7 +34,11 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
       const index = answers.findIndex(ans => ans.questionId === incoming.questionId);
       const old = answers[index];
       if (old && incoming.revision <= old.revision) {
-        if (incoming.value !== old.value || incoming.markedForReview !== old.markedForReview) throw new HttpError(409, "A newer answer exists. Refresh the attempt before making more changes.");
+        if (incoming.value !== old.value || incoming.markedForReview !== old.markedForReview) {
+          // A stale tab is recoverable: distinguish it from a closed attempt.
+          // No changes from this batch have been persisted.
+          return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, serverNow: now.toISOString() };
+        }
         continue;
       }
       const accepted: AnswerData = { questionId: incoming.questionId, value: incoming.value, markedForReview: incoming.markedForReview, revision: incoming.revision, score: null, feedback: null };

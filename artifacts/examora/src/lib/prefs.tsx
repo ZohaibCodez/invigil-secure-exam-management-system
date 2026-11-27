@@ -24,6 +24,9 @@ export function PrefsProvider({ userId, children }: { userId: string | null; chi
   useEffect(() => {
     document.documentElement.classList.toggle('dark', prefs.appTheme === 'dark');
   }, [prefs.appTheme]);
+  useEffect(() => {
+    document.documentElement.style.fontSize = prefs.density === 'compact' ? '15px' : '';
+  }, [prefs.density]);
   const update = (p: Partial<Prefs>) =>
     setPrefs((old) => {
       const next = { ...old, ...p };

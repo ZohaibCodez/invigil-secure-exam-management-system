@@ -1,5 +1,6 @@
 import { format, formatDistanceToNowStrict } from 'date-fns';
-import { ApiError } from '@workspace/api-client-react';
+type ApiErr = Error & { status: number; data: unknown };
+const isApiErr = (e: unknown): e is ApiErr => e instanceof Error && typeof (e as { status?: unknown }).status === 'number';
 
 export function fmtDate(iso?: string | null, pattern = 'd MMM yyyy, HH:mm') {
   if (!iso) return '—';
@@ -12,7 +13,7 @@ export function ago(iso?: string | null) {
   return isNaN(d.getTime()) ? '—' : `${formatDistanceToNowStrict(d)} ago`;
 }
 export function errMsg(e: unknown) {
-  if (e instanceof ApiError) {
+  if (isApiErr(e)) {
     const d = e.data as { message?: string; error?: string } | null;
     return d?.message || d?.error || e.message;
   }
@@ -20,7 +21,7 @@ export function errMsg(e: unknown) {
   return 'Something went wrong.';
 }
 export function errStatus(e: unknown) {
-  return e instanceof ApiError ? e.status : 0;
+  return isApiErr(e) ? e.status : 0;
 }
 export function initials(name: string) {
   return name

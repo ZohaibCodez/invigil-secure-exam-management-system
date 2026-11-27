@@ -43,8 +43,8 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
     if (!a) return;
     const grades = [];
     for (const qu of a.questions) {
+      if (qu.type !== 'written') continue;
       const e = get(qu.id);
-      if (e.score === '' && qu.type !== 'written') continue;
       const s = Number(e.score);
       if (e.score === '' || !Number.isFinite(s) || s < 0 || s > qu.marks) {
         toast({ title: 'Check the scores', description: `Each score must be between 0 and the question's marks.`, variant: 'destructive' });
@@ -98,15 +98,15 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
                   )}
                   {qu.explanation && <p className="mt-2 text-xs text-muted-foreground">Guide: {qu.explanation}</p>}
                   <div className="mt-3 grid gap-2 sm:grid-cols-[110px_1fr]">
-                    <Input data-testid={`input-score-${qu.id}`} type="number" min={0} max={qu.marks} step="0.5" placeholder={`/ ${qu.marks}`} value={e.score} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, score: ev.target.value } }))} />
-                    <Textarea data-testid={`input-feedback-${qu.id}`} rows={1} placeholder="Feedback for the candidate" value={e.feedback} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, feedback: ev.target.value } }))} />
+                    <Input aria-label={`Marks for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-score-${qu.id}`} type="number" min={0} max={qu.marks} step="0.5" placeholder={`/ ${qu.marks}`} value={e.score} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, score: ev.target.value } }))} />
+                    <Textarea aria-label={`Feedback for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-feedback-${qu.id}`} rows={1} placeholder={qu.type === 'written' ? "Feedback for the candidate" : "Automatically graded · exact-match marking"} value={e.feedback} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, feedback: ev.target.value } }))} />
                   </div>
                 </div>
               );
             })}
             <div className="sticky bottom-0 flex justify-end gap-2 border-t bg-background/95 pt-3 backdrop-blur">
               <Button variant="ghost" onClick={onClose}>Cancel</Button>
-              <Button onClick={save} disabled={grade.isPending} data-testid="button-save-grades">{grade.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save grades</Button>
+              {!result.published && <Button onClick={save} disabled={grade.isPending} data-testid="button-save-grades">{grade.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save grades</Button>}
             </div>
           </div>
         )}
