@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { ArrowUpRight, CalendarClock, FileText, RotateCcw, Award, Activity as ActivityIcon, Plus } from 'lucide-react';
 import {
   useGetDashboard,
+  useListExams,
+  getListExamsQueryKey,
   getGetDashboardQueryKey,
   type Exam,
 } from '@workspace/api-client-react';
@@ -77,6 +79,8 @@ function CandidateExamCard({ exam, index }: { exam: Exam; index: number }) {
 export default function Dashboard() {
   const me = useMe();
   const q = useGetDashboard({ query: { queryKey: getGetDashboardQueryKey(), refetchInterval: 20000 } });
+  // Candidates see every assigned exam (the dashboard summary only carries the latest six).
+  const all = useListExams({ query: { queryKey: getListExamsQueryKey(), refetchInterval: 20000 } });
   const d = q.data;
   const isCandidate = me.role === 'candidate';
   const first = me.name.split(' ')[0];
@@ -110,13 +114,30 @@ export default function Dashboard() {
             <Stat index={2} label="Submitted" value={d.submissions} />
             <Stat index={3} label="Average" value={d.submissions ? `${d.averageScore.toFixed(1)}%` : '—'} hint="Published results only" />
           </div>
-          {d.exams.length === 0 ? (
-            <EmptyState icon={<FileText className="h-5 w-5" />} title="No exams assigned yet" body="When an examiner enrolls you, the exam will appear here with its window and duration." />
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-              {d.exams.map((e, i) => <CandidateExamCard key={e.id} exam={e} index={i} />)}
-            </div>
-          )}
+          {(() => {
+            const exams = all.data ?? d.exams;
+            if (exams.length === 0) return <EmptyState icon={<FileText className="h-5 w-5" />} title="No exams assigned yet" body="When an examiner enrolls you, the exam will appear here with its window and duration." />;
+            const finished = (e: (typeof exams)[number]) => e.status === 'completed' || (!!e.attemptStatus && e.attemptStatus !== 'active');
+            const groups = [
+              { key: 'available', title: 'Available now', hint: 'Open for entry or already in progress', items: exams.filter((e) => e.status === 'ongoing' && !finished(e)) },
+              { key: 'upcoming', title: 'Upcoming', hint: 'Published; opens at the scheduled time', items: exams.filter((e) => e.status === 'published' && !finished(e)) },
+              { key: 'completed', title: 'Completed', hint: 'Submitted or closed; results appear once published', items: exams.filter(finished) },
+            ];
+            return groups.map((g) => (
+              <section key={g.key} aria-labelledby={`grp-${g.key}`} data-testid={`section-${g.key}`}>
+                <div className="mb-3 flex items-baseline gap-3">
+                  <h2 id={`grp-${g.key}`} className="text-lg font-semibold tracking-tight">{g.title}</h2>
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium tnum">{g.items.length}</span>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">{g.hint}</span>
+                </div>
+                {g.items.length === 0 ? <p className="rounded-xl border border-dashed p-4 text-sm text-muted-foreground">Nothing here right now.</p> : (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 [&>*]:min-w-0">
+                    {g.items.map((e, i) => <CandidateExamCard key={e.id} exam={e} index={i} />)}
+                  </div>
+                )}
+              </section>
+            ));
+          })()}
         </div>
       ) : (
         <div className="space-y-6">
