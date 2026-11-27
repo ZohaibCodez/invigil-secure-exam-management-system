@@ -256,6 +256,14 @@ export interface DeliverySettings {
   venue: string;
   /** @maxLength 100 */
   sessionLabel: string;
+  /** Exits from fullscreen and tab switches count as violations */
+  requireFullscreen?: boolean;
+  /**
+     * Violations before the attempt locks for examiner review
+     * @minimum 1
+     * @maximum 10
+     */
+  maxViolations?: number;
 }
 
 export interface ExamInput {
@@ -450,8 +458,19 @@ export interface AttemptInput {
   admissionId?: string;
   instructionsRead?: boolean;
   deviceReady?: boolean;
-  policyAcknowledged?: boolean;
   subjectsConfirmed?: boolean;
+  policyAcknowledged?: boolean;
+}
+
+/**
+ * Advisory AI grade. Never counted until an examiner saves a grade.
+ */
+export interface AiSuggestion {
+  /** @minimum 0 */
+  score: number;
+  feedback: string;
+  model: string;
+  createdAt: string;
 }
 
 export interface Answer {
@@ -470,6 +489,59 @@ export interface Answer {
   feedback?: string | null;
   /** @nullable */
   lockedAt?: string | null;
+  aiSuggestion?: AiSuggestion | null;
+}
+
+export interface Supervision {
+  /** @minimum 0 */
+  violationCount: number;
+  maxViolations: number;
+  requireFullscreen: boolean;
+  /** @nullable */
+  lockedAt: string | null;
+  /** @nullable */
+  lockReason: string | null;
+  /** @nullable */
+  voidedAt: string | null;
+  /** @nullable */
+  voidReason: string | null;
+}
+
+export type ViolationInputType = typeof ViolationInputType[keyof typeof ViolationInputType];
+
+
+export const ViolationInputType = {
+  'fullscreen-exit': 'fullscreen-exit',
+  'tab-hidden': 'tab-hidden',
+  'window-blur': 'window-blur',
+} as const;
+
+export interface ViolationInput {
+  /**
+     * @minLength 8
+     * @maxLength 100
+     */
+  operationId: string;
+  type: ViolationInputType;
+}
+
+export type SupervisionInputAction = typeof SupervisionInputAction[keyof typeof SupervisionInputAction];
+
+
+export const SupervisionInputAction = {
+  lock: 'lock',
+  resume: 'resume',
+  void: 'void',
+  retake: 'retake',
+} as const;
+
+export interface SupervisionInput {
+  action: SupervisionInputAction;
+  /**
+     * @minLength 3
+     * @maxLength 1000
+     */
+  reason: string;
 }
 
 export interface AnswerBatch {
@@ -617,6 +689,7 @@ export interface Attempt {
   announcements: Announcement[];
   deliverySettings?: DeliverySettings;
   entryAttestation?: EntryAttestation | null;
+  supervision?: Supervision;
 }
 
 export interface DisclosureInput {
@@ -729,6 +802,7 @@ export const EventInputType = {
   reconnected: 'reconnected',
   recovery: 'recovery',
   'late-recovery': 'late-recovery',
+  'page-return': 'page-return',
 } as const;
 
 export interface EventInput {
@@ -755,6 +829,15 @@ export interface MonitoredAttempt {
   deadline: string;
   lastSavedAt: string;
   incidents: number;
+  violationCount?: number;
+  maxViolations?: number;
+  requireFullscreen?: boolean;
+  /** @nullable */
+  lockedAt?: string | null;
+  /** @nullable */
+  lockReason?: string | null;
+  /** @nullable */
+  voidedAt?: string | null;
 }
 
 export interface Monitor {

@@ -76,6 +76,19 @@ export async function authorizedAttempt(id: string, user: AppUser, ownerOnly = f
   if (attempt.sandbox && attempt.userId !== user.id) throw new HttpError(403, "Sandbox attempts are private.");
   return attempt;
 }
+export function supervisionView(a: AttemptRow) {
+  const settings = settingsFor(a.deliverySettings);
+  return {
+    violationCount: a.violationCount, maxViolations: settings.maxViolations, requireFullscreen: settings.requireFullscreen,
+    lockedAt: a.lockedAt?.toISOString() ?? null, lockReason: a.lockReason,
+    voidedAt: a.voidedAt?.toISOString() ?? null, voidReason: a.voidReason,
+  };
+}
+/** A locked attempt is frozen until an examiner resumes, voids or replaces it. Expiry still finalizes it. */
+export function assertNotLocked(a: AttemptRow) {
+  if (a.status === "active" && a.lockedAt)
+    throw new HttpError(423, "This attempt is locked pending examiner review. Your saved answers are kept.");
+}
 export async function attemptView(a: AttemptRow, user: AppUser) {
   const [exam] = await db.select().from(exams).where(eq(exams.id, a.examId));
   const [candidate] = await db.select().from(users).where(eq(users.id, a.userId));
@@ -85,10 +98,15 @@ export async function attemptView(a: AttemptRow, user: AppUser) {
     status: a.status, startedAt: a.startedAt.toISOString(), deadline: a.deadline.toISOString(),
     serverNow: new Date().toISOString(), submittedAt: a.submittedAt?.toISOString() ?? null,
     questions: a.questions.map(q => reveal ? q : { ...q, correctAnswers: [], explanation: "" }),
-    answers: a.answers.map(ans => reveal ? ans : { ...ans, score: null, feedback: null }),
+    // AI suggestions are advisory notes for examiners and are never shown to candidates.
+    answers: a.answers.map(ans => {
+      const visible = reveal ? ans : { ...ans, score: null, feedback: null };
+      return user.role === "candidate" ? { ...visible, aiSuggestion: null } : visible;
+    }),
     sandbox: a.sandbox, totalMarks: a.totalMarks, score: reveal ? a.score : null,
     scratchpad: a.scratchpad, scratchpadVersion: a.scratchpadVersion, announcements: await getAnnouncements(a.examId),
     deliverySettings: settingsFor(a.deliverySettings), entryAttestation: a.entryAttestation,
+    supervision: supervisionView(a),
   };
 }
 export const reportToken = () => randomBytes(24).toString("hex");

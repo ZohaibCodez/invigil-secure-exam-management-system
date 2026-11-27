@@ -7,6 +7,10 @@ export type DeliverySettings = {
   minimumAttemptPercent: number;
   venue: string;
   sessionLabel: string;
+  /** Candidate must stay in fullscreen; exits and tab switches count as violations. */
+  requireFullscreen: boolean;
+  /** Violations before the attempt is locked for examiner review (1-10). */
+  maxViolations: number;
 };
 export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   requireProctorApproval: false,
@@ -16,6 +20,8 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   minimumAttemptPercent: 0,
   venue: "",
   sessionLabel: "",
+  requireFullscreen: false,
+  maxViolations: 3,
 };
 export type EntryAttestation = {
   entryVersion: string;

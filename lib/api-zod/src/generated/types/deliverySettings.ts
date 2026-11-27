@@ -20,4 +20,12 @@ export interface DeliverySettings {
   venue: string;
   /** @maxLength 100 */
   sessionLabel: string;
+  /** Exits from fullscreen and tab switches count as violations */
+  requireFullscreen?: boolean;
+  /**
+     * Violations before the attempt locks for examiner review
+     * @minimum 1
+     * @maximum 10
+     */
+  maxViolations?: number;
 }

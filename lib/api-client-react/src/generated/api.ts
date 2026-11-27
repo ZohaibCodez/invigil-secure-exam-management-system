@@ -66,9 +66,12 @@ import type {
   Result,
   SaveReceipt,
   SessionInfo,
+  Supervision,
+  SupervisionInput,
   User,
   UserInput,
-  UserUpdate
+  UserUpdate,
+  ViolationInput
 } from './api.schemas';
 
 import { customFetch } from '../custom-fetch';
@@ -2927,6 +2930,240 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRecordEventMutationOptions(options), queryClient);
+    }
+
+export const getRecordViolationUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/violations`
+}
+
+export const recordViolation = async (id: string,
+    violationInput: ViolationInput, options?: Parameters<typeof customFetch>[1]): Promise<Supervision> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Supervision>(getRecordViolationUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(violationInput)
+  }
+);}
+
+
+
+
+
+export const getRecordViolationMutationKey = () => ['recordViolation'] as const;
+
+export const getRecordViolationMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordViolation>>, TError,RecordViolationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof recordViolation>>, TError,RecordViolationMutationVariables, TContext> => {
+
+const mutationKey = getRecordViolationMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof recordViolation>>, RecordViolationMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  recordViolation(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RecordViolationMutationResult = NonNullable<Awaited<ReturnType<typeof recordViolation>>>
+    export type RecordViolationMutationBody = BodyType<ViolationInput>
+    export type RecordViolationMutationError = ErrorType<unknown>
+    export type RecordViolationMutationVariables = {id: string;data: BodyType<ViolationInput>}
+
+    export const useRecordViolation = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof recordViolation>>, TError,RecordViolationMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof recordViolation>>,
+        TError,
+        RecordViolationMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRecordViolationMutationOptions(options), queryClient);
+    }
+
+export const getSuperviseAttemptUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/supervision`
+}
+
+export const superviseAttempt = async (id: string,
+    supervisionInput: SupervisionInput, options?: Parameters<typeof customFetch>[1]): Promise<Attempt> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Attempt>(getSuperviseAttemptUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(supervisionInput)
+  }
+);}
+
+
+
+
+
+export const getSuperviseAttemptMutationKey = () => ['superviseAttempt'] as const;
+
+export const getSuperviseAttemptMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof superviseAttempt>>, TError,SuperviseAttemptMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof superviseAttempt>>, TError,SuperviseAttemptMutationVariables, TContext> => {
+
+const mutationKey = getSuperviseAttemptMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof superviseAttempt>>, SuperviseAttemptMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  superviseAttempt(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuperviseAttemptMutationResult = NonNullable<Awaited<ReturnType<typeof superviseAttempt>>>
+    export type SuperviseAttemptMutationBody = BodyType<SupervisionInput>
+    export type SuperviseAttemptMutationError = ErrorType<unknown>
+    export type SuperviseAttemptMutationVariables = {id: string;data: BodyType<SupervisionInput>}
+
+    export const useSuperviseAttempt = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof superviseAttempt>>, TError,SuperviseAttemptMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof superviseAttempt>>,
+        TError,
+        SuperviseAttemptMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSuperviseAttemptMutationOptions(options), queryClient);
+    }
+
+export const getSuggestAiGradesUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/ai-grade`
+}
+
+export const suggestAiGrades = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Attempt> => {
+
+  return customFetch<Attempt>(getSuggestAiGradesUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getSuggestAiGradesMutationKey = () => ['suggestAiGrades'] as const;
+
+export const getSuggestAiGradesMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suggestAiGrades>>, TError,SuggestAiGradesMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof suggestAiGrades>>, TError,SuggestAiGradesMutationVariables, TContext> => {
+
+const mutationKey = getSuggestAiGradesMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof suggestAiGrades>>, SuggestAiGradesMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  suggestAiGrades(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SuggestAiGradesMutationResult = NonNullable<Awaited<ReturnType<typeof suggestAiGrades>>>
+
+    export type SuggestAiGradesMutationError = ErrorType<unknown>
+    export type SuggestAiGradesMutationVariables = {id: string}
+
+    export const useSuggestAiGrades = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof suggestAiGrades>>, TError,SuggestAiGradesMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof suggestAiGrades>>,
+        TError,
+        SuggestAiGradesMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSuggestAiGradesMutationOptions(options), queryClient);
     }
 
 export const getGetIncidentDossierUrl = (id: string,) => {

@@ -24,6 +24,22 @@ monitoring, grading, controlled publication, and verifiable PDF results.
 - **Secondary features:** network-aware saving, PDF reports, sandbox,
   CSV/JSON import with validation, question analytics, QR verification, workspace
   customization, and a digital scratchpad.
+- **Fullscreen supervision (per exam, optional):** the paper runs in fullscreen;
+  leaving fullscreen, switching tabs or losing window focus blocks the paper and is
+  recorded as a violation. At the exam's limit (1-10) the attempt **locks** for a
+  human decision. The examiner or administrator can resume it, void it (score 0)
+  or authorize a retake, and must give a reason, which is logged with their name.
+  Violations never change a score automatically (requirement 3.6), and re-opening
+  the page after a crash or power cut is logged but not counted (innovation 5.3).
+  A browser cannot lock the whole computer, so the design blocks and records
+  instead of claiming a lockdown.
+- **AI-assisted grading (optional, Groq):** when an examiner opens a submission,
+  each written answer gets an advisory score and feedback, pre-filled for review.
+  Nothing counts until the examiner presses *Approve and save grades*. Only the
+  question, marks, marking guidance and answer text are sent, never candidate
+  identity. Candidate answers are treated as untrusted data (prompt-injection
+  resistant), scores are clamped to the question's marks, and candidates never see
+  the AI suggestion. Without `GROQ_API_KEY`, grading is fully manual.
 - **Innovation challenge 5.3:** failure-resilient examination delivery without
   granting extra time based on untrusted client clocks.
 - **Innovation challenge 5.1:** versioned resource/AI policies, explicit candidate

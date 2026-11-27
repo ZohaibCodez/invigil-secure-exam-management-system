@@ -16,4 +16,13 @@ export interface MonitoredAttempt {
   deadline: string;
   lastSavedAt: string;
   incidents: number;
+  violationCount?: number;
+  maxViolations?: number;
+  requireFullscreen?: boolean;
+  /** @nullable */
+  lockedAt?: string | null;
+  /** @nullable */
+  lockReason?: string | null;
+  /** @nullable */
+  voidedAt?: string | null;
 }

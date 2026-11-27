@@ -15,4 +15,5 @@ export const EventInputType = {
   reconnected: 'reconnected',
   recovery: 'recovery',
   'late-recovery': 'late-recovery',
+  'page-return': 'page-return',
 } as const;

@@ -16,5 +16,5 @@ export function entryVersion(exam: ExamRow) {
 }
 export function requiresEntryAcknowledgement(settings: DeliverySettings) {
   return settings.requireProctorApproval || settings.requireReadiness ||
-    settings.confirmSubjects || settings.lockOnSave || settings.minimumAttemptPercent > 0;
+    settings.confirmSubjects || settings.lockOnSave || settings.minimumAttemptPercent > 0 || settings.requireFullscreen;
 }

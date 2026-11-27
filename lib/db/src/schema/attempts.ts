@@ -12,7 +12,10 @@ export type AnswerData = {
   score: number | null;
   feedback: string | null;
   lockedAt?: string | null;
+  /** AI-suggested grade for a written answer. Advisory only: never counted until an examiner saves a grade. */
+  aiSuggestion?: AiSuggestion | null;
 };
+export type AiSuggestion = { score: number; feedback: string; model: string; createdAt: string };
 export const attempts = pgTable("attempts", {
   id: text("id").primaryKey(),
   examId: text("exam_id").notNull().references(() => exams.id),
@@ -30,6 +33,7 @@ export const attempts = pgTable("attempts", {
   deliverySettings: jsonb("delivery_settings").$type<DeliverySettings>().notNull().default({
     requireProctorApproval: false, requireReadiness: false, confirmSubjects: false,
     lockOnSave: false, minimumAttemptPercent: 0, venue: "", sessionLabel: "",
+    requireFullscreen: false, maxViolations: 3,
   }),
   disclosureVersion: integer("disclosure_version").notNull().default(0),
   entryAttestation: jsonb("entry_attestation").$type<EntryAttestation | null>(),
@@ -41,8 +45,16 @@ export const attempts = pgTable("attempts", {
   submittedAt: timestamp("submitted_at", { withTimezone: true }),
   verificationToken: text("verification_token").unique(),
   reportIssuedAt: timestamp("report_issued_at", { withTimezone: true }),
+  // Fullscreen supervision. Strikes lock the attempt for a human decision; they never score it.
+  violationCount: integer("violation_count").notNull().default(0),
+  lockedAt: timestamp("locked_at", { withTimezone: true }),
+  lockReason: text("lock_reason"),
+  voidedAt: timestamp("voided_at", { withTimezone: true }),
+  voidReason: text("void_reason"),
+  // Set when an examiner authorizes a retake. The archived attempt is kept for audit.
+  supersededAt: timestamp("superseded_at", { withTimezone: true }),
 }, (t) => [
-  uniqueIndex("one_real_attempt_per_enrollment").on(t.examId, t.userId).where(sql`${t.sandbox} = false`),
+  uniqueIndex("one_current_attempt_per_enrollment").on(t.examId, t.userId).where(sql`${t.sandbox} = false AND ${t.supersededAt} IS NULL`),
   index("attempts_exam_idx").on(t.examId),
   index("attempts_candidate_idx").on(t.userId),
 ]);

@@ -272,8 +272,9 @@ export function CandidateEntry({ exam }: { exam: Exam }) {
                 {e.settings.venue && <><dt className="text-muted-foreground">Venue</dt><dd>{e.settings.venue}</dd></>}
                 {e.settings.sessionLabel && <><dt className="text-muted-foreground">Session</dt><dd>{e.settings.sessionLabel}</dd></>}
               </dl>
-              {(e.settings.lockOnSave || e.settings.minimumAttemptPercent > 0) && (
+              {(e.settings.lockOnSave || e.settings.minimumAttemptPercent > 0 || e.settings.requireFullscreen) && (
                 <ul className="mt-3 space-y-1 border-t pt-2 text-xs text-muted-foreground">
+                  {e.settings.requireFullscreen && <li>Fullscreen supervision: the paper runs in fullscreen. Leaving fullscreen or switching tabs counts as a violation; after {e.settings.maxViolations ?? 3} the attempt locks until an examiner reviews it. Your saved answers are always kept.</li>}
                   {e.settings.lockOnSave && <li>Save and lock: pressing Save makes that answer final. You can still read it later.</li>}
                   {e.settings.minimumAttemptPercent > 0 && <li>Answer at least {minimumRequired(e.questionCount, e.settings.minimumAttemptPercent)} of {e.questionCount} before submitting early. When time ends, the server submits automatically.</li>}
                 </ul>

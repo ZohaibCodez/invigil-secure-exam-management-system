@@ -1,4 +1,6 @@
 import { Router, type IRouter } from "express";
+import { currentRealAttempt } from "../lib/real-attempt";
+import { settingsFor } from "../lib/delivery";
 import { and, eq, desc, inArray } from "@workspace/db";
 import { db, exams, attempts, users, incidents, activities, questions, enrollments } from "@workspace/db";
 import { GetDashboardResponse, ListResultsResponse, GetAnalyticsResponse, GetMonitorResponse } from "@workspace/api-zod";
@@ -15,7 +17,7 @@ async function scopedAttempts(user: Express.Request["appUser"], resultsOnly = fa
   await expireExamAttempts(ids);
   let rows = await db.select({ attempt: attempts, candidate: users }).from(attempts)
     .innerJoin(users, eq(users.id, attempts.userId))
-    .where(and(inArray(attempts.examId, ids), eq(attempts.sandbox, false),
+    .where(and(inArray(attempts.examId, ids), currentRealAttempt(),
       user.role === "candidate" ? eq(attempts.userId, user.id) : undefined));
   if (resultsOnly) rows = rows.filter(r => r.attempt.status !== "active" && (user.role !== "candidate" || examRows.find(e => e.id === r.attempt.examId)?.resultsPublished));
   return { examRows, rows };
@@ -43,7 +45,7 @@ router.get("/exams/:id/monitor", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser);
   await expireExamAttempts([exam.id]);
   const rows = await db.select({ attempt: attempts, candidate: users }).from(attempts).innerJoin(users, eq(users.id, attempts.userId))
-    .where(and(eq(attempts.examId, exam.id), eq(attempts.sandbox, false)));
+    .where(and(eq(attempts.examId, exam.id), currentRealAttempt()));
   const allIncidents = rows.length ? await db.select().from(incidents).where(inArray(incidents.attemptId, rows.map(r => r.attempt.id))).orderBy(desc(incidents.createdAt)).limit(300) : [];
   res.json(GetMonitorResponse.parse({
     attempts: rows.map(({ attempt: a, candidate: c }) => ({
@@ -51,6 +53,9 @@ router.get("/exams/:id/monitor", async (req, res): Promise<void> => {
       answered: a.questions.filter(q => hasAnswer(q, a.answers.find(ans => ans.questionId === q.id)?.value)).length,
       questionCount: a.questions.length, deadline: a.deadline.toISOString(), lastSavedAt: a.lastSavedAt.toISOString(),
       incidents: allIncidents.filter(i => i.attemptId === a.id).length,
+      violationCount: a.violationCount, maxViolations: settingsFor(a.deliverySettings).maxViolations,
+      requireFullscreen: settingsFor(a.deliverySettings).requireFullscreen,
+      lockedAt: a.lockedAt?.toISOString() ?? null, lockReason: a.lockReason, voidedAt: a.voidedAt?.toISOString() ?? null,
     })),
     incidents: allIncidents.map(i => ({ id: i.id, candidateName: rows.find(r => r.attempt.id === i.attemptId)!.candidate.name, type: i.type, detail: i.detail, createdAt: i.createdAt.toISOString() })),
     announcements: await getAnnouncements(exam.id),

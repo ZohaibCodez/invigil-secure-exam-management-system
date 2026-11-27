@@ -8,10 +8,13 @@ export const DEFAULT_DELIVERY: DeliverySettings = {
   minimumAttemptPercent: 0,
   venue: '',
   sessionLabel: '',
+  requireFullscreen: false,
+  maxViolations: 3,
 };
 
 /** Supervised delivery preset: readiness, subject confirmation and save-and-lock. QR approval and threshold stay optional. */
-export const SUPERVISED_PRESET: Pick<DeliverySettings, 'requireReadiness' | 'confirmSubjects' | 'lockOnSave'> = {
+export const SUPERVISED_PRESET: Pick<DeliverySettings, 'requireReadiness' | 'confirmSubjects' | 'lockOnSave' | 'requireFullscreen'> = {
+  requireFullscreen: true,
   requireReadiness: true,
   confirmSubjects: true,
   lockOnSave: true,
@@ -20,7 +23,7 @@ export const SUPERVISED_PRESET: Pick<DeliverySettings, 'requireReadiness' | 'con
 export const withDefaults = (s?: Partial<DeliverySettings> | null): DeliverySettings => ({ ...DEFAULT_DELIVERY, ...(s ?? {}) });
 
 export const isStrict = (s?: DeliverySettings | null) =>
-  !!s && (s.requireProctorApproval || s.requireReadiness || s.confirmSubjects || s.lockOnSave || s.minimumAttemptPercent > 0);
+  !!s && (s.requireProctorApproval || s.requireReadiness || s.confirmSubjects || s.lockOnSave || s.minimumAttemptPercent > 0 || !!s.requireFullscreen);
 
 export const minimumRequired = (total: number, percent: number) => (percent > 0 ? Math.ceil((total * percent) / 100) : 0);
 

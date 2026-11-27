@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearch, Link } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { Radio, Megaphone, Loader2, EyeOff, WifiOff, Wifi, History, AlertTriangle, Info } from 'lucide-react';
+import { Radio, Megaphone, Loader2, EyeOff, WifiOff, Wifi, History, AlertTriangle, Info, ShieldAlert, Gavel, RefreshCcw } from 'lucide-react';
 import {
   useListExams,
   useGetMonitor,
@@ -16,6 +16,7 @@ import {
   getGetIncidentDossierQueryKey,
 } from '@workspace/api-client-react';
 import { IncidentReview } from '@/components/incident-review';
+import { SupervisionActions } from '@/components/supervision-actions';
 import { IntegrityReview } from '@/components/integrity-review';
 import { PageHeader, Panel, EmptyState, ErrorState, SkeletonRows, StatusPill, Meter, Stat } from '@/components/kit';
 import { Button } from '@/components/ui/button';
@@ -30,6 +31,9 @@ const INC: Record<string, { icon: typeof EyeOff; label: string }> = {
   reconnected: { icon: Wifi, label: 'Reconnected' },
   recovery: { icon: History, label: 'Recovered local work' },
   'late-recovery': { icon: AlertTriangle, label: 'Late local work found' },
+  violation: { icon: ShieldAlert, label: 'Supervision violation' },
+  supervision: { icon: Gavel, label: 'Staff decision' },
+  'page-return': { icon: RefreshCcw, label: 'Re-opened the exam page' },
 };
 
 function useNow(ms = 1000) {
@@ -110,6 +114,9 @@ export default function Monitor() {
                         <div className="hidden font-mono text-xs tnum md:block">{a.status === 'active' ? (left > 0 ? clock(left) : 'expired') : '—'}</div>
                         <div className="hidden text-xs text-muted-foreground md:block" title={fmtDate(a.lastSavedAt)}>saved {ago(a.lastSavedAt)}</div>
                         <div className="flex items-center gap-2 justify-self-end">
+                          {a.voidedAt ? <span className="rounded-full bg-muted px-1.5 py-0.5 font-mono text-[10px]" data-testid={`badge-voided-${a.id}`}>voided</span>
+                            : a.lockedAt ? <span className="rounded-full bg-accent px-1.5 py-0.5 font-mono text-[10px] text-accent-foreground" data-testid={`badge-locked-${a.id}`}>locked</span>
+                            : a.requireFullscreen && (a.violationCount ?? 0) > 0 ? <span className="rounded-full bg-accent/10 px-1.5 py-0.5 font-mono text-[10px] text-accent">{a.violationCount}/{a.maxViolations} viol</span> : null}
                           {a.incidents > 0 && <span className="rounded-full bg-[hsl(38_80%_92%)] px-1.5 py-0.5 font-mono text-[10px] text-[hsl(30_70%_30%)] dark:bg-[hsl(38_40%_18%)] dark:text-[hsl(38_70%_70%)]">{a.incidents} inc</span>}
                           <StatusPill status={a.status} />
                         </div>
@@ -132,6 +139,7 @@ export default function Monitor() {
                       }}>Refresh review records</Button>
                     </div>
                     <p className="mb-3 text-xs text-muted-foreground">Review records refresh every 10–15 seconds while this page is visible. Refresh now to check for a recent response.</p>
+                    <SupervisionActions key={`sup-${picked}`} examId={examId} attempt={data.attempts.find((a) => a.id === picked)!} resultsPublished={!!exam?.resultsPublished} />
                     <IncidentReview key={picked} attemptId={picked} mode="staff" defaultOpen />
                     <IntegrityReview key={`integrity-${picked}`} attemptId={picked} staff questions={selectedAttempt.data?.questions} />
                   </div>

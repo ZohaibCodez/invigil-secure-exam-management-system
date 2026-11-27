@@ -1,4 +1,5 @@
 import { createHash, randomInt, randomUUID } from "node:crypto";
+import { currentRealAttempt } from "./real-attempt";
 import { and, eq, inArray } from "@workspace/db";
 import { db, exams, enrollments, attempts, announcements, questions, type QuestionData } from "@workspace/db";
 import { HttpError, type AppUser } from "./access";
@@ -61,8 +62,8 @@ export function examStatus(e: ExamRow) {
 export async function examView(e: ExamRow, user: AppUser) {
   const [enrolled, submitted, own] = await Promise.all([
     db.select({ id: enrollments.userId }).from(enrollments).where(eq(enrollments.examId, e.id)),
-    db.select({ status: attempts.status }).from(attempts).where(and(eq(attempts.examId, e.id), eq(attempts.sandbox, false))),
-    user.role === "candidate" ? db.select().from(attempts).where(and(eq(attempts.examId, e.id), eq(attempts.userId, user.id), eq(attempts.sandbox, false))) : Promise.resolve([]),
+    db.select({ status: attempts.status }).from(attempts).where(and(eq(attempts.examId, e.id), currentRealAttempt())),
+    user.role === "candidate" ? db.select().from(attempts).where(and(eq(attempts.examId, e.id), eq(attempts.userId, user.id), currentRealAttempt())) : Promise.resolve([]),
   ]);
   return {
     id: e.id, title: e.title, subject: e.subject, instructions: e.instructions, duration: e.duration,

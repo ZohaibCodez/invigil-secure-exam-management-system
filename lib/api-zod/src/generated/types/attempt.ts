@@ -11,6 +11,7 @@ import type { AttemptStatus } from './attemptStatus';
 import type { DeliverySettings } from './deliverySettings';
 import type { EntryAttestation } from './entryAttestation';
 import type { Question } from './question';
+import type { Supervision } from './supervision';
 
 export interface Attempt {
   id: string;
@@ -35,4 +36,5 @@ export interface Attempt {
   announcements: Announcement[];
   deliverySettings?: DeliverySettings;
   entryAttestation?: EntryAttestation | null;
+  supervision?: Supervision;
 }

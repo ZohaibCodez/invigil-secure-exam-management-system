@@ -41,6 +41,7 @@ import {
   type EventInput,
 } from '@workspace/api-client-react';
 import { Seal, ErrorState } from '@/components/kit';
+import { ExamSupervision } from '@/components/exam-supervision';
 import { IncidentReview } from '@/components/incident-review';
 import { IntegrityReview } from '@/components/integrity-review';
 import { AttemptSafety, type ScratchConflict } from '@/components/attempt-safety';
@@ -619,6 +620,7 @@ export default function AttemptPage() {
             <div className="min-w-0 rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Answers on record</div><div className="font-display text-3xl tnum">{attempt.answers.filter((a) => hasAnswerValue(a.value, attempt.questions.find(question => question.id === a.questionId)?.type)).length}/{attempt.questions.length}</div></div>
             <div className="min-w-0 rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Score</div><div className="font-display text-3xl tnum">{attempt.score != null ? `${attempt.score}/${attempt.totalMarks}` : '—'}</div>{attempt.score == null && <div className="text-[11px] text-muted-foreground">Released when your examiner publishes</div>}</div>
           </div>
+          {attempt.supervision?.voidedAt && <p className="mt-3 rounded-lg border border-accent/30 bg-accent/5 p-2.5 text-xs" data-testid="text-voided">This attempt was voided by examination staff. {attempt.supervision.voidReason} You can submit a statement below; a retake can only be authorized by your examiner or an administrator.</p>}
           {attempt.status === 'submitted' && <p className="mt-3 text-xs text-muted-foreground" data-testid="text-marking-pending">Written responses are awaiting examiner marking. Your submitted answers are on record.</p>}
           {lateWork.length > 0 && (
             <div className="mt-5 flex gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-left text-xs">
@@ -641,6 +643,7 @@ export default function AttemptPage() {
 
   return (
     <div className={wrap}>
+      <ExamSupervision attempt={attempt} night={night} />
       {attempt.sandbox && (
         <div className="flex items-center justify-center gap-2 bg-[repeating-linear-gradient(135deg,hsl(var(--accent)/.12)_0_10px,transparent_10px_20px)] py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-accent" data-testid="banner-sandbox">
           <FlaskConical className="h-3.5 w-3.5" /> Sandbox — excluded from results and statistics

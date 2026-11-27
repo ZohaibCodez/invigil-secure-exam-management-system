@@ -411,6 +411,49 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+  /attempts/{id}/violations:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: recordViolation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ViolationInput" }
+      responses:
+        "200":
+          description: Updated supervision state. Reaching the limit locks the attempt for examiner review; it never scores it.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Supervision" }
+  /attempts/{id}/supervision:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: superviseAttempt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupervisionInput" }
+      responses:
+        "200":
+          description: Attempt after the examiner or administrator decision
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attempt" }
+  /attempts/{id}/ai-grade:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: suggestAiGrades
+      responses:
+        "200":
+          description: Attempt with advisory AI suggestions on ungraded written answers
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attempt" }
   /attempts/{id}/incident-review:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 150 } }
@@ -730,6 +773,8 @@ components:
         minimumAttemptPercent: { type: integer, minimum: 0, maximum: 100 }
         venue: { type: string, maxLength: 200 }
         sessionLabel: { type: string, maxLength: 100 }
+        requireFullscreen: { type: boolean, description: "Exits from fullscreen and tab switches count as violations" }
+        maxViolations: { type: integer, minimum: 1, maximum: 10, description: "Violations before the attempt locks for examiner review" }
     EntryInformation:
       type: object
       required: [examId, examTitle, candidateId, candidateName, subjects, questionCount, totalMarks, duration, startsAt, endsAt, serverNow, entryVersion, settings]
@@ -870,6 +915,42 @@ components:
         score: { type: [number, "null"] }
         feedback: { type: [string, "null"] }
         lockedAt: { type: [string, "null"] }
+        aiSuggestion:
+          anyOf:
+            - { $ref: "#/components/schemas/AiSuggestion" }
+            - { type: "null" }
+    AiSuggestion:
+      type: object
+      description: Advisory AI grade. Never counted until an examiner saves a grade.
+      required: [score, feedback, model, createdAt]
+      properties:
+        score: { type: number, minimum: 0 }
+        feedback: { type: string }
+        model: { type: string }
+        createdAt: { type: string }
+    Supervision:
+      type: object
+      required: [violationCount, maxViolations, requireFullscreen, lockedAt, lockReason, voidedAt, voidReason]
+      properties:
+        violationCount: { type: integer, minimum: 0 }
+        maxViolations: { type: integer }
+        requireFullscreen: { type: boolean }
+        lockedAt: { type: [string, "null"] }
+        lockReason: { type: [string, "null"] }
+        voidedAt: { type: [string, "null"] }
+        voidReason: { type: [string, "null"] }
+    ViolationInput:
+      type: object
+      required: [operationId, type]
+      properties:
+        operationId: { type: string, minLength: 8, maxLength: 100 }
+        type: { type: string, enum: [fullscreen-exit, tab-hidden, window-blur] }
+    SupervisionInput:
+      type: object
+      required: [action, reason]
+      properties:
+        action: { type: string, enum: [lock, resume, void, retake] }
+        reason: { type: string, minLength: 3, maxLength: 1000 }
     AnswerBatch:
       type: object
       required: [answers, operationId]
@@ -971,6 +1052,7 @@ components:
           anyOf:
             - { $ref: "#/components/schemas/EntryAttestation" }
             - { type: "null" }
+        supervision: { $ref: "#/components/schemas/Supervision" }
     DisclosureInput:
       type: object
       required: [disclosure, version]
@@ -1045,7 +1127,7 @@ components:
       type: object
       required: [type, detail]
       properties:
-        type: { type: string, enum: [tab-hidden, offline, reconnected, recovery, late-recovery] }
+        type: { type: string, enum: [tab-hidden, offline, reconnected, recovery, late-recovery, page-return] }
         detail: { type: string, maxLength: 5000 }
     Incident:
       type: object
@@ -1069,6 +1151,12 @@ components:
         deadline: { type: string }
         lastSavedAt: { type: string }
         incidents: { type: integer }
+        violationCount: { type: integer }
+        maxViolations: { type: integer }
+        requireFullscreen: { type: boolean }
+        lockedAt: { type: [string, "null"] }
+        lockReason: { type: [string, "null"] }
+        voidedAt: { type: [string, "null"] }
     Monitor:
       type: object
       required: [attempts, incidents, announcements]

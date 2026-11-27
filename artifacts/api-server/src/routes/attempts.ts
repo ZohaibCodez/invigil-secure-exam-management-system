@@ -4,7 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { db, attempts, exams, saveOperations, incidents, type AnswerData } from "@workspace/db";
 import { SaveAnswersBody, RecordEventBody, GradeAttemptBody, GetAttemptResponse, CommitQuestionBody } from "@workspace/api-zod";
 import { paramId, HttpError, requireStaff } from "../lib/access";
-import { authorizedAttempt, finalizeIfExpired, attemptView, databaseNow, finalizeLocked, validateAnswer, hasAnswer } from "../lib/attempts";
+import { authorizedAttempt, finalizeIfExpired, attemptView, databaseNow, finalizeLocked, validateAnswer, hasAnswer, assertNotLocked } from "../lib/attempts";
 import { settingsFor } from "../lib/delivery";
 
 const router: IRouter = Router();
@@ -39,6 +39,7 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
       // Return rather than throw, so expiry finalization is committed.
       return null;
     }
+    assertNotLocked(locked!);
     if (input.scratchpad !== undefined && input.scratchpadVersion !== locked!.scratchpadVersion) {
       return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, conflict: "scratchpad", scratchpadVersion: locked!.scratchpadVersion, serverNow: now.toISOString() };
     }
@@ -81,6 +82,7 @@ router.post("/attempts/:id/submit", async (req, res): Promise<void> => {
   const result = await db.transaction(async tx => {
     const [locked] = await tx.select().from(attempts).where(eq(attempts.id, a.id)).for("update");
     const now = await databaseNow(tx);
+    if (now < locked!.deadline) assertNotLocked(locked!);
     const minimum = settingsFor(locked!.deliverySettings).minimumAttemptPercent;
     if (locked!.status === "active" && now < locked!.deadline && minimum > 0) {
       const answered = locked!.questions.filter(q => hasAnswer(q, locked!.answers.find(ans => ans.questionId === q.id)?.value)).length;
@@ -101,6 +103,7 @@ router.post("/attempts/:id/commit-question", async (req, res): Promise<void> => 
       if (locked!.status === "active") await finalizeLocked(tx, locked!);
       return null;
     }
+    assertNotLocked(locked!);
     if (!settingsFor(locked!.deliverySettings).lockOnSave)
       throw new HttpError(409, "Save-and-lock is not enabled for this attempt.");
     const question = locked!.questions.find(q => q.id === input.questionId);

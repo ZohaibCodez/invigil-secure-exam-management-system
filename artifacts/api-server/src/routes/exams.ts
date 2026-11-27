@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { currentRealAttempt } from "../lib/real-attempt";
 import { and, eq, inArray, sql } from "@workspace/db";
 import { randomUUID } from "node:crypto";
 import { db, exams, enrollments, attempts, users, announcements, admissions } from "@workspace/db";
@@ -79,7 +80,7 @@ router.post("/exams/:id/action", async (req, res): Promise<void> => {
       await tx.update(exams).set({ status: "published", questionSnapshot: pool, totalMarks: check.totalMarks }).where(eq(exams.id, e.id));
     } else {
       if (e.status === "draft") throw new HttpError(409, "Publish the examination first.");
-      const rows = await tx.select().from(attempts).where(and(eq(attempts.examId, e.id), eq(attempts.sandbox, false))).for("update");
+      const rows = await tx.select().from(attempts).where(and(eq(attempts.examId, e.id), currentRealAttempt())).for("update");
       const now = await databaseNow(tx);
       const finished = [];
       for (const a of rows) finished.push(a.status === "active" && (action === "complete" || now >= a.deadline) ? await finalizeLocked(tx, a) : a);
@@ -122,7 +123,7 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
   const a = await db.transaction(async tx => {
     const [e] = await tx.select().from(exams).where(eq(exams.id, exam.id)).for("update");
     if (!sandbox) {
-      const [existing] = await tx.select().from(attempts).where(and(eq(attempts.examId, exam.id), eq(attempts.userId, req.appUser.id), eq(attempts.sandbox, false)));
+      const [existing] = await tx.select().from(attempts).where(and(eq(attempts.examId, exam.id), eq(attempts.userId, req.appUser.id), currentRealAttempt()));
       if (existing) return existing;
     }
     const now = await databaseNow(tx);

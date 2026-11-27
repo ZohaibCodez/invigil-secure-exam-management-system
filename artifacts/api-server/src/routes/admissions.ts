@@ -1,4 +1,5 @@
 import { Router, type IRouter } from "express";
+import { currentRealAttempt } from "../lib/real-attempt";
 import { randomUUID } from "node:crypto";
 import { and, eq, desc, db, admissions, exams, users, enrollments, attempts } from "@workspace/db";
 import { DecideAdmissionBody } from "@workspace/api-zod";
@@ -67,7 +68,7 @@ router.post("/exams/:id/admissions", async (req, res): Promise<void> => {
     const now = await databaseNow(tx);
     available(locked!, now);
     const [existingAttempt] = await tx.select({ id: attempts.id }).from(attempts)
-      .where(and(eq(attempts.examId, exam.id), eq(attempts.userId, req.appUser.id), eq(attempts.sandbox, false))).limit(1);
+      .where(and(eq(attempts.examId, exam.id), eq(attempts.userId, req.appUser.id), currentRealAttempt())).limit(1);
     if (existingAttempt) throw new HttpError(409, "An attempt already exists. Resume it instead of requesting new admission.");
     const previous = await tx.select().from(admissions)
       .where(and(eq(admissions.examId, exam.id), eq(admissions.candidateId, req.appUser.id)))

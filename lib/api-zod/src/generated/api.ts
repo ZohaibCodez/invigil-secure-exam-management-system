@@ -36,6 +36,8 @@ export const getDashboardResponseExamsItemDeliverySettingsVenueMax = 200;
 
 export const getDashboardResponseExamsItemDeliverySettingsSessionLabelMax = 100;
 
+export const getDashboardResponseExamsItemDeliverySettingsMaxViolationsMax = 10;
+
 
 
 export const GetDashboardResponse = zod.object({
@@ -79,7 +81,9 @@ export const GetDashboardResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMin).max(getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(getDashboardResponseExamsItemDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(getDashboardResponseExamsItemDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(getDashboardResponseExamsItemDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(getDashboardResponseExamsItemDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 })),
@@ -102,6 +106,8 @@ export const listExamsResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const listExamsResponseDeliverySettingsVenueMax = 200;
 
 export const listExamsResponseDeliverySettingsSessionLabelMax = 100;
+
+export const listExamsResponseDeliverySettingsMaxViolationsMax = 10;
 
 
 
@@ -138,7 +144,9 @@ export const ListExamsResponseItem = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(listExamsResponseDeliverySettingsMinimumAttemptPercentMin).max(listExamsResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(listExamsResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(listExamsResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(listExamsResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(listExamsResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 })
@@ -172,6 +180,8 @@ export const createExamBodyDeliverySettingsVenueMax = 200;
 
 export const createExamBodyDeliverySettingsSessionLabelMax = 100;
 
+export const createExamBodyDeliverySettingsMaxViolationsMax = 10;
+
 
 
 export const CreateExamBody = zod.object({
@@ -196,7 +206,9 @@ export const CreateExamBody = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(createExamBodyDeliverySettingsMinimumAttemptPercentMin).max(createExamBodyDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(createExamBodyDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(createExamBodyDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(createExamBodyDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(createExamBodyDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional()
 })
 
@@ -209,6 +221,8 @@ export const createExamResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const createExamResponseDeliverySettingsVenueMax = 200;
 
 export const createExamResponseDeliverySettingsSessionLabelMax = 100;
+
+export const createExamResponseDeliverySettingsMaxViolationsMax = 10;
 
 
 
@@ -245,7 +259,9 @@ export const CreateExamResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(createExamResponseDeliverySettingsMinimumAttemptPercentMin).max(createExamResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(createExamResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(createExamResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(createExamResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(createExamResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 })
@@ -264,6 +280,8 @@ export const getExamResponseOneDeliverySettingsMinimumAttemptPercentMax = 100;
 export const getExamResponseOneDeliverySettingsVenueMax = 200;
 
 export const getExamResponseOneDeliverySettingsSessionLabelMax = 100;
+
+export const getExamResponseOneDeliverySettingsMaxViolationsMax = 10;
 
 export const getExamResponseTwoQuestionsItemOneTextMin = 5;
 export const getExamResponseTwoQuestionsItemOneTextMax = 10000;
@@ -315,7 +333,9 @@ export const GetExamResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(getExamResponseOneDeliverySettingsMinimumAttemptPercentMin).max(getExamResponseOneDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(getExamResponseOneDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(getExamResponseOneDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(getExamResponseOneDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(getExamResponseOneDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 }).and(zod.object({
@@ -382,6 +402,8 @@ export const updateExamBodyDeliverySettingsVenueMax = 200;
 
 export const updateExamBodyDeliverySettingsSessionLabelMax = 100;
 
+export const updateExamBodyDeliverySettingsMaxViolationsMax = 10;
+
 
 
 export const UpdateExamBody = zod.object({
@@ -406,7 +428,9 @@ export const UpdateExamBody = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(updateExamBodyDeliverySettingsMinimumAttemptPercentMin).max(updateExamBodyDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(updateExamBodyDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(updateExamBodyDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(updateExamBodyDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(updateExamBodyDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional()
 })
 
@@ -419,6 +443,8 @@ export const updateExamResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const updateExamResponseDeliverySettingsVenueMax = 200;
 
 export const updateExamResponseDeliverySettingsSessionLabelMax = 100;
+
+export const updateExamResponseDeliverySettingsMaxViolationsMax = 10;
 
 
 
@@ -455,7 +481,9 @@ export const UpdateExamResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(updateExamResponseDeliverySettingsMinimumAttemptPercentMin).max(updateExamResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(updateExamResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(updateExamResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(updateExamResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(updateExamResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 })
@@ -674,6 +702,8 @@ export const examActionResponseDeliverySettingsVenueMax = 200;
 
 export const examActionResponseDeliverySettingsSessionLabelMax = 100;
 
+export const examActionResponseDeliverySettingsMaxViolationsMax = 10;
+
 
 
 export const ExamActionResponse = zod.object({
@@ -709,7 +739,9 @@ export const ExamActionResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(examActionResponseDeliverySettingsMinimumAttemptPercentMin).max(examActionResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(examActionResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(examActionResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(examActionResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(examActionResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryVersion": zod.string().optional()
 })
@@ -752,8 +784,8 @@ export const StartAttemptBody = zod.object({
   "admissionId": zod.string().max(startAttemptBodyAdmissionIdMax).optional(),
   "instructionsRead": zod.boolean().optional(),
   "deviceReady": zod.boolean().optional(),
-  "policyAcknowledged": zod.boolean().optional(),
-  "subjectsConfirmed": zod.boolean().optional()
+  "subjectsConfirmed": zod.boolean().optional(),
+  "policyAcknowledged": zod.boolean().optional()
 })
 
 export const startAttemptResponseQuestionsItemOneTextMin = 5;
@@ -775,6 +807,8 @@ export const startAttemptResponseAnswersItemValueMax = 20000;
 
 export const startAttemptResponseAnswersItemRevisionMin = 0;
 
+export const startAttemptResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
 export const startAttemptResponseScratchpadVersionMin = 0;
 
 export const startAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
@@ -783,6 +817,10 @@ export const startAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const startAttemptResponseDeliverySettingsVenueMax = 200;
 
 export const startAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
+export const startAttemptResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const startAttemptResponseSupervisionViolationCountMin = 0;
 
 
 
@@ -819,7 +857,13 @@ export const StartAttemptResponse = zod.object({
   "revision": zod.int().min(startAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(startAttemptResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -838,7 +882,9 @@ export const StartAttemptResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(startAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(startAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(startAttemptResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(startAttemptResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(startAttemptResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(startAttemptResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryAttestation": zod.union([zod.object({
   "entryVersion": zod.string(),
@@ -847,7 +893,16 @@ export const StartAttemptResponse = zod.object({
   "subjectsConfirmed": zod.boolean(),
   "recordedAt": zod.string(),
   "admissionId": zod.string().nullable()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(startAttemptResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 
@@ -861,6 +916,8 @@ export const getEntryInformationResponseSettingsMinimumAttemptPercentMax = 100;
 export const getEntryInformationResponseSettingsVenueMax = 200;
 
 export const getEntryInformationResponseSettingsSessionLabelMax = 100;
+
+export const getEntryInformationResponseSettingsMaxViolationsMax = 10;
 
 
 
@@ -884,7 +941,9 @@ export const GetEntryInformationResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(getEntryInformationResponseSettingsMinimumAttemptPercentMin).max(getEntryInformationResponseSettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(getEntryInformationResponseSettingsVenueMax),
-  "sessionLabel": zod.string().max(getEntryInformationResponseSettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(getEntryInformationResponseSettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(getEntryInformationResponseSettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 })
 })
 
@@ -1015,6 +1074,8 @@ export const commitQuestionResponseAnswersItemValueMax = 20000;
 
 export const commitQuestionResponseAnswersItemRevisionMin = 0;
 
+export const commitQuestionResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
 export const commitQuestionResponseScratchpadVersionMin = 0;
 
 export const commitQuestionResponseDeliverySettingsMinimumAttemptPercentMin = 0;
@@ -1023,6 +1084,10 @@ export const commitQuestionResponseDeliverySettingsMinimumAttemptPercentMax = 10
 export const commitQuestionResponseDeliverySettingsVenueMax = 200;
 
 export const commitQuestionResponseDeliverySettingsSessionLabelMax = 100;
+
+export const commitQuestionResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const commitQuestionResponseSupervisionViolationCountMin = 0;
 
 
 
@@ -1059,7 +1124,13 @@ export const CommitQuestionResponse = zod.object({
   "revision": zod.int().min(commitQuestionResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(commitQuestionResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1078,7 +1149,9 @@ export const CommitQuestionResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(commitQuestionResponseDeliverySettingsMinimumAttemptPercentMin).max(commitQuestionResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(commitQuestionResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(commitQuestionResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(commitQuestionResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(commitQuestionResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryAttestation": zod.union([zod.object({
   "entryVersion": zod.string(),
@@ -1087,7 +1160,16 @@ export const CommitQuestionResponse = zod.object({
   "subjectsConfirmed": zod.boolean(),
   "recordedAt": zod.string(),
   "admissionId": zod.string().nullable()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(commitQuestionResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 
@@ -1105,7 +1187,13 @@ export const GetMonitorResponse = zod.object({
   "questionCount": zod.int(),
   "deadline": zod.string(),
   "lastSavedAt": zod.string(),
-  "incidents": zod.int()
+  "incidents": zod.int(),
+  "violationCount": zod.int().optional(),
+  "maxViolations": zod.int().optional(),
+  "requireFullscreen": zod.boolean().optional(),
+  "lockedAt": zod.string().nullish(),
+  "lockReason": zod.string().nullish(),
+  "voidedAt": zod.string().nullish()
 })),
   "incidents": zod.array(zod.object({
   "id": zod.string(),
@@ -1420,6 +1508,8 @@ export const getAttemptResponseAnswersItemValueMax = 20000;
 
 export const getAttemptResponseAnswersItemRevisionMin = 0;
 
+export const getAttemptResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
 export const getAttemptResponseScratchpadVersionMin = 0;
 
 export const getAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
@@ -1428,6 +1518,10 @@ export const getAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const getAttemptResponseDeliverySettingsVenueMax = 200;
 
 export const getAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
+export const getAttemptResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const getAttemptResponseSupervisionViolationCountMin = 0;
 
 
 
@@ -1464,7 +1558,13 @@ export const GetAttemptResponse = zod.object({
   "revision": zod.int().min(getAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(getAttemptResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1483,7 +1583,9 @@ export const GetAttemptResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(getAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(getAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(getAttemptResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(getAttemptResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(getAttemptResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(getAttemptResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryAttestation": zod.union([zod.object({
   "entryVersion": zod.string(),
@@ -1492,7 +1594,16 @@ export const GetAttemptResponse = zod.object({
   "subjectsConfirmed": zod.boolean(),
   "recordedAt": zod.string(),
   "admissionId": zod.string().nullable()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(getAttemptResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 
@@ -1506,6 +1617,8 @@ export const saveAnswersBodyOperationIdMax = 100;
 export const saveAnswersBodyAnswersItemValueMax = 20000;
 
 export const saveAnswersBodyAnswersItemRevisionMin = 0;
+
+export const saveAnswersBodyAnswersItemAiSuggestionOneScoreMin = 0;
 
 export const saveAnswersBodyAnswersMax = 200;
 
@@ -1524,7 +1637,13 @@ export const SaveAnswersBody = zod.object({
   "revision": zod.int().min(saveAnswersBodyAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(saveAnswersBodyAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })).max(saveAnswersBodyAnswersMax),
   "scratchpad": zod.string().max(saveAnswersBodyScratchpadMax).optional(),
   "scratchpadVersion": zod.int().min(saveAnswersBodyScratchpadVersionMin).optional()
@@ -1566,6 +1685,8 @@ export const submitAttemptResponseAnswersItemValueMax = 20000;
 
 export const submitAttemptResponseAnswersItemRevisionMin = 0;
 
+export const submitAttemptResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
 export const submitAttemptResponseScratchpadVersionMin = 0;
 
 export const submitAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
@@ -1574,6 +1695,10 @@ export const submitAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100
 export const submitAttemptResponseDeliverySettingsVenueMax = 200;
 
 export const submitAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
+export const submitAttemptResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const submitAttemptResponseSupervisionViolationCountMin = 0;
 
 
 
@@ -1610,7 +1735,13 @@ export const SubmitAttemptResponse = zod.object({
   "revision": zod.int().min(submitAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(submitAttemptResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1629,7 +1760,9 @@ export const SubmitAttemptResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(submitAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(submitAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(submitAttemptResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(submitAttemptResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(submitAttemptResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(submitAttemptResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryAttestation": zod.union([zod.object({
   "entryVersion": zod.string(),
@@ -1638,7 +1771,16 @@ export const SubmitAttemptResponse = zod.object({
   "subjectsConfirmed": zod.boolean(),
   "recordedAt": zod.string(),
   "admissionId": zod.string().nullable()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(submitAttemptResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 
@@ -1651,12 +1793,295 @@ export const recordEventBodyDetailMax = 5000;
 
 
 export const RecordEventBody = zod.object({
-  "type": zod.enum(['tab-hidden', 'offline', 'reconnected', 'recovery', 'late-recovery']),
+  "type": zod.enum(['tab-hidden', 'offline', 'reconnected', 'recovery', 'late-recovery', 'page-return']),
   "detail": zod.string().max(recordEventBodyDetailMax)
 })
 
 export const RecordEventResponse = zod.object({
   "message": zod.string()
+})
+
+
+export const RecordViolationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const recordViolationBodyOperationIdMin = 8;
+export const recordViolationBodyOperationIdMax = 100;
+
+
+
+export const RecordViolationBody = zod.object({
+  "operationId": zod.string().min(recordViolationBodyOperationIdMin).max(recordViolationBodyOperationIdMax),
+  "type": zod.enum(['fullscreen-exit', 'tab-hidden', 'window-blur'])
+})
+
+export const recordViolationResponseViolationCountMin = 0;
+
+
+
+export const RecordViolationResponse = zod.object({
+  "violationCount": zod.int().min(recordViolationResponseViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+})
+
+
+export const SuperviseAttemptParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const superviseAttemptBodyReasonMin = 3;
+export const superviseAttemptBodyReasonMax = 1000;
+
+
+
+export const SuperviseAttemptBody = zod.object({
+  "action": zod.enum(['lock', 'resume', 'void', 'retake']),
+  "reason": zod.string().min(superviseAttemptBodyReasonMin).max(superviseAttemptBodyReasonMax)
+})
+
+export const superviseAttemptResponseQuestionsItemOneTextMin = 5;
+export const superviseAttemptResponseQuestionsItemOneTextMax = 10000;
+
+export const superviseAttemptResponseQuestionsItemOneCategoryMax = 100;
+
+export const superviseAttemptResponseQuestionsItemOneMarksMax = 1000;
+
+export const superviseAttemptResponseQuestionsItemOneOptionsItemTextMax = 2000;
+
+export const superviseAttemptResponseQuestionsItemOneOptionsMax = 10;
+
+export const superviseAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
+
+export const superviseAttemptResponseQuestionsItemOneExplanationMax = 5000;
+
+export const superviseAttemptResponseAnswersItemValueMax = 20000;
+
+export const superviseAttemptResponseAnswersItemRevisionMin = 0;
+
+export const superviseAttemptResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
+export const superviseAttemptResponseScratchpadVersionMin = 0;
+
+export const superviseAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const superviseAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const superviseAttemptResponseDeliverySettingsVenueMax = 200;
+
+export const superviseAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
+export const superviseAttemptResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const superviseAttemptResponseSupervisionViolationCountMin = 0;
+
+
+
+export const SuperviseAttemptResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['active', 'submitted', 'graded']),
+  "startedAt": zod.string(),
+  "deadline": zod.string(),
+  "serverNow": zod.string(),
+  "submittedAt": zod.string().nullish(),
+  "questions": zod.array(zod.object({
+  "text": zod.string().min(superviseAttemptResponseQuestionsItemOneTextMin).max(superviseAttemptResponseQuestionsItemOneTextMax),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "category": zod.string().min(1).max(superviseAttemptResponseQuestionsItemOneCategoryMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "marks": zod.number().min(1).max(superviseAttemptResponseQuestionsItemOneMarksMax),
+  "options": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string().min(1).max(superviseAttemptResponseQuestionsItemOneOptionsItemTextMax)
+})).max(superviseAttemptResponseQuestionsItemOneOptionsMax),
+  "correctAnswers": zod.array(zod.string()).max(superviseAttemptResponseQuestionsItemOneCorrectAnswersMax),
+  "explanation": zod.string().max(superviseAttemptResponseQuestionsItemOneExplanationMax).optional()
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.string().optional()
+}))),
+  "answers": zod.array(zod.object({
+  "questionId": zod.string(),
+  "value": zod.string().max(superviseAttemptResponseAnswersItemValueMax).describe('Written text or JSON array of selected option IDs'),
+  "markedForReview": zod.boolean(),
+  "revision": zod.int().min(superviseAttemptResponseAnswersItemRevisionMin),
+  "score": zod.number().nullish(),
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(superviseAttemptResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
+})),
+  "sandbox": zod.boolean(),
+  "totalMarks": zod.number(),
+  "score": zod.number().nullish(),
+  "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(superviseAttemptResponseScratchpadVersionMin).optional(),
+  "announcements": zod.array(zod.object({
+  "id": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(superviseAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(superviseAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(superviseAttemptResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(superviseAttemptResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(superviseAttemptResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(superviseAttemptResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
+})
+
+
+export const SuggestAiGradesParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const suggestAiGradesResponseQuestionsItemOneTextMin = 5;
+export const suggestAiGradesResponseQuestionsItemOneTextMax = 10000;
+
+export const suggestAiGradesResponseQuestionsItemOneCategoryMax = 100;
+
+export const suggestAiGradesResponseQuestionsItemOneMarksMax = 1000;
+
+export const suggestAiGradesResponseQuestionsItemOneOptionsItemTextMax = 2000;
+
+export const suggestAiGradesResponseQuestionsItemOneOptionsMax = 10;
+
+export const suggestAiGradesResponseQuestionsItemOneCorrectAnswersMax = 10;
+
+export const suggestAiGradesResponseQuestionsItemOneExplanationMax = 5000;
+
+export const suggestAiGradesResponseAnswersItemValueMax = 20000;
+
+export const suggestAiGradesResponseAnswersItemRevisionMin = 0;
+
+export const suggestAiGradesResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
+export const suggestAiGradesResponseScratchpadVersionMin = 0;
+
+export const suggestAiGradesResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const suggestAiGradesResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const suggestAiGradesResponseDeliverySettingsVenueMax = 200;
+
+export const suggestAiGradesResponseDeliverySettingsSessionLabelMax = 100;
+
+export const suggestAiGradesResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const suggestAiGradesResponseSupervisionViolationCountMin = 0;
+
+
+
+export const SuggestAiGradesResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['active', 'submitted', 'graded']),
+  "startedAt": zod.string(),
+  "deadline": zod.string(),
+  "serverNow": zod.string(),
+  "submittedAt": zod.string().nullish(),
+  "questions": zod.array(zod.object({
+  "text": zod.string().min(suggestAiGradesResponseQuestionsItemOneTextMin).max(suggestAiGradesResponseQuestionsItemOneTextMax),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "category": zod.string().min(1).max(suggestAiGradesResponseQuestionsItemOneCategoryMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "marks": zod.number().min(1).max(suggestAiGradesResponseQuestionsItemOneMarksMax),
+  "options": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string().min(1).max(suggestAiGradesResponseQuestionsItemOneOptionsItemTextMax)
+})).max(suggestAiGradesResponseQuestionsItemOneOptionsMax),
+  "correctAnswers": zod.array(zod.string()).max(suggestAiGradesResponseQuestionsItemOneCorrectAnswersMax),
+  "explanation": zod.string().max(suggestAiGradesResponseQuestionsItemOneExplanationMax).optional()
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.string().optional()
+}))),
+  "answers": zod.array(zod.object({
+  "questionId": zod.string(),
+  "value": zod.string().max(suggestAiGradesResponseAnswersItemValueMax).describe('Written text or JSON array of selected option IDs'),
+  "markedForReview": zod.boolean(),
+  "revision": zod.int().min(suggestAiGradesResponseAnswersItemRevisionMin),
+  "score": zod.number().nullish(),
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(suggestAiGradesResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
+})),
+  "sandbox": zod.boolean(),
+  "totalMarks": zod.number(),
+  "score": zod.number().nullish(),
+  "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(suggestAiGradesResponseScratchpadVersionMin).optional(),
+  "announcements": zod.array(zod.object({
+  "id": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(suggestAiGradesResponseDeliverySettingsMinimumAttemptPercentMin).max(suggestAiGradesResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(suggestAiGradesResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(suggestAiGradesResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(suggestAiGradesResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(suggestAiGradesResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 
@@ -1990,6 +2415,8 @@ export const gradeAttemptResponseAnswersItemValueMax = 20000;
 
 export const gradeAttemptResponseAnswersItemRevisionMin = 0;
 
+export const gradeAttemptResponseAnswersItemAiSuggestionOneScoreMin = 0;
+
 export const gradeAttemptResponseScratchpadVersionMin = 0;
 
 export const gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
@@ -1998,6 +2425,10 @@ export const gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
 export const gradeAttemptResponseDeliverySettingsVenueMax = 200;
 
 export const gradeAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
+export const gradeAttemptResponseDeliverySettingsMaxViolationsMax = 10;
+
+export const gradeAttemptResponseSupervisionViolationCountMin = 0;
 
 
 
@@ -2034,7 +2465,13 @@ export const GradeAttemptResponse = zod.object({
   "revision": zod.int().min(gradeAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
   "feedback": zod.string().nullish(),
-  "lockedAt": zod.string().nullish()
+  "lockedAt": zod.string().nullish(),
+  "aiSuggestion": zod.union([zod.object({
+  "score": zod.number().min(gradeAttemptResponseAnswersItemAiSuggestionOneScoreMin),
+  "feedback": zod.string(),
+  "model": zod.string(),
+  "createdAt": zod.string()
+}).describe('Advisory AI grade. Never counted until an examiner saves a grade.'),zod.null()]).optional()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -2053,7 +2490,9 @@ export const GradeAttemptResponse = zod.object({
   "lockOnSave": zod.boolean(),
   "minimumAttemptPercent": zod.int().min(gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
   "venue": zod.string().max(gradeAttemptResponseDeliverySettingsVenueMax),
-  "sessionLabel": zod.string().max(gradeAttemptResponseDeliverySettingsSessionLabelMax)
+  "sessionLabel": zod.string().max(gradeAttemptResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(gradeAttemptResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
 }).optional(),
   "entryAttestation": zod.union([zod.object({
   "entryVersion": zod.string(),
@@ -2062,7 +2501,16 @@ export const GradeAttemptResponse = zod.object({
   "subjectsConfirmed": zod.boolean(),
   "recordedAt": zod.string(),
   "admissionId": zod.string().nullable()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "supervision": zod.object({
+  "violationCount": zod.int().min(gradeAttemptResponseSupervisionViolationCountMin),
+  "maxViolations": zod.int(),
+  "requireFullscreen": zod.boolean(),
+  "lockedAt": zod.string().nullable(),
+  "lockReason": zod.string().nullable(),
+  "voidedAt": zod.string().nullable(),
+  "voidReason": zod.string().nullable()
+}).optional()
 })
 
 

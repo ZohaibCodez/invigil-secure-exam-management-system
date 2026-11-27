@@ -1,12 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { Award, Download, FileDown, PenLine, ShieldCheck, Loader2, Send, Clock } from 'lucide-react';
+import { Award, Download, FileDown, PenLine, ShieldCheck, Loader2, Send, Clock, Sparkles } from 'lucide-react';
 import {
   useListResults,
   useGetAttempt,
   useGradeAttempt,
+  useSuggestAiGrades,
   useExamAction,
   getListResultsQueryKey,
   getGetAttemptQueryKey,
@@ -34,10 +35,35 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
   const { toast } = useToast();
   const q = useGetAttempt(result.id, { query: { queryKey: getGetAttemptQueryKey(result.id), enabled: !!result.id } });
   const grade = useGradeAttempt();
+  const ai = useSuggestAiGrades();
+  const [aiNote, setAiNote] = useState<string | null>(null);
   const [edits, setEdits] = useState<Record<string, { score: string; feedback: string }>>({});
   const a = q.data;
   const ansBy = useMemo(() => new Map((a?.answers ?? []).map((x) => [x.questionId, x])), [a]);
-  const get = (qid: string) => edits[qid] ?? { score: ansBy.get(qid)?.score != null ? String(ansBy.get(qid)?.score) : '', feedback: ansBy.get(qid)?.feedback ?? '' };
+  // Saved grade first; otherwise the AI suggestion pre-fills the form for the examiner to approve or change.
+  const get = (qid: string) => {
+    if (edits[qid]) return edits[qid];
+    const ans = ansBy.get(qid);
+    if (ans?.score != null) return { score: String(ans.score), feedback: ans.feedback ?? '' };
+    if (ans?.aiSuggestion) return { score: String(ans.aiSuggestion.score), feedback: ans.aiSuggestion.feedback };
+    return { score: '', feedback: '' };
+  };
+
+  // Ask the AI once per dialog for written answers that have neither a grade nor a suggestion.
+  const aiAsked = useRef(false);
+  useEffect(() => {
+    if (!a || aiAsked.current || result.published || a.supervision?.voidedAt) return;
+    const needs = a.questions.some((qu) => {
+      const ans = ansBy.get(qu.id);
+      return qu.type === 'written' && ans && ans.score == null && !ans.aiSuggestion && ans.value.trim();
+    });
+    if (!needs) return;
+    aiAsked.current = true;
+    ai.mutate({ id: a.id }, {
+      onSuccess: (next) => qc.setQueryData(getGetAttemptQueryKey(a.id), next),
+      onError: (e) => setAiNote(`AI check unavailable: ${errMsg(e)} Grade manually.`),
+    });
+  }, [a, ansBy, result.published]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = () => {
     if (!a) return;
@@ -97,6 +123,14 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
                     </ul>
                   )}
                   {qu.explanation && <p className="mt-2 text-xs text-muted-foreground">Guide: {qu.explanation}</p>}
+                  {qu.type === 'written' && ans?.aiSuggestion && (
+                    <div className="mt-3 rounded-lg border border-dashed border-[hsl(265_40%_60%)]/50 bg-[hsl(265_60%_97%)] p-3 text-xs dark:bg-[hsl(265_25%_14%)]" data-testid={`ai-suggestion-${qu.id}`}>
+                      <div className="mb-1 flex items-center gap-1.5 font-medium"><Sparkles className="h-3.5 w-3.5" />AI suggested {ans.aiSuggestion.score}/{qu.marks}<span className="ml-auto font-mono text-[10px] text-muted-foreground">{ans.aiSuggestion.model} · advisory</span></div>
+                      <p className="text-muted-foreground">{ans.aiSuggestion.feedback}</p>
+                      {ans.score == null && <p className="mt-1 text-[11px] text-muted-foreground">Pre-filled below. It counts only after you approve and save.</p>}
+                    </div>
+                  )}
+                  {qu.type === 'written' && ai.isPending && !ans?.aiSuggestion && ans?.score == null && <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><Loader2 className="h-3.5 w-3.5 animate-spin" />AI is checking this answer…</p>}
                   <div className="mt-3 grid gap-2 sm:grid-cols-[110px_1fr]">
                     <Input aria-label={`Marks for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-score-${qu.id}`} type="number" min={0} max={qu.marks} step="0.5" placeholder={`/ ${qu.marks}`} value={e.score} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, score: ev.target.value } }))} />
                     <Textarea aria-label={`Feedback for question ${i + 1}`} disabled={qu.type !== 'written' || result.published} data-testid={`input-feedback-${qu.id}`} rows={1} placeholder={qu.type === 'written' ? "Feedback for the candidate" : "Automatically graded · exact-match marking"} value={e.feedback} onChange={(ev) => setEdits((s) => ({ ...s, [qu.id]: { ...e, feedback: ev.target.value } }))} />
@@ -104,9 +138,10 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
                 </div>
               );
             })}
+            {aiNote && <p className="rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground" data-testid="text-ai-note">{aiNote}</p>}
             <div className="sticky bottom-0 flex justify-end gap-2 border-t bg-background/95 pt-3 backdrop-blur">
               <Button variant="ghost" onClick={onClose}>Cancel</Button>
-              {!result.published && <Button onClick={save} disabled={grade.isPending} data-testid="button-save-grades">{grade.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save grades</Button>}
+              {!result.published && <Button onClick={save} disabled={grade.isPending} data-testid="button-save-grades">{grade.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Approve and save grades</Button>}
             </div>
           </div>
         )}

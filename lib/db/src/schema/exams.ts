@@ -53,6 +53,7 @@ export const exams = pgTable("exams", {
   deliverySettings: jsonb("delivery_settings").$type<DeliverySettings>().notNull().default({
     requireProctorApproval: false, requireReadiness: false, confirmSubjects: false,
     lockOnSave: false, minimumAttemptPercent: 0, venue: "", sessionLabel: "",
+    requireFullscreen: false, maxViolations: 3,
   }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [

@@ -5,6 +5,7 @@
  * Examora secure examination platform
  * OpenAPI spec version: 1.0.0
  */
+import type { AiSuggestion } from './aiSuggestion';
 
 export interface Answer {
   questionId: string;
@@ -22,4 +23,5 @@ export interface Answer {
   feedback?: string | null;
   /** @nullable */
   lockedAt?: string | null;
+  aiSuggestion?: AiSuggestion | null;
 }

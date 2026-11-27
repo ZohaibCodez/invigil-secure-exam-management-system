@@ -18,8 +18,9 @@ import { errMsg } from '@/lib/format';
 import { DEFAULT_DELIVERY, SUPERVISED_PRESET, withDefaults, minimumRequired } from '@/lib/delivery';
 import { cn } from '@/lib/utils';
 
-type BoolKey = 'requireReadiness' | 'confirmSubjects' | 'requireProctorApproval' | 'lockOnSave';
+type BoolKey = 'requireFullscreen' | 'requireReadiness' | 'confirmSubjects' | 'requireProctorApproval' | 'lockOnSave';
 const TOGGLES: { key: BoolKey; title: string; body: string }[] = [
+  { key: 'requireFullscreen', title: 'Fullscreen supervision', body: 'The exam runs in fullscreen. Leaving fullscreen or switching tabs blocks the paper and counts as a violation. At the limit the attempt locks for your decision: resume, void or allow a retake. Never scored automatically.' },
   { key: 'requireReadiness', title: 'Readiness check', body: 'Candidate confirms instructions read and their device is ready. A human statement, not hardware certification.' },
   { key: 'confirmSubjects', title: 'Confirm name and subjects', body: 'Candidate confirms their registered name, reference and the subjects listed before starting.' },
   { key: 'requireProctorApproval', title: 'Staff approval by code', body: 'Candidate shows a five-minute code; an owning examiner or admin approves. Approval never starts the timer.' },
@@ -73,8 +74,8 @@ export function DeliverySettingsPanel({ exam }: { exam: ExamDetail }) {
       )}
       <div className="space-y-2">
         {TOGGLES.map((t) => (
-          <label key={t.key} className={cn('flex items-start gap-3 rounded-lg border p-3 transition-colors', s[t.key] && 'border-accent/40 bg-accent/[0.04]', editable && 'cursor-pointer')}>
-            <Switch checked={s[t.key]} disabled={!editable} onCheckedChange={(c) => set(t.key, c)} data-testid={`switch-${t.key}`} className="mt-0.5" />
+          <label key={t.key} className={cn('flex items-start gap-3 rounded-lg border p-3 transition-colors', !!s[t.key] && 'border-accent/40 bg-accent/[0.04]', editable && 'cursor-pointer')}>
+            <Switch checked={!!s[t.key]} disabled={!editable} onCheckedChange={(c) => set(t.key, c)} data-testid={`switch-${t.key}`} className="mt-0.5" />
             <span className="text-sm"><span className="font-medium">{t.title}</span><span className="block text-xs text-muted-foreground">{t.body}</span></span>
           </label>
         ))}
@@ -94,6 +95,12 @@ export function DeliverySettingsPanel({ exam }: { exam: ExamDetail }) {
           <Input value={s.sessionLabel} maxLength={100} disabled={!editable} onChange={(e) => set('sessionLabel', e.target.value)} data-testid="input-session-label" className="mt-1" />
         </label>
       </div>
+      {s.requireFullscreen && (
+        <label className="mt-3 flex items-center gap-3 text-xs">
+          <span className="text-muted-foreground">Violations before the attempt locks</span>
+          <Input type="number" min={1} max={10} value={s.maxViolations ?? 3} disabled={!editable} onChange={(e) => set('maxViolations', Math.max(1, Math.min(10, Math.round(Number(e.target.value) || 1))))} data-testid="input-max-violations" className="w-20" />
+        </label>
+      )}
       {s.lockOnSave && <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">In lock mode a saved answer cannot be changed by anyone. Candidates can still read locked answers, and unanswered questions stay open until submission or expiry.</p>}
       {editable && (
         <div className="mt-4 flex justify-end">
