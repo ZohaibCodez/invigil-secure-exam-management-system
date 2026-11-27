@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Lock, Loader2, ShieldCheck, RotateCcw } from 'lucide-react';
 import {
   useUpdateExam,
+  useUpdateDeliverySettings,
   getGetExamQueryKey,
   getListExamsQueryKey,
   getGetDashboardQueryKey,
@@ -31,14 +32,32 @@ export function DeliverySettingsPanel({ exam }: { exam: ExamDetail }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const update = useUpdateExam();
+  const updateLive = useUpdateDeliverySettings();
   const saved = withDefaults(exam.deliverySettings);
   const [s, setS] = useState<DeliverySettings>(saved);
-  const editable = exam.status === 'draft';
+  // Drafts save with the whole exam. Published or live exams can still change delivery rules:
+  // each attempt keeps the rules it started with, so changes only affect later starts.
+  const isDraft = exam.status === 'draft';
+  const editable = exam.status !== 'completed' && !exam.resultsPublished;
+  const pending = update.isPending || updateLive.isPending;
   const dirty = JSON.stringify(s) !== JSON.stringify(saved);
   const set = <K extends keyof DeliverySettings>(k: K, v: DeliverySettings[K]) => setS((p) => ({ ...p, [k]: v }));
   const min = minimumRequired(exam.questionCount, s.minimumAttemptPercent);
 
+  const onSaved = (title: string) => {
+    qc.invalidateQueries({ queryKey: getGetExamQueryKey(exam.id) });
+    qc.invalidateQueries({ queryKey: getListExamsQueryKey() });
+    qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+    toast({ title, description: isDraft ? undefined : 'Applies to attempts started from now on. Attempts in progress keep their rules.' });
+  };
   const save = () => {
+    if (!isDraft) {
+      updateLive.mutate({ id: exam.id, data: { ...s, venue: s.venue.trim(), sessionLabel: s.sessionLabel.trim() } }, {
+        onSuccess: () => onSaved('Delivery rules updated'),
+        onError: (e) => toast({ title: 'Delivery rules not saved', description: errMsg(e), variant: 'destructive' }),
+      });
+      return;
+    }
     const p = exam.assistancePolicy;
     update.mutate(
       {
@@ -65,7 +84,8 @@ export function DeliverySettingsPanel({ exam }: { exam: ExamDetail }) {
 
   return (
     <Panel title="Delivery rules">
-      {!editable && <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" />Frozen at publication and copied into every attempt.</div>}
+      {!editable && <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" />Final: the examination is completed or its results are published.</div>}
+      {editable && !isDraft && <div className="mb-3 flex items-start gap-2 rounded-lg bg-accent/[0.06] p-2.5 text-xs text-muted-foreground"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />Live examination: changes apply to attempts started after you save. Candidates already writing keep the rules they started with.</div>}
       {editable && (
         <div className="mb-4 flex flex-wrap gap-2">
           <Button size="sm" variant="outline" onClick={() => setS((p) => ({ ...p, ...SUPERVISED_PRESET }))} data-testid="button-preset-supervised"><ShieldCheck className="mr-1.5 h-3.5 w-3.5" />Supervised preset</Button>
@@ -104,7 +124,7 @@ export function DeliverySettingsPanel({ exam }: { exam: ExamDetail }) {
       {s.lockOnSave && <p className="mt-3 rounded-lg bg-muted/60 p-2.5 text-xs text-muted-foreground">In lock mode a saved answer cannot be changed by anyone. Candidates can still read locked answers, and unanswered questions stay open until submission or expiry.</p>}
       {editable && (
         <div className="mt-4 flex justify-end">
-          <Button disabled={!dirty || update.isPending} onClick={save} data-testid="button-save-delivery">{update.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save delivery rules</Button>
+          <Button disabled={!dirty || pending} onClick={save} data-testid="button-save-delivery">{pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save delivery rules</Button>
         </div>
       )}
     </Panel>
