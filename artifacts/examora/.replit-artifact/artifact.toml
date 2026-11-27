@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Examora — Secure Examinations"
+description = "A complete examination platform with examiner and candidate workspaces, secure timed attempts, resilient answer recovery, grading, analytics and verifiable reports."
+version = "1.0.0"
+id = "artifacts/examora"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19966
+
+[services.development]
+run = "pnpm --filter @workspace/examora run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/examora", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/examora/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19966"
+BASE_PATH = "/"
