@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { animate, motion, useInView, useReducedMotion } from 'framer-motion';
+import { useRef } from 'react';
 
 /**
  * Types a main heading once. Screen readers get the full text immediately; the animated
@@ -50,4 +51,18 @@ export function Reveal({ children, className, delay = 0, as = 'div' }: { childre
       {children}
     </Comp>
   );
+}
+
+/** Counts a number up from zero the first time it is visible. Non-numbers render as-is. */
+export function CountUp({ value, decimals = 0, suffix = '' }: { value: number; decimals?: number; suffix?: string }) {
+  const reduce = useReducedMotion();
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [shown, setShown] = useState(reduce ? value : 0);
+  useEffect(() => {
+    if (reduce || !inView) { if (reduce) setShown(value); return; }
+    const c = animate(0, value, { duration: 0.9, ease: [0.22, 1, 0.36, 1], onUpdate: setShown });
+    return () => c.stop();
+  }, [value, inView, reduce]);
+  return <span ref={ref}>{shown.toFixed(decimals)}{suffix}</span>;
 }

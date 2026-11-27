@@ -57,7 +57,7 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
         if (!items.length) return null;
         return (
           <div key={g.group}>
-            <div className="mb-2 px-3 font-mono text-[10px] uppercase tracking-[0.2em] text-sidebar-foreground/40">{g.group}</div>
+            <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/40">{g.group}</div>
             <ul className="space-y-0.5">
               {items.map((i) => {
                 const active = i.href === '/' ? loc === '/' : loc.startsWith(i.href);
@@ -69,8 +69,8 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
                       onClick={onNav}
                       data-testid={`link-nav-${i.label.toLowerCase().replace(/\s+/g, '-')}`}
                       className={cn(
-                        'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                        active ? 'text-sidebar-accent-foreground' : 'text-sidebar-foreground/65 hover:text-sidebar-foreground',
+                        'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200',
+                        active ? 'font-medium text-sidebar-accent-foreground' : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                       )}
                     >
                       {active && (
@@ -80,8 +80,8 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
                           transition={{ type: 'spring', stiffness: 500, damping: 40 }}
                         />
                       )}
-                      {active && <motion.span layoutId="nav-bar" className="absolute left-0 top-2 bottom-2 w-[2px] rounded bg-sidebar-primary" />}
-                      <Icon className="relative h-4 w-4 transition-transform group-hover:scale-110" strokeWidth={1.75} />
+                      {active && <motion.span layoutId="nav-bar" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-sidebar-primary shadow-[0_0_12px_hsl(var(--sidebar-primary)/0.8)]" />}
+                      <Icon className={cn('relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5', active && 'text-sidebar-primary')} strokeWidth={1.75} />
                       <span className="relative">{i.label}</span>
                     </Link>
                   </li>
@@ -166,7 +166,7 @@ export function Shell({ user, children }: { user: User; children: ReactNode }) {
               className="grid-paper fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-sidebar p-4 text-sidebar-foreground lg:hidden"
             >
               <div className="mb-6 flex items-center justify-between">
-                <span className="font-display text-2xl text-sidebar-accent-foreground">Examora</span>
+                <Logo tone="dark" height={40} />
                 <button aria-label="Close menu" onClick={() => setOpen(false)} className="rounded-md p-2 hover:bg-sidebar-accent">
                   <X className="h-5 w-5" />
                 </button>
@@ -197,9 +197,9 @@ export function Shell({ user, children }: { user: User; children: ReactNode }) {
         </AnimatePresence>
         <motion.div
           key={loc.split('/')[1] || 'home'}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.25 }}
+          initial={{ opacity: 0, y: 10, filter: 'blur(4px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="mx-auto max-w-[1320px] px-4 py-8 md:px-8 md:py-10"
         >
           {children}

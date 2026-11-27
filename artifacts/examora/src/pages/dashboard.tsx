@@ -33,7 +33,7 @@ function CandidateExamCard({ exam, index }: { exam: Exam; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
       data-testid={`card-exam-${exam.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-xl border bg-card p-5 transition hover:border-accent/40 hover:shadow-[0_18px_40px_-28px_hsl(222_40%_14%/0.5)]"
+      className="lift group relative flex flex-col overflow-hidden rounded-2xl border bg-card p-5 hover:border-accent/40"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">{exam.subject || 'Examination'}</div>
@@ -134,19 +134,21 @@ export default function Dashboard() {
                 <ul className="divide-y">
                   {d.exams.map((e, i) => (
                     <motion.li key={e.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}>
-                      <Link href={`/exams/${e.id}`} data-testid={`link-exam-${e.id}`} className="group grid grid-cols-[1fr_auto] items-center gap-4 px-4 py-3.5 transition hover:bg-muted/50 md:grid-cols-[1fr_160px_auto]">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="truncate font-medium">{e.title}</span>
-                            <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition group-hover:opacity-100" />
+                      <Link href={`/exams/${e.id}`} data-testid={`link-exam-${e.id}`} className="group block px-5 py-4 transition-colors duration-200 hover:bg-muted/50">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="truncate font-semibold transition-colors group-hover:text-accent">{e.title}</span>
+                              <ArrowUpRight className="h-3.5 w-3.5 shrink-0 -translate-x-1 text-accent opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100" />
+                            </div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">{e.subject || 'General'} · {fmtDate(e.startsAt, 'd MMM, HH:mm')}</div>
                           </div>
-                          <div className="text-xs text-muted-foreground">{e.subject || 'General'} · {fmtDate(e.startsAt, 'd MMM, HH:mm')}</div>
+                          <StatusPill status={e.status} className="shrink-0" />
                         </div>
-                        <div className="hidden md:block">
-                          <div className="mb-1 flex justify-between text-[11px] text-muted-foreground tnum"><span>Submitted</span><span>{e.submittedCount}/{e.enrolledCount}</span></div>
-                          <Meter value={e.enrolledCount ? e.submittedCount / e.enrolledCount : 0} />
+                        <div className="mt-3 flex items-center gap-3">
+                          <Meter value={e.enrolledCount ? e.submittedCount / e.enrolledCount : 0} className="flex-1" />
+                          <span className="shrink-0 text-[11px] text-muted-foreground tnum">{e.submittedCount}/{e.enrolledCount} submitted</span>
                         </div>
-                        <StatusPill status={e.status} />
                       </Link>
                     </motion.li>
                   ))}
@@ -160,12 +162,12 @@ export default function Dashboard() {
                 <ol className="relative max-h-[480px] overflow-y-auto px-4 py-3">
                   <span className="absolute bottom-4 left-[23px] top-4 w-px bg-border" />
                   {d.activity.map((a) => (
-                    <li key={a.id} className="relative flex gap-3 py-2.5" data-testid={`row-activity-${a.id}`}>
+                    <li key={a.id} className="relative flex gap-3 rounded-lg py-2.5 transition-colors hover:bg-muted/40" data-testid={`row-activity-${a.id}`}>
                       <span className="relative z-10 mt-1.5 h-2 w-2 shrink-0 rounded-full border-2 border-card bg-accent ring-1 ring-accent/30" style={{ marginLeft: 3 }} />
                       <div className="min-w-0">
                         <div className="text-sm">{a.title}</div>
                         <div className="truncate text-xs text-muted-foreground">{a.detail}</div>
-                        <div className="mt-0.5 font-mono text-[10px] text-muted-foreground/80">{ago(a.createdAt)}</div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground/80">{ago(a.createdAt)}</div>
                       </div>
                     </li>
                   ))}

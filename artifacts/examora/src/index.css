@@ -475,3 +475,54 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 /* Unlayered so it wins over Tailwind utilities: small uppercase labels use the sans family
    with measured tracking instead of monospace, for one consistent enterprise voice. */
 .font-mono.uppercase, .mk .mono.uppercase, .mk .uppercase.mono { font-family: var(--app-font-sans); font-weight: 600; letter-spacing: 0.08em; }
+
+/* ---------- Enterprise polish layer ---------- */
+/* Monospace only for real code; everything else uses the brand sans with tabular figures. */
+.font-mono:not(code):not(kbd):not(pre) { font-family: var(--app-font-sans); font-variant-numeric: tabular-nums; }
+
+/* Soft ambient light behind the workspace instead of flat grey. */
+body {
+  background-image:
+    radial-gradient(1100px 520px at 100% -8%, hsl(var(--accent) / 0.07), transparent 60%),
+    radial-gradient(900px 480px at -10% -10%, hsl(var(--primary) / 0.06), transparent 60%);
+  background-attachment: fixed;
+}
+::selection { background: hsl(var(--accent) / 0.22); }
+
+/* Sidebar: deep navy gradient with a warm glow, replacing the grid texture. */
+.grid-paper {
+  background-image:
+    radial-gradient(520px 260px at 0% 0%, hsl(var(--sidebar-primary) / 0.14), transparent 70%),
+    linear-gradient(180deg, hsl(var(--sidebar)) 0%, hsl(216 64% 6%) 100%) !important;
+  background-size: auto !important;
+}
+
+/* Surfaces: layered shadow and a hover border that hints interactivity. */
+.surface {
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 8px 24px -16px hsl(var(--foreground) / 0.12);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.surface:hover { border-color: hsl(var(--foreground) / 0.14); }
+.lift {
+  box-shadow: 0 1px 2px hsl(var(--foreground) / 0.04), 0 6px 20px -14px hsl(var(--foreground) / 0.14);
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.lift:hover { transform: translateY(-3px); box-shadow: 0 2px 4px hsl(var(--foreground) / 0.05), 0 18px 36px -18px hsl(var(--foreground) / 0.25); }
+
+/* Default (primary) buttons get a soft lift on hover. */
+[data-slot="button"], button { -webkit-tap-highlight-color: transparent; }
+
+/* Thin themed scrollbars. */
+* { scrollbar-width: thin; scrollbar-color: hsl(var(--foreground) / 0.18) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: hsl(var(--foreground) / 0.16); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: hsl(var(--foreground) / 0.3); background-clip: padding-box; border: 2px solid transparent; }
+
+/* Inputs: smooth focus glow. */
+input, textarea, select, [role="combobox"] { transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+input:focus-visible, textarea:focus-visible { box-shadow: 0 0 0 4px hsl(var(--accent) / 0.12); border-color: hsl(var(--accent) / 0.6); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lift, .lift:hover { transform: none; transition: none; }
+}

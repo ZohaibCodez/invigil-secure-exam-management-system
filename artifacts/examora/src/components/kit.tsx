@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { errMsg } from '@/lib/format';
-import { Typewriter, Reveal } from './motion';
+import { Typewriter, Reveal, CountUp } from './motion';
 
 const BRAND = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/brand`;
 
@@ -92,13 +92,15 @@ export function Stat({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.04 * index, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        'relative overflow-hidden rounded-xl border bg-card p-4',
-        accent && 'border-accent/40 bg-accent/[0.04]',
+        'lift group relative overflow-hidden rounded-2xl border bg-card p-5',
+        accent && 'border-accent/30 bg-gradient-to-br from-accent/[0.09] via-card to-card',
       )}
     >
-      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground">{label}</div>
-      <div className="mt-2 font-display text-4xl leading-none tnum" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, '-')}`}>
-        {value}
+      {/* Brand hairline that grows on hover */}
+      <span aria-hidden className={cn('absolute inset-x-0 top-0 h-[2px] origin-left bg-gradient-to-r from-accent to-accent/0 transition-transform duration-500', accent ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100')} />
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div className="mt-2 font-display text-[2.5rem] leading-none tnum" data-testid={`stat-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+        {typeof value === 'number' ? <CountUp value={value} /> : value}
       </div>
       {hint && <div className="mt-2 text-xs text-muted-foreground">{hint}</div>}
     </motion.div>
@@ -119,10 +121,10 @@ export function Panel({
   bodyClass?: string;
 }) {
   return (
-    <Reveal as="section" className={cn('rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]', className)}>
+    <Reveal as="section" className={cn('surface rounded-2xl border bg-card', className)}>
       {title && (
         <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
-          <h2 className="text-sm font-medium">{title}</h2>
+          <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
           {action}
         </div>
       )}
