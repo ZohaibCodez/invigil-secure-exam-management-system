@@ -1,8 +1,16 @@
 import { betterAuth } from "better-auth";
 import { pool } from "@workspace/db";
 
-const baseURL = process.env.BETTER_AUTH_URL ??
+// Vercel injects these system variables (hostnames, no scheme) on every deployment.
+const vercelOrigins = [
+  process.env.VERCEL_PROJECT_PRODUCTION_URL,
+  process.env.VERCEL_BRANCH_URL,
+  process.env.VERCEL_URL,
+].filter((h): h is string => !!h).map(h => `https://${h}`);
+const baseURL = process.env.BETTER_AUTH_URL?.replace(/\/$/, "") ??
+  vercelOrigins[0] ??
   (process.env.NODE_ENV !== "production" && process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : undefined);
+const trustedOrigins = [...new Set([baseURL, ...vercelOrigins].filter((o): o is string => !!o))];
 if (!process.env.SESSION_SECRET) throw new Error("SESSION_SECRET is required for authentication.");
 
 export const auth = betterAuth({
@@ -38,5 +46,5 @@ export const auth = betterAuth({
       httpOnly: true,
     },
   },
-  trustedOrigins: baseURL ? [baseURL] : [],
+  trustedOrigins,
 });
