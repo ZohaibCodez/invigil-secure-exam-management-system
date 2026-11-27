@@ -50,3 +50,17 @@ and reconnection. The server deadline remained unchanged throughout.
 The test inspected retained **answer** data after storage was restored; it did
 not separately inspect the scratchpad's device-store copy during the injected
 storage-failure phase. This is not a full PDF acceptance or production test.
+
+## Sign-in regression found during verification
+
+The browser pass found that clearing the entire query cache after authentication
+could leave the mounted sign-in form waiting on its detached session query.
+Authentication now retains that observer, removes private non-session cache,
+and resets/refetches the session.
+
+`pnpm run test:auth-cache` verifies mounted-observer updates on sign-in/sign-out
+and removal of the previous user's cached data. A focused browser follow-up
+verified automatic dashboard navigation after examiner form login and candidate
+demo-button login, successful UI sign-out, and an incorrect password leaving an
+error and usable submit button on the login page. The candidate form path was
+not separately repeated.
