@@ -162,12 +162,13 @@ question subsets can produce different realized difficulty and studies
 model-based grading. It does not justify describing arbitrary random selection
 as fair.
 
-**Implemented baseline.** Candidates receive the same selected questions and
-marks, with optional question-order/choice shuffling and frozen attempt content.
-This avoids unequal question-set sampling, but not every potential order effect
-or accessibility issue.
+**Implemented baseline.** Without a blueprint, candidates receive the same
+selected questions and marks, with optional question-order/choice shuffling and
+frozen attempt content. With a blueprint, independently sampled subsets follow
+the examiner's exact coverage requirements. Neither mode establishes
+psychometric equivalence or eliminates possible order and accessibility effects.
 
-**Needed extension: challenge 5.2.** Transparent exam blueprints with required
+**Implemented extension: challenge 5.2.** Transparent exam blueprints with required
 topic coverage, difficulty bands, question types, and mark totals:
 
 - Validate the eligible bank before publication.
@@ -176,7 +177,38 @@ topic coverage, difficulty bands, question types, and mark totals:
 - Show the examiner how forms match the configured blueprint.
 - Report observed item performance with sample counts.
 
-**Status:** proposed, not implemented.
+**Status:** implemented. The examiner selects an eligible pool and configures
+disjoint exact-match quota rows: topic (case-sensitive bank category), difficulty
+band, question type, marks per question and question count. Row mark totals and
+the overall paper total are derived, not relaxed. Duplicate strata and papers
+over 200 questions are rejected.
+
+Drafts may retain an infeasible configuration so the examiner can see explicit
+shortages and repair the pool. Publication and sandbox generation reject it.
+Publication revalidates the live eligible bank and freezes both its content and
+the quotas. Every new attempt samples without replacement within each stratum,
+even with order shuffling off, and stores its own immutable questions, answer
+keys, marks and quotas. A resumed attempt returns the original selection.
+Post-publication bank edits or deletion cannot change existing or future papers.
+An empty blueprint keeps the full-pool baseline.
+
+The examiner's Blueprint tab compares each form with its own frozen quotas
+(including separately labelled private sandbox history), shows selected item IDs
+and count/mark matches, and reports observed objective-item accuracy with
+completed-real-attempt sample counts. Distinct frozen item versions are not
+pooled together. Active and sandbox attempts are excluded from accuracy.
+No comparison endpoint changes marks or published grades.
+
+**Verification:** automated exact-sampling checks and PostgreSQL-backed route
+checks cover shortages, repeat starts, frozen bank/marking content, authorization,
+private sandbox visibility, real sample denominators and locked published grades.
+A signed-in browser check confirmed quota persistence after reload, explicit
+shortages blocking publication and sandbox generation, repaired quotas,
+snapshotted sandbox comparisons, exclusion of sandbox accuracy samples and
+post-publication editing locks. A detected phone-layout overflow was fixed and
+the same screen rechecked at 402 pixels without horizontal overflow. The
+temporary browser-test examination and associated records were removed.
+These are application regression checks, not independent psychometric validation.
 
 **Acceptance criteria:** generated forms satisfy all configured counts and
 marks; shortages are explicit; active attempts never change after bank edits;

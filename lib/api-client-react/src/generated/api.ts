@@ -35,6 +35,8 @@ import type {
   AuthorshipInput,
   AuthorshipResponseInput,
   AuthorshipReview,
+  BlueprintInput,
+  BlueprintReport,
   Dashboard,
   DisclosureInput,
   EnrollmentInput,
@@ -798,6 +800,184 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getDeleteExamMutationOptions(options), queryClient);
+    }
+
+export const getGetBlueprintReportUrl = (id: string,) => {
+
+
+
+
+  return `/api/exams/${id}/blueprint`
+}
+
+export const getBlueprintReport = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<BlueprintReport> => {
+
+  return customFetch<BlueprintReport>(getGetBlueprintReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetBlueprintReportQueryKey = (id: string,) => {
+    return [
+    `/api/exams/${id}/blueprint`
+    ] as const;
+    }
+
+
+export const getGetBlueprintReportQueryOptions = <TData = Awaited<ReturnType<typeof getBlueprintReport>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetBlueprintReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getBlueprintReport>>> = ({ signal }) => getBlueprintReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetBlueprintReportQueryResult = NonNullable<Awaited<ReturnType<typeof getBlueprintReport>>>
+export type GetBlueprintReportQueryError = ErrorType<unknown>
+
+
+export function useGetBlueprintReport<TData = Awaited<ReturnType<typeof getBlueprintReport>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBlueprintReport>>,
+          TError,
+          Awaited<ReturnType<typeof getBlueprintReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBlueprintReport<TData = Awaited<ReturnType<typeof getBlueprintReport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBlueprintReport>>,
+          TError,
+          Awaited<ReturnType<typeof getBlueprintReport>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetBlueprintReport<TData = Awaited<ReturnType<typeof getBlueprintReport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetBlueprintReport<TData = Awaited<ReturnType<typeof getBlueprintReport>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getBlueprintReport>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetBlueprintReportQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSetBlueprintUrl = (id: string,) => {
+
+
+
+
+  return `/api/exams/${id}/blueprint`
+}
+
+export const setBlueprint = async (id: string,
+    blueprintInput: BlueprintInput, options?: Parameters<typeof customFetch>[1]): Promise<BlueprintReport> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<BlueprintReport>(getSetBlueprintUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(blueprintInput)
+  }
+);}
+
+
+
+
+
+export const getSetBlueprintMutationKey = () => ['setBlueprint'] as const;
+
+export const getSetBlueprintMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBlueprint>>, TError,SetBlueprintMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setBlueprint>>, TError,SetBlueprintMutationVariables, TContext> => {
+
+const mutationKey = getSetBlueprintMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setBlueprint>>, SetBlueprintMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  setBlueprint(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetBlueprintMutationResult = NonNullable<Awaited<ReturnType<typeof setBlueprint>>>
+    export type SetBlueprintMutationBody = BodyType<BlueprintInput>
+    export type SetBlueprintMutationError = ErrorType<unknown>
+    export type SetBlueprintMutationVariables = {id: string;data: BodyType<BlueprintInput>}
+
+    export const useSetBlueprint = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setBlueprint>>, TError,SetBlueprintMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof setBlueprint>>,
+        TError,
+        SetBlueprintMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSetBlueprintMutationOptions(options), queryClient);
     }
 
 export const getExamActionUrl = (id: string,) => {

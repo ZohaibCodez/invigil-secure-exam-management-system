@@ -19,6 +19,13 @@ export type AssistancePolicyData = {
   requireDisclosure: boolean;
   version: string;
 };
+export type BlueprintQuota = {
+  topic: string;
+  difficulty: QuestionData["difficulty"];
+  type: QuestionData["type"];
+  marks: number;
+  count: number;
+};
 export const questions = pgTable("questions", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
@@ -39,6 +46,7 @@ export const exams = pgTable("exams", {
   passPercent: integer("pass_percent").notNull().default(50),
   totalMarks: doublePrecision("total_marks").notNull().default(0),
   questionSnapshot: jsonb("question_snapshot").$type<QuestionData[]>().notNull().default([]),
+  blueprint: jsonb("blueprint").$type<BlueprintQuota[]>().notNull().default([]),
   resultsPublished: boolean("results_published").notNull().default(false),
   assistancePolicy: jsonb("assistance_policy").$type<AssistancePolicyData | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

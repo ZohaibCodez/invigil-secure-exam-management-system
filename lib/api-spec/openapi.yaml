@@ -87,6 +87,30 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+  /exams/{id}/blueprint:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: getBlueprintReport
+      responses:
+        "200":
+          description: Staff-only quota validation and frozen form comparisons
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BlueprintReport" }
+    put:
+      operationId: setBlueprint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/BlueprintInput" }
+      responses:
+        "200":
+          description: Saved draft blueprint, including any explicit shortages
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BlueprintReport" }
   /exams/{id}/action:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -538,6 +562,72 @@ components:
           properties:
             id: { type: string }
             createdAt: { type: string }
+    BlueprintQuota:
+      type: object
+      description: Disjoint exact-match stratum. Marks and count are exact, never relaxed.
+      required: [topic, difficulty, type, marks, count]
+      properties:
+        topic: { type: string, minLength: 1, maxLength: 100 }
+        difficulty: { type: string, enum: [easy, medium, hard] }
+        type: { type: string, enum: [single, multiple, written] }
+        marks: { type: number, minimum: 1, maximum: 1000 }
+        count: { type: integer, minimum: 1, maximum: 200 }
+    BlueprintInput:
+      type: object
+      required: [quotas]
+      properties:
+        quotas:
+          type: array
+          description: Empty disables subset selection. Total count must not exceed 200; duplicate strata are rejected.
+          maxItems: 200
+          items: { $ref: "#/components/schemas/BlueprintQuota" }
+    BlueprintCheck:
+      allOf:
+        - { $ref: "#/components/schemas/BlueprintQuota" }
+        - type: object
+          required: [available, shortage, actualCount, actualMarks]
+          properties:
+            available: { type: integer }
+            shortage: { type: integer }
+            actualCount: { type: integer }
+            actualMarks: { type: number }
+    FormComparison:
+      type: object
+      required: [attemptId, candidateName, sandbox, status, questionIds, questionCount, totalMarks, matches, checks]
+      properties:
+        attemptId: { type: string }
+        candidateName: { type: string }
+        sandbox: { type: boolean }
+        status: { type: string }
+        questionIds: { type: array, items: { type: string } }
+        questionCount: { type: integer }
+        totalMarks: { type: number }
+        matches: { type: boolean }
+        checks: { type: array, items: { $ref: "#/components/schemas/BlueprintCheck" } }
+    BlueprintItemMetric:
+      type: object
+      required: [id, text, samples, correct, accuracy]
+      properties:
+        id: { type: string }
+        text: { type: string }
+        samples: { type: integer }
+        correct: { type: integer }
+        accuracy: { type: number }
+    BlueprintReport:
+      type: object
+      required: [quotas, valid, issues, checks, questionCount, totalMarks, poolCount, frozen, forms, items, caveat]
+      properties:
+        quotas: { type: array, items: { $ref: "#/components/schemas/BlueprintQuota" } }
+        valid: { type: boolean }
+        issues: { type: array, items: { type: string } }
+        checks: { type: array, items: { $ref: "#/components/schemas/BlueprintCheck" } }
+        questionCount: { type: integer }
+        totalMarks: { type: number }
+        poolCount: { type: integer }
+        frozen: { type: boolean }
+        forms: { type: array, items: { $ref: "#/components/schemas/FormComparison" } }
+        items: { type: array, items: { $ref: "#/components/schemas/BlueprintItemMetric" } }
+        caveat: { type: string }
     ExamInput:
       type: object
       required: [title, instructions, duration, startsAt, endsAt, questionIds]

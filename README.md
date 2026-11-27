@@ -129,6 +129,34 @@ assignments happen through the administrator UI.
 - Completing an examination is an explicit early-close action and finalizes
   active real attempts. It should be used intentionally.
 
+### Comparable randomized papers
+
+In an examination's **Pool** tab, select the eligible bank questions. In
+**Blueprint**, add exact quota rows: topic (the case-sensitive bank category),
+examiner difficulty band, question type, marks per question, and question count.
+The row totals determine the marks and number of questions **per attempt**, not
+the size of the eligible pool. Duplicate strata and papers over 200 questions
+are rejected. Remove all rows and save to restore the same-full-pool baseline.
+
+Draft validation displays available counts and explicit shortages against the
+live bank. Infeasible drafts can be saved for repair, but cannot be published or
+used for a sandbox attempt. Publication checks the bank again and freezes the
+eligible content and quotas. Each attempt independently samples without
+replacement inside each quota, even when order shuffling is off. Its selected
+questions, choices, answer keys, marks and quotas remain fixed on resume and
+after later bank changes.
+
+The Blueprint tab compares forms against **their own frozen quotas**, including
+clearly labelled private sandbox previews. It shows count/mark matches and
+selected question IDs. Observed accuracy includes sample counts from completed
+real objective responses only and separates frozen item versions. Examiner
+labels are not psychometric calibration; matching coverage does not establish
+equivalent realized difficulty. Comparisons never adjust scores or unlock
+published grades.
+
+Regression checks: `pnpm --filter @workspace/api-server run test:blueprint`
+(requires the development PostgreSQL schema to be applied).
+
 ### Answer synchronization
 
 - The server's database clock decides whether an answer batch is on time.

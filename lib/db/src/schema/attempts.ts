@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, boolean, integer, doublePrecision, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
-import { exams, type QuestionData, type AssistancePolicyData } from "./exams";
+import { exams, type QuestionData, type AssistancePolicyData, type BlueprintQuota } from "./exams";
 
 export type AnswerData = {
   questionId: string;
@@ -18,6 +18,7 @@ export const attempts = pgTable("attempts", {
   sandbox: boolean("sandbox").notNull().default(false),
   status: text("status").notNull().default("active"),
   questions: jsonb("questions").$type<QuestionData[]>().notNull(),
+  blueprint: jsonb("blueprint").$type<BlueprintQuota[]>().notNull().default([]),
   answers: jsonb("answers").$type<AnswerData[]>().notNull().default([]),
   scratchpad: text("scratchpad").notNull().default(""),
   scratchpadVersion: integer("scratchpad_version").notNull().default(0),

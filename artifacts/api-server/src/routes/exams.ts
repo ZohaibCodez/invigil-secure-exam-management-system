@@ -5,10 +5,13 @@ import { db, exams, enrollments, attempts, users, announcements } from "@workspa
 import {
   GetExamResponse, ListExamsResponse, CreateExamResponse, CreateExamBody, UpdateExamBody,
   ExamActionBody, EnrollCandidatesBody, StartAttemptBody, CreateAnnouncementBody,
+  SetBlueprintBody, GetBlueprintReportResponse, SetBlueprintResponse,
 } from "@workspace/api-zod";
 import { requireStaff, ownedExam, visibleExams, publicUser, audit, paramId, HttpError } from "../lib/access";
 import { examView, examValues, getAnnouncements, shuffled } from "../lib/examination";
 import { attemptView, databaseNow, finalizeIfExpired, finalizeLocked, reportToken } from "../lib/attempts";
+import { checkBlueprint, generateForm, quotaTotals } from "../lib/blueprint";
+import { blueprintReport, eligiblePool } from "../lib/blueprint-report";
 
 const router: IRouter = Router();
 router.get("/exams", async (req, res): Promise<void> => {
@@ -69,7 +72,10 @@ router.post("/exams/:id/action", async (req, res): Promise<void> => {
       if (e.status !== "draft") throw new HttpError(409, "This examination is already published.");
       if (!e.questionSnapshot.length || !e.totalMarks) throw new HttpError(400, "Assign questions before publishing.");
       if (e.endsAt <= await databaseNow(tx)) throw new HttpError(400, "The exam closing time has passed.");
-      await tx.update(exams).set({ status: "published" }).where(eq(exams.id, e.id));
+      const { pool, issues } = await eligiblePool(e, req.appUser, tx);
+      const check = checkBlueprint(e.blueprint, pool);
+      if (issues.length || !check.valid) throw new HttpError(400, [...issues, ...check.issues].join(" "));
+      await tx.update(exams).set({ status: "published", questionSnapshot: pool, totalMarks: check.totalMarks }).where(eq(exams.id, e.id));
     } else {
       if (e.status === "draft") throw new HttpError(409, "Publish the examination first.");
       const rows = await tx.select().from(attempts).where(and(eq(attempts.examId, e.id), eq(attempts.sandbox, false))).for("update");
@@ -121,17 +127,44 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
     if (!sandbox && (e!.status === "draft" || e!.status === "completed" || now < e!.startsAt || now >= e!.endsAt)) throw new HttpError(403, "The examination is not currently available.");
     if (!sandbox && e!.assistancePolicy && policyVersion !== e!.assistancePolicy.version) throw new HttpError(400, "Read and acknowledge the current assistance policy before starting.");
     if (!e!.questionSnapshot.length) throw new HttpError(400, "Assign questions before starting a preview.");
-    const ordered = e!.randomize ? shuffled(e!.questionSnapshot) : [...e!.questionSnapshot];
+    const { pool, issues } = await eligiblePool(e!, req.appUser, tx);
+    const check = checkBlueprint(e!.blueprint, pool);
+    if (issues.length || !check.valid) throw new HttpError(400, [...issues, ...check.issues].join(" "));
+    const selected = generateForm(e!.blueprint, pool);
+    const ordered = e!.randomize ? shuffled(selected) : selected;
     const frozen = ordered.map(q => ({ ...q, options: e!.randomize ? shuffled(q.options) : [...q.options] }));
     const deadline = new Date(sandbox ? now.getTime() + e!.duration * 60000 : Math.min(now.getTime() + e!.duration * 60000, e!.endsAt.getTime()));
     const [row] = await tx.insert(attempts).values({
-      id: randomUUID(), examId: exam.id, userId: req.appUser.id, sandbox, questions: frozen,
-      totalMarks: e!.totalMarks, startedAt: now, deadline, lastSavedAt: now,
+      id: randomUUID(), examId: exam.id, userId: req.appUser.id, sandbox, questions: frozen, blueprint: e!.blueprint,
+      totalMarks: check.totalMarks, startedAt: now, deadline, lastSavedAt: now,
       policySnapshot: e!.assistancePolicy, acknowledgedAt: !sandbox && e!.assistancePolicy ? now : null,
     }).returning();
     return row!;
   });
   res.json(await attemptView(await finalizeIfExpired(a.id), req.appUser));
+});
+router.get("/exams/:id/blueprint", async (req, res): Promise<void> => {
+  const exam = await ownedExam(paramId(req), req.appUser);
+  res.json(GetBlueprintReportResponse.parse(await blueprintReport(exam, req.appUser)));
+});
+router.put("/exams/:id/blueprint", async (req, res): Promise<void> => {
+  const exam = await ownedExam(paramId(req), req.appUser);
+  const { quotas } = SetBlueprintBody.parse(req.body);
+  const normalized = quotas.map(q => ({ ...q, topic: q.topic.trim() }));
+  if (normalized.some(q => !q.topic)) throw new HttpError(400, "Every quota needs a topic.");
+  const structural = checkBlueprint(normalized, exam.questionSnapshot);
+  if (structural.issues.some(i => i.startsWith("Duplicate") || i.includes("exceed 200"))) {
+    throw new HttpError(400, structural.issues.join(" "));
+  }
+  const updated = await db.transaction(async tx => {
+    const [locked] = await tx.select().from(exams).where(eq(exams.id, exam.id)).for("update");
+    if (locked!.status !== "draft") throw new HttpError(409, "Published blueprints are locked.");
+    const [row] = await tx.update(exams).set({
+      blueprint: normalized, totalMarks: quotaTotals(normalized, locked!.questionSnapshot).totalMarks,
+    }).where(eq(exams.id, exam.id)).returning();
+    return row!;
+  });
+  res.json(SetBlueprintResponse.parse(await blueprintReport(updated, req.appUser)));
 });
 router.post("/exams/:id/announcements", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser);

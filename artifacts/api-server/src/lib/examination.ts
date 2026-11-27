@@ -3,6 +3,7 @@ import { and, eq, inArray } from "@workspace/db";
 import { db, exams, enrollments, attempts, announcements, questions, type QuestionData } from "@workspace/db";
 import { HttpError, type AppUser } from "./access";
 import { CreateExamBody, CreateQuestionBody } from "@workspace/api-zod";
+import { quotaTotals } from "./blueprint";
 
 export type ExamRow = typeof exams.$inferSelect;
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -45,7 +46,7 @@ export async function examValues(input: unknown, user: AppUser, tx: Tx, previous
   return {
     title: data.title.trim(), subject: data.subject?.trim() || "General", instructions: data.instructions,
     duration: data.duration, startsAt, endsAt, questionSnapshot,
-    totalMarks: questionSnapshot.reduce((s, q) => s + q.marks, 0),
+    totalMarks: quotaTotals(previous?.blueprint ?? [], questionSnapshot).totalMarks,
     randomize: data.randomize ?? true, passPercent: data.passPercent ?? 50, assistancePolicy,
   };
 }
@@ -63,7 +64,7 @@ export async function examView(e: ExamRow, user: AppUser) {
   return {
     id: e.id, title: e.title, subject: e.subject, instructions: e.instructions, duration: e.duration,
     startsAt: e.startsAt.toISOString(), endsAt: e.endsAt.toISOString(), status: examStatus(e),
-    totalMarks: e.totalMarks, questionCount: e.questionSnapshot.length, enrolledCount: enrolled.length,
+    totalMarks: e.totalMarks, questionCount: quotaTotals(e.blueprint, e.questionSnapshot).questionCount, enrolledCount: enrolled.length,
     submittedCount: submitted.filter(a => a.status !== "active").length, resultsPublished: e.resultsPublished,
     randomize: e.randomize, passPercent: e.passPercent, attemptId: own[0]?.id ?? null,
     attemptStatus: own[0]?.status ?? null, createdAt: e.createdAt.toISOString(), assistancePolicy: e.assistancePolicy,

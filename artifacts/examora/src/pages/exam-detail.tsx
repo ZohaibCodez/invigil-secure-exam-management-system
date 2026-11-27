@@ -35,6 +35,8 @@ import {
   getGetMonitorQueryKey,
   type ExamDetail as ExamDetailT,
   type ExamActionInputAction,
+  useGetBlueprintReport,
+  getGetBlueprintReportQueryKey,
 } from '@workspace/api-client-react';
 import { PageHeader, StatusPill, ErrorState, SkeletonRows, Panel, EmptyState } from '@/components/kit';
 import { ExamForm, examDefaults } from '@/components/exam-form';
@@ -57,10 +59,12 @@ import { fmtDate, ago, errMsg, initials } from '@/lib/format';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
+import { BlueprintPanel } from '@/components/blueprint-panel';
+
 const STEPS = ['draft', 'published', 'ongoing', 'completed'] as const;
 
 const ACTION_COPY: Record<ExamActionInputAction, { title: string; body: string; cta: string }> = {
-  publish: { title: 'Publish this exam?', body: 'The paper is frozen and enrolled candidates can start inside the window. Questions and schedule can no longer be edited.', cta: 'Publish' },
+  publish: { title: 'Publish this exam?', body: 'The eligible pool and blueprint quotas are frozen. When a candidate starts, their questions are selected from the pool by the quotas (or the whole pool if none) and snapshotted for that attempt. Pool, quotas and schedule can no longer be edited.', cta: 'Publish' },
   complete: { title: 'Close this exam?', body: 'No new attempts can start. Active attempts are finalised by the server at their deadlines.', cta: 'Complete exam' },
   'publish-results': { title: 'Release results to candidates?', body: 'Candidates will see scores and feedback. Make sure written answers are graded first.', cta: 'Publish results' },
 };
@@ -73,7 +77,9 @@ function Lifecycle({ exam }: { exam: ExamDetailT }) {
   const idx = STEPS.indexOf(exam.status);
   const next: ExamActionInputAction | null =
     exam.status === 'draft' ? 'publish' : exam.status === 'published' || exam.status === 'ongoing' ? 'complete' : !exam.resultsPublished ? 'publish-results' : null;
-  const blocked = next === 'publish' && (exam.questionCount === 0 || exam.enrolledCount === 0);
+  const bp = useGetBlueprintReport(exam.id, { query: { queryKey: getGetBlueprintReportQueryKey(exam.id), refetchInterval: 20000 } });
+  const bpInvalid = next === 'publish' && (!bp.data || !bp.data.valid);
+  const blocked = next === 'publish' && (exam.questionCount === 0 || exam.enrolledCount === 0 || bpInvalid);
   return (
     <Panel title="Lifecycle">
       <ol className="mb-5 grid grid-cols-5 gap-1">
@@ -93,7 +99,7 @@ function Lifecycle({ exam }: { exam: ExamDetailT }) {
             {act.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : next === 'publish' ? <Send className="mr-2 h-4 w-4" /> : next === 'complete' ? <CheckCircle2 className="mr-2 h-4 w-4" /> : <Award className="mr-2 h-4 w-4" />}
             {ACTION_COPY[next].cta}
           </Button>
-          {blocked && <p className="mt-2 text-xs text-muted-foreground">Assign at least one question and enroll at least one candidate before publishing.</p>}
+          {blocked && <p className="mt-2 text-xs text-muted-foreground">{exam.questionCount === 0 || exam.enrolledCount === 0 ? 'Add questions to the eligible pool and enroll at least one candidate before publishing.' : bp.isLoading ? 'Checking blueprint...' : 'Fix the blueprint issues before publishing.'}</p>}
         </>
       ) : (
         <p className="text-sm text-muted-foreground">Finished. Results are visible to candidates.</p>
@@ -118,6 +124,7 @@ function Lifecycle({ exam }: { exam: ExamDetailT }) {
                       qc.invalidateQueries({ queryKey: getListExamsQueryKey() });
                       qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
                       qc.invalidateQueries({ queryKey: getListResultsQueryKey() });
+                      qc.invalidateQueries({ queryKey: getGetBlueprintReportQueryKey(exam.id) });
                       toast({ title: `${ACTION_COPY[pending].cta} — done` });
                     },
                     onError: (e) => toast({ title: 'Action refused', description: errMsg(e), variant: 'destructive' }),
@@ -169,7 +176,9 @@ function PaperTab({ exam }: { exam: ExamDetailT }) {
         onSuccess: () => {
           qc.invalidateQueries({ queryKey: getGetExamQueryKey(exam.id) });
           qc.invalidateQueries({ queryKey: getListExamsQueryKey() });
-          toast({ title: 'Paper saved', description: `${sel.length} questions, ${marks} marks` });
+          qc.invalidateQueries({ queryKey: getGetBlueprintReportQueryKey(exam.id) });
+          qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
+          toast({ title: 'Eligible pool saved', description: `${sel.length} questions, ${marks} marks in pool` });
         },
         onError: (e) => toast({ title: 'Could not save paper', description: errMsg(e), variant: 'destructive' }),
       },
@@ -178,7 +187,7 @@ function PaperTab({ exam }: { exam: ExamDetailT }) {
   if (!editable)
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" /> Paper is frozen after publication.</div>
+        <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"><Lock className="h-3.5 w-3.5" /> Eligible pool is frozen after publication. Each attempt's questions are drawn from it and snapshotted.</div>
         {exam.questions.map((q, i) => (
           <div key={q.id} className="rounded-lg border bg-card p-4">
             <div className="mb-1 flex gap-2 font-mono text-[10.5px] uppercase tracking-wider text-muted-foreground"><span>Q{i + 1}</span><span>{q.type}</span><span>{q.marks} marks</span></div>
@@ -195,9 +204,9 @@ function PaperTab({ exam }: { exam: ExamDetailT }) {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Filter the bank" className="pl-9" data-testid="input-filter-bank" />
         </div>
-        <div className="font-mono text-xs tnum"><span className="text-accent">{sel.length}</span> selected · {marks} marks</div>
+        <div className="font-mono text-xs tnum"><span className="text-accent">{sel.length}</span> in pool · {marks} pool marks</div>
         <Button disabled={!dirty || update.isPending} onClick={save} data-testid="button-save-paper">
-          {update.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save paper
+          {update.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}Save pool
         </Button>
       </div>
       {bank.isLoading ? (
@@ -408,15 +417,17 @@ export default function ExamDetail() {
           </>
         }
       />
-      <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
-        <Tabs defaultValue={exam.status === 'draft' ? 'paper' : 'candidates'}>
-          <TabsList className="mb-5">
-            <TabsTrigger value="paper" data-testid="tab-paper">Paper · {exam.questionCount}</TabsTrigger>
+      <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <Tabs className="min-w-0" defaultValue={exam.status === 'draft' ? 'paper' : 'candidates'}>
+          <TabsList className="mb-5 flex h-auto max-w-full flex-wrap justify-start gap-y-1">
+            <TabsTrigger value="paper" data-testid="tab-paper">Pool · {exam.questions.length}</TabsTrigger>
+            <TabsTrigger value="blueprint" data-testid="tab-blueprint">Blueprint</TabsTrigger>
             <TabsTrigger value="candidates" data-testid="tab-candidates">Candidates · {exam.enrolledCount}</TabsTrigger>
             <TabsTrigger value="announce" data-testid="tab-announcements">Announcements</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="paper"><PaperTab exam={exam} /></TabsContent>
+          <TabsContent value="blueprint"><BlueprintPanel key={exam.id} exam={exam} /></TabsContent>
           <TabsContent value="candidates"><CandidatesTab exam={exam} /></TabsContent>
           <TabsContent value="announce"><AnnouncementsTab exam={exam} /></TabsContent>
           <TabsContent value="settings">
@@ -438,6 +449,8 @@ export default function ExamDetail() {
                         onSuccess: () => {
                           qc.invalidateQueries({ queryKey: getGetExamQueryKey(exam.id) });
                           qc.invalidateQueries({ queryKey: getListExamsQueryKey() });
+                          qc.invalidateQueries({ queryKey: getGetBlueprintReportQueryKey(exam.id) });
+                          qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
                           toast({ title: 'Settings saved' });
                         },
                         onError: (e) => toast({ title: 'Not saved', description: errMsg(e), variant: 'destructive' }),
@@ -454,7 +467,7 @@ export default function ExamDetail() {
           <Panel title="At a glance">
             <dl className="space-y-2 text-sm">
               {[
-                ['Questions', exam.questionCount],
+                ['Questions (exam)', exam.questionCount],
                 ['Total marks', exam.totalMarks],
                 ['Enrolled', exam.enrolledCount],
                 ['Submitted', exam.submittedCount],

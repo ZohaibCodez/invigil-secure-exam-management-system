@@ -353,6 +353,192 @@ export const DeleteExamResponse = zod.object({
 })
 
 
+export const GetBlueprintReportParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const getBlueprintReportResponseQuotasItemTopicMax = 100;
+
+export const getBlueprintReportResponseQuotasItemMarksMax = 1000;
+
+export const getBlueprintReportResponseQuotasItemCountMax = 200;
+
+export const getBlueprintReportResponseChecksItemOneTopicMax = 100;
+
+export const getBlueprintReportResponseChecksItemOneMarksMax = 1000;
+
+export const getBlueprintReportResponseChecksItemOneCountMax = 200;
+
+export const getBlueprintReportResponseFormsItemChecksItemOneTopicMax = 100;
+
+export const getBlueprintReportResponseFormsItemChecksItemOneMarksMax = 1000;
+
+export const getBlueprintReportResponseFormsItemChecksItemOneCountMax = 200;
+
+
+
+export const GetBlueprintReportResponse = zod.object({
+  "quotas": zod.array(zod.object({
+  "topic": zod.string().min(1).max(getBlueprintReportResponseQuotasItemTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(getBlueprintReportResponseQuotasItemMarksMax),
+  "count": zod.int().min(1).max(getBlueprintReportResponseQuotasItemCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.')),
+  "valid": zod.boolean(),
+  "issues": zod.array(zod.string()),
+  "checks": zod.array(zod.object({
+  "topic": zod.string().min(1).max(getBlueprintReportResponseChecksItemOneTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(getBlueprintReportResponseChecksItemOneMarksMax),
+  "count": zod.int().min(1).max(getBlueprintReportResponseChecksItemOneCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.').and(zod.object({
+  "available": zod.int(),
+  "shortage": zod.int(),
+  "actualCount": zod.int(),
+  "actualMarks": zod.number()
+}))),
+  "questionCount": zod.int(),
+  "totalMarks": zod.number(),
+  "poolCount": zod.int(),
+  "frozen": zod.boolean(),
+  "forms": zod.array(zod.object({
+  "attemptId": zod.string(),
+  "candidateName": zod.string(),
+  "sandbox": zod.boolean(),
+  "status": zod.string(),
+  "questionIds": zod.array(zod.string()),
+  "questionCount": zod.int(),
+  "totalMarks": zod.number(),
+  "matches": zod.boolean(),
+  "checks": zod.array(zod.object({
+  "topic": zod.string().min(1).max(getBlueprintReportResponseFormsItemChecksItemOneTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(getBlueprintReportResponseFormsItemChecksItemOneMarksMax),
+  "count": zod.int().min(1).max(getBlueprintReportResponseFormsItemChecksItemOneCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.').and(zod.object({
+  "available": zod.int(),
+  "shortage": zod.int(),
+  "actualCount": zod.int(),
+  "actualMarks": zod.number()
+})))
+})),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "samples": zod.int(),
+  "correct": zod.int(),
+  "accuracy": zod.number()
+})),
+  "caveat": zod.string()
+})
+
+
+export const SetBlueprintParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const setBlueprintBodyQuotasItemTopicMax = 100;
+
+export const setBlueprintBodyQuotasItemMarksMax = 1000;
+
+export const setBlueprintBodyQuotasItemCountMax = 200;
+
+export const setBlueprintBodyQuotasMax = 200;
+
+
+
+export const SetBlueprintBody = zod.object({
+  "quotas": zod.array(zod.object({
+  "topic": zod.string().min(1).max(setBlueprintBodyQuotasItemTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(setBlueprintBodyQuotasItemMarksMax),
+  "count": zod.int().min(1).max(setBlueprintBodyQuotasItemCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.')).max(setBlueprintBodyQuotasMax).describe('Empty disables subset selection. Total count must not exceed 200; duplicate strata are rejected.')
+})
+
+export const setBlueprintResponseQuotasItemTopicMax = 100;
+
+export const setBlueprintResponseQuotasItemMarksMax = 1000;
+
+export const setBlueprintResponseQuotasItemCountMax = 200;
+
+export const setBlueprintResponseChecksItemOneTopicMax = 100;
+
+export const setBlueprintResponseChecksItemOneMarksMax = 1000;
+
+export const setBlueprintResponseChecksItemOneCountMax = 200;
+
+export const setBlueprintResponseFormsItemChecksItemOneTopicMax = 100;
+
+export const setBlueprintResponseFormsItemChecksItemOneMarksMax = 1000;
+
+export const setBlueprintResponseFormsItemChecksItemOneCountMax = 200;
+
+
+
+export const SetBlueprintResponse = zod.object({
+  "quotas": zod.array(zod.object({
+  "topic": zod.string().min(1).max(setBlueprintResponseQuotasItemTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(setBlueprintResponseQuotasItemMarksMax),
+  "count": zod.int().min(1).max(setBlueprintResponseQuotasItemCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.')),
+  "valid": zod.boolean(),
+  "issues": zod.array(zod.string()),
+  "checks": zod.array(zod.object({
+  "topic": zod.string().min(1).max(setBlueprintResponseChecksItemOneTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(setBlueprintResponseChecksItemOneMarksMax),
+  "count": zod.int().min(1).max(setBlueprintResponseChecksItemOneCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.').and(zod.object({
+  "available": zod.int(),
+  "shortage": zod.int(),
+  "actualCount": zod.int(),
+  "actualMarks": zod.number()
+}))),
+  "questionCount": zod.int(),
+  "totalMarks": zod.number(),
+  "poolCount": zod.int(),
+  "frozen": zod.boolean(),
+  "forms": zod.array(zod.object({
+  "attemptId": zod.string(),
+  "candidateName": zod.string(),
+  "sandbox": zod.boolean(),
+  "status": zod.string(),
+  "questionIds": zod.array(zod.string()),
+  "questionCount": zod.int(),
+  "totalMarks": zod.number(),
+  "matches": zod.boolean(),
+  "checks": zod.array(zod.object({
+  "topic": zod.string().min(1).max(setBlueprintResponseFormsItemChecksItemOneTopicMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "marks": zod.number().min(1).max(setBlueprintResponseFormsItemChecksItemOneMarksMax),
+  "count": zod.int().min(1).max(setBlueprintResponseFormsItemChecksItemOneCountMax)
+}).describe('Disjoint exact-match stratum. Marks and count are exact, never relaxed.').and(zod.object({
+  "available": zod.int(),
+  "shortage": zod.int(),
+  "actualCount": zod.int(),
+  "actualMarks": zod.number()
+})))
+})),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string(),
+  "samples": zod.int(),
+  "correct": zod.int(),
+  "accuracy": zod.number()
+})),
+  "caveat": zod.string()
+})
+
+
 export const ExamActionParams = zod.object({
   "id": zod.coerce.string()
 })

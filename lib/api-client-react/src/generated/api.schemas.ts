@@ -132,6 +132,96 @@ export type Question = QuestionInput & {
   createdAt?: string;
 };
 
+export type BlueprintQuotaDifficulty = typeof BlueprintQuotaDifficulty[keyof typeof BlueprintQuotaDifficulty];
+
+
+export const BlueprintQuotaDifficulty = {
+  easy: 'easy',
+  medium: 'medium',
+  hard: 'hard',
+} as const;
+
+export type BlueprintQuotaType = typeof BlueprintQuotaType[keyof typeof BlueprintQuotaType];
+
+
+export const BlueprintQuotaType = {
+  single: 'single',
+  multiple: 'multiple',
+  written: 'written',
+} as const;
+
+/**
+ * Disjoint exact-match stratum. Marks and count are exact, never relaxed.
+ */
+export interface BlueprintQuota {
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  topic: string;
+  difficulty: BlueprintQuotaDifficulty;
+  type: BlueprintQuotaType;
+  /**
+     * @minimum 1
+     * @maximum 1000
+     */
+  marks: number;
+  /**
+     * @minimum 1
+     * @maximum 200
+     */
+  count: number;
+}
+
+export interface BlueprintInput {
+  /**
+     * Empty disables subset selection. Total count must not exceed 200; duplicate strata are rejected.
+     * @maxItems 200
+     */
+  quotas: BlueprintQuota[];
+}
+
+export type BlueprintCheck = BlueprintQuota & {
+  available: number;
+  shortage: number;
+  actualCount: number;
+  actualMarks: number;
+};
+
+export interface FormComparison {
+  attemptId: string;
+  candidateName: string;
+  sandbox: boolean;
+  status: string;
+  questionIds: string[];
+  questionCount: number;
+  totalMarks: number;
+  matches: boolean;
+  checks: BlueprintCheck[];
+}
+
+export interface BlueprintItemMetric {
+  id: string;
+  text: string;
+  samples: number;
+  correct: number;
+  accuracy: number;
+}
+
+export interface BlueprintReport {
+  quotas: BlueprintQuota[];
+  valid: boolean;
+  issues: string[];
+  checks: BlueprintCheck[];
+  questionCount: number;
+  totalMarks: number;
+  poolCount: number;
+  frozen: boolean;
+  forms: FormComparison[];
+  items: BlueprintItemMetric[];
+  caveat: string;
+}
+
 export type AssistancePolicyInputMode = typeof AssistancePolicyInputMode[keyof typeof AssistancePolicyInputMode];
 
 

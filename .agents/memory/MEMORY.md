@@ -1,2 +1,3 @@
 - [Post-merge service status](post-merge-service-status.md) — after merges, a failed replacement workflow can coexist with an older serving process; check HTTP and ownership before retrying.
 - [Vercel API packaging](vercel-api-packaging.md) — Vercel can override inherited compiler settings; keep strict checks and ship bundled JavaScript.
+- [Blueprint fairness limits](blueprint-fairness.md) — coverage constraints are not calibrated equivalence; never silently adjust grades.
