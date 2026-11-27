@@ -453,10 +453,10 @@ export default function AttemptPage() {
   const delivery = withDefaults(attempt?.deliverySettings);
   const lockMode = delivery.lockOnSave;
   const qLocked = !!(qn && draft.answers[qn.id]?.lockedAt);
-  const editable = !readOnly && !qLocked;
+  const editable = !readOnly && !qLocked && !committing;
 
   const setAnswer = (qid: string, patch: Partial<Pick<LocalAnswer, 'value' | 'markedForReview'>>) => {
-    if (readOnly) return;
+    if (readOnly || committing) return;
     const cur = draftRef.current;
     if (cur.answers[qid]?.lockedAt) return;
     const prev = cur.answers[qid] ?? { questionId: qid, value: '', markedForReview: false, revision: 0 };
@@ -470,6 +470,7 @@ export default function AttemptPage() {
   };
   /** Lock mode: an answered-but-unlocked question asks before leaving. Reviewable mode is unchanged. */
   const requestGo = (i: number) => {
+    if (committing) return;
     if (i === current) return;
     const a = qn ? draftRef.current.answers[qn.id] : undefined;
     if (lockMode && !readOnly && a && !a.lockedAt && isAnswered(a)) setPendingNav(i);

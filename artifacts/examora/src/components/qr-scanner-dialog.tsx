@@ -11,6 +11,7 @@ type Controls = { stop: () => void };
 export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boolean; onOpenChange: (o: boolean) => void; onAdmission: (id: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<Controls | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [state, setState] = useState<'idle' | 'starting' | 'scanning' | 'error'>('idle');
   const [msg, setMsg] = useState<string | null>(null);
   const [manual, setManual] = useState('');
@@ -21,19 +22,20 @@ export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boo
   const onAdmissionRef = useRef(onAdmission);
   onAdmissionRef.current = onAdmission;
 
-  const killVideo = (v: HTMLVideoElement | null) => {
-    const stream = v?.srcObject as MediaStream | null | undefined;
+  const stopOwnedStream = (stream: MediaStream | null, v: HTMLVideoElement | null) => {
     stream?.getTracks().forEach((t) => t.stop());
-    if (v) v.srcObject = null;
+    // Never detach a newer session's preview when an older permission prompt resolves.
+    if (v && v.srcObject === stream) v.srcObject = null;
   };
   const stop = useCallback(() => {
     genRef.current += 1;
     try { controlsRef.current?.stop(); } catch { /* ignore */ }
     controlsRef.current = null;
-    const v = videoRef.current;
-    const stream = v?.srcObject as MediaStream | null | undefined;
+    const stream = streamRef.current;
+    streamRef.current = null;
     stream?.getTracks().forEach((t) => t.stop());
-    if (v) v.srcObject = null;
+    const v = videoRef.current;
+    if (v && v.srcObject === stream) v.srcObject = null;
   }, []);
 
   useEffect(() => {
@@ -73,27 +75,35 @@ export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boo
     doneRef.current = false;
     setState('starting');
     let controls: Controls | null = null;
+    let stream: MediaStream | null = null;
     try {
       const { BrowserQRCodeReader } = await import('@zxing/browser');
       if (stale() || !video) return;
       const reader = new BrowserQRCodeReader();
-      controls = await reader.decodeFromVideoDevice(undefined, video, (result) => {
-        if (!result || doneRef.current || gen !== genRef.current) return;
+      // Own the stream explicitly, including while the permission prompt is pending.
+      // ZXing only decodes the element; late decoder cleanup cannot stop a newer stream.
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+      if (stale()) { stopOwnedStream(stream, video); return; }
+      streamRef.current = stream;
+      video.srcObject = stream;
+      controls = await reader.decodeFromVideoElement(video, (result) => {
+        if (!result || doneRef.current || !openRef.current || gen !== genRef.current) return;
         accept(result.getText());
       });
       if (stale() || doneRef.current) {
         try { controls.stop(); } catch { /* ignore */ }
-        // Only clear the element when no newer session could own it.
-        if (!openRef.current || doneRef.current || genRef.current === gen + 1 && !controlsRef.current) killVideo(video);
+        stopOwnedStream(stream, video);
+        if (streamRef.current === stream) streamRef.current = null;
         return;
       }
       controlsRef.current = controls;
       setState('scanning');
     } catch (e) {
       try { controls?.stop(); } catch { /* ignore */ }
+      stopOwnedStream(stream, video);
+      if (streamRef.current === stream) streamRef.current = null;
       if (gen !== genRef.current) return; // stale: never touch a newer session
       stop();
-      killVideo(video);
       if (!openRef.current) return;
       setState('error');
       setMsg(e instanceof Error && /permission|denied|notallowed/i.test(e.name + e.message) ? 'Camera permission was declined. Paste the link or type the request ID instead.' : 'The camera could not start. Paste the link or type the request ID instead.');

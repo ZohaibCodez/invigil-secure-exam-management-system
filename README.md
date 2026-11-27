@@ -133,6 +133,40 @@ assignments happen through the administrator UI.
 - Completing an examination is an explicit early-close action and finalizes
   active real attempts. It should be used intentionally.
 
+### Video-inspired entry and delivery
+
+Examiners can opt a **draft** examination into supervised entry, subject/device
+acknowledgements, and explicit save-and-lock answers in **Settings → Delivery
+rules**. Venue/session labels and a minimum answered percentage are optional.
+Defaults preserve the existing reviewable workflow; publication freezes the
+settings and new attempts receive their own snapshot.
+
+Candidate entry includes printable exam information. If QR approval is required,
+the candidate requests a five-minute code and an owning examiner or administrator
+approves it from **Admissions** or its authenticated request link. Approval does
+not begin the timer; the candidate must press **Start**. A QR is not identity proof.
+The staff scanner is optional, opens the camera only on request, and has a
+same-origin link/ID fallback.
+
+Autosave is still an editable draft. Only an explicit, server-confirmed Save/Lock
+prevents subsequent editing. Locked answers remain readable, and server-confirmed
+unlocked drafts count on submission. The optional minimum applies only to early
+manual submission; deadline finalization always proceeds.
+
+The workspace also provides subject sections, first/last and section navigation,
+question-state explanations and Help. Existing scratchpad, recovery, grading,
+policies, reports and all required question types remain available.
+
+**Before deploying this upgrade to the existing Neon database**, explicitly apply
+`lib/db/migrations/20261127_delivery_admission.sql`. It adds fields and an admission
+table without resetting data. Do not run migrations from server startup or push
+database-dependent code to Vercel before applying its migration.
+
+See [the reference-video feature map](docs/reference-video-feature-map.md) for
+the visible source behaviors, safety differences and preserved PDF requirements.
+Run `pnpm run test:delivery` against the development database for the admission,
+locking, expiry and legacy-mode regression checks.
+
 ### Comparable randomized papers
 
 In an examination's **Pool** tab, select the eligible bank questions. In
