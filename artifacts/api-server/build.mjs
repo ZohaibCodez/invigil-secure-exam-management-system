@@ -11,11 +11,14 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function buildAll() {
-  const distDir = path.resolve(artifactDir, "dist");
+  // Vercel must receive JavaScript, not recompile this bundler-mode workspace
+  // as native NodeNext TypeScript. The app entry exports Express without listen().
+  const forVercel = process.argv.includes("--vercel");
+  const distDir = path.resolve(artifactDir, forVercel ? "dist/vercel" : "dist");
   await rm(distDir, { recursive: true, force: true });
 
   await esbuild({
-    entryPoints: [path.resolve(artifactDir, "src/index.ts")],
+    entryPoints: [path.resolve(artifactDir, forVercel ? "src/app.ts" : "src/index.ts")],
     platform: "node",
     bundle: true,
     format: "esm",

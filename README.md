@@ -42,7 +42,7 @@ lib/api-spec/openapi.yaml  Source-of-truth API contract
 lib/api-client-react/     Generated client hooks and types
 lib/api-zod/              Generated server validation
 lib/db/                   Drizzle schema and PostgreSQL pool
-api/[...path].ts          Vercel serverless API adapter
+api/[...path].mjs         Vercel serverless API adapter
 vercel.json               Vercel SPA + API routing
 ```
 
@@ -221,8 +221,13 @@ Vercel deployment has not been performed as part of the local preview build.**
    string. Do not paste it into a commit or issue.
 2. Import your GitHub repository into Vercel, keeping the **repository root**
    as the project root.
-3. Vercel reads `vercel.json`: it builds the frontend into
-   `artifacts/examora/dist/public` and serves `/api/*` through the serverless adapter.
+3. Vercel reads `vercel.json`. The build checks shared-library, API and frontend types,
+   bundles the non-listening Express app into
+   `artifacts/api-server/dist/vercel/app.mjs`, builds the frontend into
+   `artifacts/examora/dist/public`, and serves `/api/*` through the JavaScript
+   serverless adapter. Keep both the adapter and the build command: pointing
+   Vercel directly at the workspace TypeScript source can trigger NodeNext import
+   errors despite the workspace's valid bundler-mode configuration.
 4. Configure secure environment variables in Vercel:
    - `DATABASE_URL`: your Neon connection string.
    - `SESSION_SECRET`: a new high-entropy secret.
