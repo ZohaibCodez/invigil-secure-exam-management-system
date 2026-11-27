@@ -227,7 +227,7 @@ export async function buildReportPdf(d: ReportInput): Promise<Uint8Array> {
   text(page, "Verify this report", vx, y - 26, 12, bold);
   let vy = y - 42;
   for (const l of wrap("Scan the QR code or open the link below. The public verification page confirms the examination, score and issue date, and shows only the candidate's initials.", sans, 8.5, vw, 3)) { text(page, l, vx, vy, 8.5, sans, C.muted); vy -= 11; }
-  for (const l of wrap(d.verificationUrl, sans, 8, vw, 2)) { text(page, l, vx, vy - 3, 8, bold, C.orange); vy -= 10; }
+  for (const l of wrap(d.verificationUrl, bold, 8, vw, 2)) { text(page, l, vx, vy - 3, 8, bold, C.orange); vy -= 10; }
   text(page, `ID ${d.verificationToken}`, vx, vy - 6, 6.5, mono, C.muted);
   y -= vH;
 
