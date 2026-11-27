@@ -85,7 +85,7 @@ export async function attemptView(a: AttemptRow, user: AppUser) {
     questions: a.questions.map(q => reveal ? q : { ...q, correctAnswers: [], explanation: "" }),
     answers: a.answers.map(ans => reveal ? ans : { ...ans, score: null, feedback: null }),
     sandbox: a.sandbox, totalMarks: a.totalMarks, score: reveal ? a.score : null,
-    scratchpad: a.scratchpad, announcements: await getAnnouncements(a.examId),
+    scratchpad: a.scratchpad, scratchpadVersion: a.scratchpadVersion, announcements: await getAnnouncements(a.examId),
   };
 }
 export const reportToken = () => randomBytes(24).toString("hex");

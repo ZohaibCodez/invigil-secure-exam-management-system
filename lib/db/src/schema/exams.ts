@@ -13,6 +13,12 @@ export type QuestionData = {
   correctAnswers: string[];
   explanation?: string;
 };
+export type AssistancePolicyData = {
+  mode: "closed_book" | "open_book" | "ai_disclosed";
+  resources: string;
+  requireDisclosure: boolean;
+  version: string;
+};
 export const questions = pgTable("questions", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id),
@@ -34,6 +40,7 @@ export const exams = pgTable("exams", {
   totalMarks: doublePrecision("total_marks").notNull().default(0),
   questionSnapshot: jsonb("question_snapshot").$type<QuestionData[]>().notNull().default([]),
   resultsPublished: boolean("results_published").notNull().default(false),
+  assistancePolicy: jsonb("assistance_policy").$type<AssistancePolicyData | null>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("exams_owner_idx").on(t.ownerId),

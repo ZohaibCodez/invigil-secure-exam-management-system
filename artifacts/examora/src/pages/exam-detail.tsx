@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AssistancePolicyEditor } from '@/components/assistance-policy';
 import { Link, useLocation, useParams } from 'wouter';
 import { motion } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -419,6 +420,7 @@ export default function ExamDetail() {
           <TabsContent value="candidates"><CandidatesTab exam={exam} /></TabsContent>
           <TabsContent value="announce"><AnnouncementsTab exam={exam} /></TabsContent>
           <TabsContent value="settings">
+            <div className="mb-5"><AssistancePolicyEditor exam={exam} /></div>
             <Panel title="Exam settings">
               {exam.status !== 'draft' ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Lock className="h-4 w-4" /> Settings are locked once published.</div>

@@ -7,11 +7,14 @@ import {
   useListExams,
   useGetMonitor,
   useCreateAnnouncement,
+  useGetAttempt,
+  getGetAttemptQueryKey,
   getListExamsQueryKey,
   getGetMonitorQueryKey,
   getGetExamQueryKey,
 } from '@workspace/api-client-react';
 import { IncidentReview } from '@/components/incident-review';
+import { IntegrityReview } from '@/components/integrity-review';
 import { PageHeader, Panel, EmptyState, ErrorState, SkeletonRows, StatusPill, Meter, Stat } from '@/components/kit';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,6 +53,7 @@ export default function Monitor() {
   const announce = useCreateAnnouncement();
   const [msg, setMsg] = useState('');
   const [picked, setPicked] = useState<string | null>(null);
+  const selectedAttempt = useGetAttempt(picked ?? '', { query: { queryKey: getGetAttemptQueryKey(picked ?? ''), enabled: !!picked } });
   useEffect(() => setPicked(null), [examId]);
   const now = useNow();
   const exam = live.find((e) => e.id === examId);
@@ -119,6 +123,7 @@ export default function Monitor() {
                   <div>
                     <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground" data-testid="text-review-candidate">Reviewing · {data.attempts.find((a) => a.id === picked)?.candidateName}</div>
                     <IncidentReview key={picked} attemptId={picked} mode="staff" defaultOpen />
+                    <IntegrityReview key={`integrity-${picked}`} attemptId={picked} staff questions={selectedAttempt.data?.questions} />
                   </div>
                 ) : (
                   <p className="rounded-xl border border-dashed p-4 text-center text-xs text-muted-foreground" data-testid="text-review-hint">Select a candidate above to open their technical-incident dossier.</p>

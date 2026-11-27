@@ -1,4 +1,4 @@
-import { randomInt, randomUUID } from "node:crypto";
+import { createHash, randomInt, randomUUID } from "node:crypto";
 import { and, eq, inArray } from "@workspace/db";
 import { db, exams, enrollments, attempts, announcements, questions, type QuestionData } from "@workspace/db";
 import { HttpError, type AppUser } from "./access";
@@ -28,7 +28,7 @@ export function validateQuestion(input: unknown): Omit<QuestionData, "id"> {
   }
   return data;
 }
-export async function examValues(input: unknown, user: AppUser, tx: Tx) {
+export async function examValues(input: unknown, user: AppUser, tx: Tx, previous?: ExamRow) {
   const data = CreateExamBody.parse(input);
   const startsAt = new Date(data.startsAt), endsAt = new Date(data.endsAt);
   if (endsAt <= startsAt) throw new HttpError(400, "The closing time must be after the opening time.");
@@ -36,11 +36,17 @@ export async function examValues(input: unknown, user: AppUser, tx: Tx) {
   const rows = data.questionIds.length ? await tx.select().from(questions).where(inArray(questions.id, data.questionIds)) : [];
   if (rows.length !== data.questionIds.length || rows.some(q => user.role !== "admin" && q.ownerId !== user.id)) throw new HttpError(403, "Some questions are missing or not owned by you.");
   const questionSnapshot = data.questionIds.map(id => rows.find(q => q.id === id)!.data);
+  const policy = data.assistancePolicy;
+  const assistancePolicy = policy === undefined ? previous?.assistancePolicy ?? null : policy === null ? null : {
+    ...policy, resources: policy.resources.trim(),
+    version: createHash("sha256").update(JSON.stringify([policy.mode, policy.resources.trim(), policy.requireDisclosure])).digest("hex"),
+  };
+  if (assistancePolicy && assistancePolicy.resources.length < 5) throw new HttpError(400, "Explain the permitted resources in at least five characters.");
   return {
     title: data.title.trim(), subject: data.subject?.trim() || "General", instructions: data.instructions,
     duration: data.duration, startsAt, endsAt, questionSnapshot,
     totalMarks: questionSnapshot.reduce((s, q) => s + q.marks, 0),
-    randomize: data.randomize ?? true, passPercent: data.passPercent ?? 50,
+    randomize: data.randomize ?? true, passPercent: data.passPercent ?? 50, assistancePolicy,
   };
 }
 export function examStatus(e: ExamRow) {
@@ -60,7 +66,7 @@ export async function examView(e: ExamRow, user: AppUser) {
     totalMarks: e.totalMarks, questionCount: e.questionSnapshot.length, enrolledCount: enrolled.length,
     submittedCount: submitted.filter(a => a.status !== "active").length, resultsPublished: e.resultsPublished,
     randomize: e.randomize, passPercent: e.passPercent, attemptId: own[0]?.id ?? null,
-    attemptStatus: own[0]?.status ?? null, createdAt: e.createdAt.toISOString(),
+    attemptStatus: own[0]?.status ?? null, createdAt: e.createdAt.toISOString(), assistancePolicy: e.assistancePolicy,
   };
 }
 export async function getAnnouncements(examId: string) {

@@ -1,7 +1,7 @@
-import { pgTable, text, timestamp, boolean, doublePrecision, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, boolean, integer, doublePrecision, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
-import { exams, type QuestionData } from "./exams";
+import { exams, type QuestionData, type AssistancePolicyData } from "./exams";
 
 export type AnswerData = {
   questionId: string;
@@ -20,6 +20,10 @@ export const attempts = pgTable("attempts", {
   questions: jsonb("questions").$type<QuestionData[]>().notNull(),
   answers: jsonb("answers").$type<AnswerData[]>().notNull().default([]),
   scratchpad: text("scratchpad").notNull().default(""),
+  scratchpadVersion: integer("scratchpad_version").notNull().default(0),
+  policySnapshot: jsonb("policy_snapshot").$type<AssistancePolicyData | null>(),
+  acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
+  disclosure: text("disclosure").notNull().default(""),
   totalMarks: doublePrecision("total_marks").notNull(),
   score: doublePrecision("score"),
   startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
@@ -46,4 +50,5 @@ export const saveOperations = pgTable("save_operations", {
   operationId: text("operation_id").notNull(),
   savedAt: timestamp("saved_at", { withTimezone: true }).notNull().defaultNow(),
   revisions: jsonb("revisions").$type<{ questionId: string; revision: number }[]>(),
+  scratchpadVersion: integer("scratchpad_version"),
 }, (t) => [uniqueIndex("save_operation_unique").on(t.attemptId, t.operationId)]);

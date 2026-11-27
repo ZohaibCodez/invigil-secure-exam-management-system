@@ -1,20 +1,17 @@
 import { Link, useLocation } from 'wouter';
 import { motion } from 'framer-motion';
-import { useQueryClient } from '@tanstack/react-query';
-import { ArrowUpRight, CalendarClock, FileText, Play, RotateCcw, Award, Activity as ActivityIcon, Loader2, Plus } from 'lucide-react';
+import { ArrowUpRight, CalendarClock, FileText, RotateCcw, Award, Activity as ActivityIcon, Plus } from 'lucide-react';
 import {
   useGetDashboard,
-  useStartAttempt,
   getGetDashboardQueryKey,
-  getListExamsQueryKey,
   type Exam,
 } from '@workspace/api-client-react';
 import { PageHeader, Stat, Panel, StatusPill, EmptyState, ErrorState, SkeletonRows, Meter } from '@/components/kit';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMe } from '@/lib/session';
-import { ago, fmtDate, errMsg } from '@/lib/format';
-import { useToast } from '@/hooks/use-toast';
+import { ago, fmtDate } from '@/lib/format';
+import { CandidateEntry } from '@/components/candidate-entry';
 
 function greeting() {
   const h = new Date().getHours();
@@ -23,9 +20,6 @@ function greeting() {
 
 function CandidateExamCard({ exam, index }: { exam: Exam; index: number }) {
   const [, nav] = useLocation();
-  const qc = useQueryClient();
-  const { toast } = useToast();
-  const start = useStartAttempt();
   const now = Date.now();
   const opens = new Date(exam.startsAt).getTime();
   const closes = new Date(exam.endsAt).getTime();
@@ -60,26 +54,7 @@ function CandidateExamCard({ exam, index }: { exam: Exam; index: number }) {
             <RotateCcw className="mr-2 h-4 w-4" /> Resume attempt
           </Button>
         ) : canStart ? (
-          <Button
-            data-testid={`button-start-${exam.id}`}
-            disabled={start.isPending}
-            className="flex-1"
-            onClick={() =>
-              start.mutate(
-                { id: exam.id, data: { sandbox: false } },
-                {
-                  onSuccess: (a) => {
-                    qc.invalidateQueries({ queryKey: getGetDashboardQueryKey() });
-                    qc.invalidateQueries({ queryKey: getListExamsQueryKey() });
-                    nav(`/attempts/${a.id}`);
-                  },
-                  onError: (e) => toast({ title: 'Could not start', description: errMsg(e), variant: 'destructive' }),
-                },
-              )
-            }
-          >
-            {start.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Play className="mr-2 h-4 w-4" />} Begin exam
-          </Button>
+          <CandidateEntry exam={exam} />
         ) : st === 'submitted' || st === 'graded' ? (
           <Button variant="outline" asChild className="flex-1">
             <Link href="/results" data-testid={`link-results-${exam.id}`}><Award className="mr-2 h-4 w-4" /> {exam.resultsPublished ? 'View result' : 'Submitted — awaiting results'}</Link>

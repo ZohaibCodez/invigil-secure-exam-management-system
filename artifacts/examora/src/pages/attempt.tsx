@@ -39,6 +39,9 @@ import {
 } from '@workspace/api-client-react';
 import { Seal, ErrorState } from '@/components/kit';
 import { IncidentReview } from '@/components/incident-review';
+import { IntegrityReview } from '@/components/integrity-review';
+import { AttemptSafety, type ScratchConflict } from '@/components/attempt-safety';
+import { useDraftPersistence } from '@/hooks/use-draft-persistence';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -56,7 +59,6 @@ import { usePrefs } from '@/lib/prefs';
 import { useOnline } from '@/hooks/use-online';
 import {
   loadDraft,
-  saveDraft,
   loadCachedAttempt,
   cacheAttempt,
   nextRevision,
@@ -125,6 +127,13 @@ export default function AttemptPage() {
   const [submitErr, setSubmitErr] = useState<string | null>(null);
   const [timeUp, setTimeUp] = useState(false);
   const [seenAnn, setSeenAnn] = useState<string[]>([]);
+  const device = useDraftPersistence(uid, id);
+  const [scratchConflict, setScratchConflict] = useState<ScratchConflict | null>(null);
+  const conflictRef = useRef<ScratchConflict | null>(null);
+  const setConflict = useCallback((conflict: ScratchConflict | null) => {
+    conflictRef.current = conflict;
+    setScratchConflict(conflict);
+  }, []);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chainRef = useRef<Promise<boolean>>(Promise.resolve(true));
@@ -167,9 +176,9 @@ export default function AttemptPage() {
     (next: AttemptDraft) => {
       draftRef.current = next;
       setDraft(next);
-      saveDraft(uid, id, next).catch(() => setSyncErr('This device could not store your answer locally.'));
+      device.persist(next);
     },
-    [uid, id],
+    [device.persist],
   );
 
   const sendEvents = useCallback(async () => {
@@ -197,10 +206,10 @@ export default function AttemptPage() {
     if (lockedRef.current) return false;
     const d = draftRef.current;
     const dirty = Object.values(d.answers).filter((a) => a.revision > (d.confirmed[a.questionId] ?? 0));
-    const scratchDirty = d.scratchRev > d.scratchConfirmed;
+    const scratchDirty = d.scratchRev > d.scratchConfirmed && !conflictRef.current;
     if (!dirty.length && !scratchDirty) {
-      setSync('saved');
-      return true;
+      setSync(hasPendingWork(d) ? 'failed' : 'saved');
+      return !hasPendingWork(d);
     }
     if (!navigator.onLine) {
       setSync('offline');
@@ -214,19 +223,21 @@ export default function AttemptPage() {
         data: {
           operationId: uuid(),
           answers: dirty.map((a) => ({ questionId: a.questionId, value: a.value, markedForReview: a.markedForReview, revision: a.revision })),
-          ...(scratchDirty ? { scratchpad: d.scratchpad } : {}),
+          ...(scratchDirty ? { scratchpad: d.scratchpad, scratchpadVersion: d.scratchVersion ?? 0 } : {}),
         },
       });
       if (!receipt.accepted) {
         setSync('failed');
-        setSyncErr('A newer answer exists on the server. Refreshing to resolve the conflict; this batch was not confirmed.');
+        setSyncErr(receipt.conflict === 'scratchpad' ? 'Different notes were saved by another tab. Compare the copies below.' : 'A newer answer exists on the server. Refreshing to resolve the conflict; this batch was not confirmed.');
         await qc.invalidateQueries({ queryKey: getGetAttemptQueryKey(id) });
+        const latest = qc.getQueryData<Attempt>(getGetAttemptQueryKey(id));
+        if (receipt.conflict === 'scratchpad' && latest) setConflict({ text: latest.scratchpad, version: latest.scratchpadVersion ?? 0 });
         return false;
       }
       const cur = draftRef.current;
       const confirmed = { ...cur.confirmed };
       for (const a of dirty) confirmed[a.questionId] = Math.max(confirmed[a.questionId] ?? 0, a.revision);
-      writeDraft({ ...cur, confirmed, scratchConfirmed: scratchDirty ? Math.max(cur.scratchConfirmed, sentScratchRev) : cur.scratchConfirmed, lastSyncedAt: receipt.savedAt });
+      writeDraft({ ...cur, confirmed, scratchConfirmed: scratchDirty ? Math.max(cur.scratchConfirmed, sentScratchRev) : cur.scratchConfirmed, ...(scratchDirty ? { scratchVersion: receipt.scratchpadVersion ?? 0 } : {}), lastSyncedAt: receipt.savedAt });
       setSyncErr(null);
       const stillDirty = hasPendingWork(draftRef.current);
       setSync(stillDirty ? 'pending' : 'saved');
@@ -244,7 +255,7 @@ export default function AttemptPage() {
       setSyncErr(errMsg(e));
       return false;
     }
-  }, [id, qc, writeDraft]);
+  }, [id, qc, writeDraft, setConflict]);
 
   const flush = useCallback((): Promise<boolean> => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -279,7 +290,12 @@ export default function AttemptPage() {
         if (!l || s.revision >= l.revision) d.answers[s.questionId] = { questionId: s.questionId, value: s.value, markedForReview: s.markedForReview, revision: s.revision };
         d.confirmed[s.questionId] = Math.max(d.confirmed[s.questionId] ?? 0, s.revision);
       }
-      if (!local.scratchRev && attempt.scratchpad) d.scratchpad = attempt.scratchpad;
+      if (d.scratchRev <= d.scratchConfirmed) {
+        d.scratchpad = attempt.scratchpad;
+        d.scratchVersion = attempt.scratchpadVersion ?? 0;
+      } else if ((attempt.scratchpadVersion ?? 0) !== (d.scratchVersion ?? 0)) {
+        setConflict({ text: attempt.scratchpad, version: attempt.scratchpadVersion ?? 0 });
+      }
       writeDraft(d);
       setReady(true);
       const pending = unsyncedIds(d);
@@ -299,7 +315,7 @@ export default function AttemptPage() {
         }
       }
     })();
-  }, [attempt, id, uid, writeDraft, pushEvent, schedule]);
+  }, [attempt, id, uid, writeDraft, pushEvent, schedule, setConflict]);
 
   // merge later server refetches only where server is newer
   useEffect(() => {
@@ -319,9 +335,20 @@ export default function AttemptPage() {
         changed = true;
       }
     }
-    if (changed) writeDraft({ ...cur, answers, confirmed });
+    let scratchpad = cur.scratchpad;
+    let scratchVersion = cur.scratchVersion ?? 0;
+    if ((q.data.scratchpadVersion ?? 0) > scratchVersion) {
+      if (cur.scratchRev > cur.scratchConfirmed) {
+        setConflict({ text: q.data.scratchpad, version: q.data.scratchpadVersion ?? 0 });
+      } else {
+        scratchpad = q.data.scratchpad;
+        scratchVersion = q.data.scratchpadVersion ?? 0;
+        changed = true;
+      }
+    }
+    if (changed) writeDraft({ ...cur, answers, confirmed, scratchpad, scratchVersion });
     if (q.data.status !== 'active') setLocked(true);
-  }, [q.data, ready, writeDraft]);
+  }, [q.data, ready, writeDraft, setConflict]);
 
   // ---------- environment events ----------
   useEffect(() => {
@@ -426,6 +453,17 @@ export default function AttemptPage() {
     writeDraft({ ...cur, scratchpad: v, scratchRev: nextRevision() });
     if (!readOnly) schedule(1500);
   };
+  const resolveScratch = (choice: 'mine' | 'server') => {
+    const conflict = conflictRef.current;
+    if (!conflict || readOnly) return;
+    const cur = draftRef.current;
+    const rev = nextRevision();
+    writeDraft({ ...cur, scratchpad: choice === 'mine' ? cur.scratchpad : conflict.text,
+      scratchVersion: conflict.version, scratchRev: rev, scratchConfirmed: choice === 'server' ? rev : cur.scratchConfirmed });
+    setConflict(null);
+    setSyncErr(null);
+    schedule(50);
+  };
 
   const unsynced = useMemo(() => unsyncedIds(draft), [draft]);
   const scratchPending = draft.scratchRev > draft.scratchConfirmed;
@@ -463,11 +501,11 @@ export default function AttemptPage() {
   const SyncBadge = () => {
     const map: Record<SyncState, { icon: typeof Cloud; text: string; tone: string }> = {
       idle: { icon: HardDrive, text: 'Ready', tone: 'text-muted-foreground' },
-      pending: { icon: HardDrive, text: 'Saved on device · sending', tone: 'text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]' },
+      pending: { icon: HardDrive, text: device.status === 'stored' ? 'Saved on device · sending' : 'Not server-confirmed · sending', tone: 'text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]' },
       saving: { icon: Loader2, text: 'Sending to server', tone: 'text-muted-foreground' },
       saved: { icon: CheckCheck, text: draft.lastSyncedAt ? `Server confirmed ${fmtDate(draft.lastSyncedAt, 'HH:mm:ss')}` : 'Server confirmed', tone: 'text-[hsl(158_40%_32%)] dark:text-[hsl(158_40%_62%)]' },
-      failed: { icon: CloudOff, text: 'Save failed · kept on device, retrying', tone: 'text-accent' },
-      offline: { icon: CloudOff, text: 'Offline · kept on device only', tone: 'text-accent' },
+      failed: { icon: CloudOff, text: device.status === 'stored' ? 'Save not confirmed · draft on device' : 'Save not confirmed · device recovery unavailable', tone: 'text-accent' },
+      offline: { icon: CloudOff, text: device.status === 'stored' ? 'Offline · draft on device only' : 'Offline · draft not retained on device', tone: 'text-accent' },
       locked: { icon: Lock, text: 'Attempt closed by server', tone: 'text-muted-foreground' },
     };
     const m = map[sync];
@@ -476,7 +514,7 @@ export default function AttemptPage() {
         <m.icon className={cn('h-3.5 w-3.5', sync === 'saving' && 'animate-spin')} />
         <span className="hidden sm:inline">{m.text}</span>
         {unsynced.length > 0 && <span className="rounded bg-current/10 px-1 tnum">{unsynced.length}</span>}
-        {scratchPending && <span>Notes on device only</span>}
+        {scratchPending && <span>Notes not server-confirmed</span>}
       </span>
     );
   };
@@ -498,7 +536,9 @@ export default function AttemptPage() {
               <span>{lateWork.length} answer(s) on this device never reached the server before the attempt closed. They are kept here, unverified, and are not credited. The examiner has been notified as context.</span>
             </div>
           )}
-          {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes remain on this device only. They were not confirmed by the server before the attempt closed. Notes are not graded.</p>}
+          {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes were not confirmed by the server before the attempt closed. Notes are not graded. {device.status !== 'stored' && 'Local recovery is not confirmed; copy these notes before closing.'}</p>}
+          <AttemptSafety localError={device.error} retry={() => writeDraft(draftRef.current)} conflict={scratchConflict} mine={draft.scratchpad} resolve={resolveScratch} closed />
+          {!attempt.sandbox && <IntegrityReview attemptId={attempt.id} staff={false} />}
           {!attempt.sandbox && <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" className="mt-5" />}
           <Button asChild className="mt-7 w-full"><Link href={attempt.sandbox ? `/exams/${attempt.examId}` : '/'} data-testid="link-after-submit">{attempt.sandbox ? 'Back to exam configuration' : 'Back to overview'}</Link></Button>
         </motion.div>
@@ -516,6 +556,7 @@ export default function AttemptPage() {
           <FlaskConical className="h-3.5 w-3.5" /> Sandbox — excluded from results and statistics
         </div>
       )}
+      <AttemptSafety localError={device.error} retry={() => writeDraft(draftRef.current)} conflict={scratchConflict} mine={draft.scratchpad} resolve={resolveScratch} closed={readOnly} />
       <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-[1400px] items-center gap-3 px-4 py-2.5">
           <Seal size={24} className="hidden sm:block" />
@@ -690,7 +731,7 @@ export default function AttemptPage() {
           {scratchOpen && (
             <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="xl:sticky xl:top-24 xl:self-start">
               <div className="rounded-xl border bg-card p-3">
-                <div className="mb-2 flex items-center justify-between text-xs"><span className="flex items-center gap-1.5 font-medium"><NotebookPen className="h-3.5 w-3.5" />Scratchpad</span><span className="text-muted-foreground">{scratchPending ? 'on device only · not synced' : 'synced'}</span></div>
+                <div className="mb-2 flex items-center justify-between text-xs"><span className="flex items-center gap-1.5 font-medium"><NotebookPen className="h-3.5 w-3.5" />Scratchpad</span><span className="text-muted-foreground">{scratchPending ? device.status === 'stored' ? 'draft on device · not synced' : 'not synced · device recovery unconfirmed' : 'synced'}</span></div>
                 <Textarea data-testid="input-scratchpad" value={draft.scratchpad} onChange={(e) => setScratch(e.target.value)} rows={16} maxLength={50000} className="ruled font-mono text-sm leading-8" placeholder="Working notes. Not graded." />
                 <p className="mt-2 text-[11px] text-muted-foreground">Not graded. Visible to examiners only as context.</p>
               </div>
@@ -702,6 +743,7 @@ export default function AttemptPage() {
       {!attempt.sandbox && (
         <div className="mx-auto max-w-3xl px-4 pb-10">
           <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" />
+          <details className="mt-4 rounded-xl border bg-card p-4"><summary className="cursor-pointer font-medium">Assistance policy, disclosure and human review</summary><IntegrityReview attemptId={attempt.id} staff={false} /></details>
         </div>
       )}
 

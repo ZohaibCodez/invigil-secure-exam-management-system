@@ -14,6 +14,8 @@ export interface AttemptDraft {
   scratchpad: string;
   scratchRev: number;
   scratchConfirmed: number;
+  /** Server version this scratchpad edit was based on. */
+  scratchVersion?: number;
   lastSyncedAt: string | null;
   current: number;
 }

@@ -19,11 +19,14 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
     const [locked] = await tx.select().from(attempts).where(eq(attempts.id, a.id)).for("update");
     const [previous] = await tx.select().from(saveOperations).where(and(eq(saveOperations.attemptId, a.id), eq(saveOperations.operationId, input.operationId)));
     const now = await databaseNow(tx);
-    if (previous) return { savedAt: previous.savedAt.toISOString(), accepted: true, serverNow: now.toISOString() };
+    if (previous) return { savedAt: previous.savedAt.toISOString(), accepted: true, serverNow: now.toISOString(), scratchpadVersion: previous.scratchpadVersion ?? 0 };
     if (locked!.status !== "active" || now >= locked!.deadline) {
       if (locked!.status === "active") await finalizeLocked(tx, locked!);
       // Return rather than throw, so expiry finalization is committed.
       return null;
+    }
+    if (input.scratchpad !== undefined && input.scratchpadVersion !== locked!.scratchpadVersion) {
+      return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, conflict: "scratchpad", scratchpadVersion: locked!.scratchpadVersion, serverNow: now.toISOString() };
     }
     const answers = [...locked!.answers];
     for (const incoming of input.answers) {
@@ -37,20 +40,22 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
         if (incoming.value !== old.value || incoming.markedForReview !== old.markedForReview) {
           // A stale tab is recoverable: distinguish it from a closed attempt.
           // No changes from this batch have been persisted.
-          return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, serverNow: now.toISOString() };
+          return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, conflict: "answer", scratchpadVersion: locked!.scratchpadVersion, serverNow: now.toISOString() };
         }
         continue;
       }
       const accepted: AnswerData = { questionId: incoming.questionId, value: incoming.value, markedForReview: incoming.markedForReview, revision: incoming.revision, score: null, feedback: null };
       if (index < 0) answers.push(accepted); else answers[index] = accepted;
     }
-    await tx.update(attempts).set({ answers, lastSavedAt: now, ...(input.scratchpad !== undefined ? { scratchpad: input.scratchpad } : {}) }).where(eq(attempts.id, a.id));
+    const scratchpadVersion = locked!.scratchpadVersion + (input.scratchpad !== undefined ? 1 : 0);
+    await tx.update(attempts).set({ answers, lastSavedAt: now, ...(input.scratchpad !== undefined ? { scratchpad: input.scratchpad, scratchpadVersion } : {}) }).where(eq(attempts.id, a.id));
     await tx.insert(saveOperations).values({
       id: randomUUID(), attemptId: a.id, operationId: input.operationId, savedAt: now,
       // Record the persisted revisions, not stale revisions claimed by a tab.
       revisions: answers.map(({ questionId, revision }) => ({ questionId, revision })),
+      scratchpadVersion,
     });
-    return { savedAt: now.toISOString(), accepted: true, serverNow: now.toISOString() };
+    return { savedAt: now.toISOString(), accepted: true, serverNow: now.toISOString(), scratchpadVersion };
   });
   if (!receipt) { res.status(409).json({ error: "The attempt is closed. Only answers confirmed by the server before the deadline count." }); return; }
   res.json(receipt);

@@ -42,7 +42,7 @@ router.patch("/exams/:id", async (req, res): Promise<void> => {
   const updated = await db.transaction(async tx => {
     const [locked] = await tx.select().from(exams).where(eq(exams.id, exam.id)).for("update");
     if (locked!.status !== "draft") throw new HttpError(409, "Only draft examinations can be edited. Published content is locked.");
-    const values = await examValues(input, req.appUser, tx);
+    const values = await examValues(input, req.appUser, tx, locked);
     const [row] = await tx.update(exams).set(values).where(eq(exams.id, exam.id)).returning();
     return row!;
   });
@@ -108,7 +108,7 @@ router.post("/exams/:id/enrollments", async (req, res): Promise<void> => {
 });
 router.post("/exams/:id/start", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser, false);
-  const { sandbox = false } = StartAttemptBody.parse(req.body ?? {});
+  const { sandbox = false, policyVersion } = StartAttemptBody.parse(req.body ?? {});
   if (sandbox) requireStaff(req.appUser);
   if (!sandbox && req.appUser.role !== "candidate") throw new HttpError(403, "Use sandbox mode to preview an examination.");
   const a = await db.transaction(async tx => {
@@ -119,6 +119,7 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
     }
     const now = await databaseNow(tx);
     if (!sandbox && (e!.status === "draft" || e!.status === "completed" || now < e!.startsAt || now >= e!.endsAt)) throw new HttpError(403, "The examination is not currently available.");
+    if (!sandbox && e!.assistancePolicy && policyVersion !== e!.assistancePolicy.version) throw new HttpError(400, "Read and acknowledge the current assistance policy before starting.");
     if (!e!.questionSnapshot.length) throw new HttpError(400, "Assign questions before starting a preview.");
     const ordered = e!.randomize ? shuffled(e!.questionSnapshot) : [...e!.questionSnapshot];
     const frozen = ordered.map(q => ({ ...q, options: e!.randomize ? shuffled(q.options) : [...q.options] }));
@@ -126,6 +127,7 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
     const [row] = await tx.insert(attempts).values({
       id: randomUUID(), examId: exam.id, userId: req.appUser.id, sandbox, questions: frozen,
       totalMarks: e!.totalMarks, startedAt: now, deadline, lastSavedAt: now,
+      policySnapshot: e!.assistancePolicy, acknowledgedAt: !sandbox && e!.assistancePolicy ? now : null,
     }).returning();
     return row!;
   });

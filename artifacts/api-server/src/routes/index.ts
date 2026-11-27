@@ -4,6 +4,7 @@ import sessionRouter from "./session";
 import examRouter from "./exams";
 import attemptRouter from "./attempts";
 import incidentReviewRouter from "./incident-review";
+import integrityRouter from "./integrity";
 import peopleRouter from "./people";
 import insightsRouter from "./insights";
 import reportsRouter, { publicReports } from "./reports";
@@ -19,6 +20,7 @@ router.use(authenticated);
 router.use(examRouter);
 router.use(attemptRouter);
 router.use(incidentReviewRouter);
+router.use(integrityRouter);
 router.use(peopleRouter);
 router.use(insightsRouter);
 
