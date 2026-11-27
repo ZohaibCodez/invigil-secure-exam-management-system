@@ -61,3 +61,4 @@ Thumbs.db
 
 # Raw test output and large recordings are not source files.
 /generated-artifacts/
+.claude

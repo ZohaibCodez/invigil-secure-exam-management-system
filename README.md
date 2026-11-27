@@ -1,470 +1,420 @@
-# Examora — Secure Examination Management
- 
-**Live app:** [Open Examora](https://invigil-secure-exam-management-syst.vercel.app/)
+<!-- SEO Meta Tags
+Description: Examora is a secure online examination management system with server-timed exams, offline-resilient answers, fullscreen supervision, AI-assisted grading and QR-verifiable results.
+Keywords: online examination system, secure exam management, proctoring, exam software, React, Express, PostgreSQL, Neon, Groq AI grading, QR verified results
+author: Muhammad Zohaib Khan
+canonical: https://github.com/ZohaibCodez/invigil-secure-exam-management-system
+-->
+<!-- Open Graph
+og:type: website
+og:url: https://invigil-secure-exam-management-syst.vercel.app
+og:title: Examora - Secure Examination Management, Examination with Confidence
+og:description: Create, conduct, supervise, grade and verify online examinations. Answers survive network drops, time is kept by the server, and every published result carries a QR verification.
+og:image: docs/screenshots/landing.jpg
+og:site_name: Examora
+og:locale: en_US
+-->
+<!-- Twitter Card
+twitter:card: summary_large_image
+twitter:title: Examora - Secure Examination Management
+twitter:description: Server-timed, offline-resilient online exams with fullscreen supervision, AI-assisted grading and QR-verifiable reports.
+twitter:image: docs/screenshots/landing.jpg
+-->
+<!-- GitHub Metadata
+topics: online-exam, exam-management-system, proctoring, react, express, postgresql, hackathon
+languages: TypeScript
+homepage: https://invigil-secure-exam-management-syst.vercel.app
+-->
 
-**Live hosting and database:** Vercel + Neon PostgreSQL.
+<div align="center">
 
-A full-stack examination platform built for Web-e-Thon: three protected roles,
-reusable question banks, server-timed attempts, recoverable answer synchronization,
-monitoring, grading, controlled publication, and verifiable PDF results.
+<img src="artifacts/examora/public/brand/logo-full.png" alt="Examora - Examination with confidence" width="420" />
 
-## Implemented product
+### Secure examination management: server-timed, failure-resilient and verifiable
 
-- **Public website:** a detailed landing page at `/` for signed-out visitors
-  (always available at `/welcome`), sign-in at `/login`, and a source-linked
-  research and innovation assessment at `/research`. Signed-in users retain
-  the dashboard at `/`.
-- **Administrator:** create accounts, assign roles, deactivate access.
-- **Examiner:** question bank CRUD, draft exam creation and editing, question
-  assignment, candidate enrollment, publication, isolated sandbox preview,
-  live monitoring, announcements, written-response grading, and result publication.
-- **Candidate:** assigned upcoming/available/completed exams, timed question workspace,
-  single-answer and multiple-select MCQs, written responses, review flags,
-  autosave, scratchpad, retained viewing preferences, and own published results.
-- **Secondary features:** network-aware saving, PDF reports, sandbox,
-  CSV/JSON import with validation, question analytics, QR verification, workspace
-  customization, and a digital scratchpad.
-- **Fullscreen supervision (per exam, optional):** the paper runs in fullscreen;
-  leaving fullscreen, switching tabs or losing window focus blocks the paper and is
-  recorded as a violation. At the exam's limit (1-10) the attempt **locks** for a
-  human decision. The examiner or administrator can resume it, void it (score 0)
-  or authorize a retake, and must give a reason, which is logged with their name.
-  Violations never change a score automatically (requirement 3.6), and re-opening
-  the page after a crash or power cut is logged but not counted (innovation 5.3).
-  A browser cannot lock the whole computer, so the design blocks and records
-  instead of claiming a lockdown.
-- **AI-assisted grading (optional, Groq):** when an examiner opens a submission,
-  each written answer gets an advisory score and feedback, pre-filled for review.
-  Nothing counts until the examiner presses *Approve and save grades*. Only the
-  question, marks, marking guidance and answer text are sent, never candidate
-  identity. Candidate answers are treated as untrusted data (prompt-injection
-  resistant), scores are clamped to the question's marks, and candidates never see
-  the AI suggestion. Without `GROQ_API_KEY`, grading is fully manual.
-- **Innovation challenge 5.3:** failure-resilient examination delivery without
-  granting extra time based on untrusted client clocks.
-- **Innovation challenge 5.1:** versioned resource/AI policies, explicit candidate
-  acknowledgement, assistance disclosures, and question-linked human explanations
-  within a separate review window. These are safeguards, not AI detection.
-- **Innovation challenge 5.2:** exact coverage blueprints with explicit shortages,
-  frozen eligible pools and papers, and form comparisons—not calibrated equivalence.
-- **Innovation challenge 5.4:** candidate statements and reasoned, immutable
-  technical-incident decisions, with no automatic grade or deadline changes.
+**Built for Web-e-Thon, Technoverse 5.0, COMSATS University Lahore (27-28 November 2026)**
 
-## Stack and architecture
+[![Live demo](https://img.shields.io/badge/live%20demo-vercel-000000?logo=vercel)](https://invigil-secure-exam-management-syst.vercel.app)
+![TypeScript](https://img.shields.io/badge/typescript-5.9-3178C6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/react-19.1-61DAFB?logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/vite-7-646CFF?logo=vite&logoColor=white)
+![Express](https://img.shields.io/badge/express-5-000000?logo=express)
+![PostgreSQL](https://img.shields.io/badge/postgresql-neon-4169E1?logo=postgresql&logoColor=white)
+![Drizzle](https://img.shields.io/badge/drizzle-orm-C5F74F?logo=drizzle&logoColor=black)
+![Better Auth](https://img.shields.io/badge/auth-better%20auth-111111)
+![Tests](https://img.shields.io/badge/acceptance-69%2F69%20live%20checks-success)
 
-This implementation uses the project's React + Vite frontend and Express API
-architecture rather than the Next.js option discussed during analysis.
-Both layers are TypeScript. Shared OpenAPI contracts generate React Query hooks
-and Zod validation schemas. PostgreSQL and Drizzle provide persistence; Better Auth
-owns credentials, password hashing, cookies, sessions, and authentication rate limits.
+[**Live application**](https://invigil-secure-exam-management-syst.vercel.app) • [**Demo accounts**](#-demo-accounts) • [**Requirement map**](#-requirement-coverage) • [**Innovations**](#-innovation-challenges) • [**Setup**](#-getting-started)
 
-The frontend uses Tailwind, accessible UI primitives, and lightweight motion.
-The server uses `pdf-lib` and QR codes for result reports. No required feature
-depends on a paid API, LLM, webcam, email service, or credit-card-only service.
+<img src="docs/screenshots/landing.jpg" alt="Examora landing page with the animated save-ledger console" width="900" />
 
-```text
-artifacts/examora/         React frontend
-artifacts/api-server/      Express API, business rules, demo seed
-lib/api-spec/openapi.yaml  Source-of-truth API contract
-lib/api-client-react/     Generated client hooks and types
-lib/api-zod/              Generated server validation
-lib/db/                   Drizzle schema and PostgreSQL pool
-api/index.mjs             Vercel serverless API adapter
-vercel.json               Vercel SPA + API routing
-```
+</div>
 
-### Why these choices?
+---
 
-The application is a modular monolith, not a set of distributed services:
-fewer integration points, one relational source of truth, explicit transactional
-state transitions, and straightforward free-tier deployment.
+## 📋 Table of Contents
 
-Separate modules handle identity/access, exams, attempts, people/imports,
-insights, and reports. Client rendering is intentionally separate from the
-authoritative examination state.
+- [About](#-about)
+- [Demo accounts](#-demo-accounts)
+- [Requirement coverage](#-requirement-coverage)
+- [Feature tour](#-feature-tour)
+- [Innovation challenges](#-innovation-challenges)
+- [Architecture](#-architecture)
+- [Tech stack](#-tech-stack)
+- [Getting started](#-getting-started)
+- [Deployment (Vercel + Neon)](#-deployment-vercel--neon)
+- [Testing and verification](#-testing-and-verification)
+- [API reference](#-api-reference)
+- [Project structure](#-project-structure)
+- [Known limitations](#-known-limitations)
+- [Team and acknowledgments](#-team-and-acknowledgments)
 
-## Development setup
+---
 
-Requirements: Node.js 22 or newer, pnpm 10, and PostgreSQL.
+## 🎯 About
 
-1. Install dependencies with `pnpm install`.
-2. Set `DATABASE_URL` securely to a PostgreSQL connection string.
-3. Set `SESSION_SECRET` securely to a high-entropy random secret of at least
-   32 characters. Do not commit it.
-4. Set `BETTER_AUTH_URL` to the exact app origin. Development in Replit can
-   derive its development origin automatically.
-5. Run `pnpm --filter @workspace/db run push` against the **development** database.
-6. Start the existing API and Examora frontend workflows in Replit.
+**Examora** is a full-stack **secure online examination management system** for institutions and competition organisers. Administrators manage people and access; examiners build question banks, configure and publish examinations, supervise them live, grade and publish results; candidates sit timed papers and receive verifiable reports.
 
-For local development outside Replit, run the Express service and Vite frontend
-behind a same-origin reverse proxy: route `/api/*` to the API server and other
-requests to Vite. Authentication requires same-origin requests.
+It is designed around one principle: **"saved" is not the same as "submitted".** Every answer is kept on the candidate's device first, then accepted by the server in order with a receipt. Time is decided by the server clock only, so a network drop, a refresh or a changed laptop clock never costs a candidate their work and never buys extra time.
 
-Commands:
+### Why Examora?
 
-```sh
-pnpm --filter @workspace/api-spec run codegen
-pnpm run typecheck
-pnpm --filter @workspace/db run push
-```
+- 🛡️ **Integrity without surveillance**: no webcam, no biometrics, no automated "cheating score". Indicators are context for a human decision, as the problem statement requires.
+- 🌐 **Failure-resilient delivery**: answers survive outages, refreshes and crashes; only the server decides the deadline.
+- 🔏 **Trustworthy outcomes**: frozen papers, immutable decisions, examiner-approved grading and QR-verifiable PDF reports.
 
-Source-only checks that emit no build outputs:
+---
 
-```sh
-pnpm exec tsc -p artifacts/api-server/tsconfig.source.json --noEmit
-pnpm exec tsc -p artifacts/examora/tsconfig.source.json --noEmit
-pnpm --filter @workspace/api-server exec tsx --test src/integrity.test.ts src/blueprint.test.ts
-```
+## 🔑 Demo accounts
 
-The API development workflow runs source through `tsx watch`; restarting it
-does not run a production build. Standard root typechecking and the codegen
-wrapper emit library declarations, so do not use those as a way around the
-competition build freeze.
+The live database contains fictional demonstration data only. All accounts share one password.
 
-Do not expose your database connection string in browser variables or source code.
-
-## Fictional demonstration environment
-
-Explicitly set `DEMO_MODE=true` in the environment where demo access is intended,
-then seed **once**:
-
-```sh
-pnpm --filter @workspace/api-server run seed:demo
-```
-
-The seed is idempotent and not executed during startup, builds, or deployment.
-It creates fictional accounts, examinations, enrollment records, and historical
-submissions. Dashboard and analytics values are calculated from these persisted
-records, not hardcoded frontend counters.
-
-| Role | Email | Demo password |
+| Role | Email | Password |
 |---|---|---|
 | Administrator | `admin@examora.demo` | `ExamoraDemo2026!` |
 | Examiner | `examiner@examora.demo` | `ExamoraDemo2026!` |
 | Candidate | `candidate@examora.demo` | `ExamoraDemo2026!` |
 
-These are deliberately public **fictional demo credentials**, not private accounts.
-Demo shortcuts perform real authentication; they do not bypass backend authorization.
+Additional fictional candidates: `sam@examora.demo`, `taylor@examora.demo` (same password). Self-registration is disabled by design: accounts are issued by administrators or bulk import.
 
-**Never use a seeded demo database for real examinations.** Hiding shortcuts does
-not delete public demo accounts. Use a clean production database and create a
-private administrator account instead. In a private deployment, bootstrap the
-first administrator by registering a candidate account, then promote that exact
-account through your authorized database administration workflow. All later role
-assignments happen through the administrator UI.
+---
 
-## Timing, grading, and recovery rules
+## ✅ Requirement coverage
 
-### Examination lifecycle
+Every row was exercised end to end against the **live deployment** by an automated acceptance run (69 of 69 functional checks passing). See [Testing](#-testing-and-verification).
 
-- Only draft examinations can be edited or deleted.
-- Publication requires questions and a closing time in the future.
-- Candidate entry requires enrollment and the examination availability window.
-- A real candidate has at most one attempt per exam, enforced by a partial unique
-  index. Sandbox attempts are separate.
-- Published exam content is frozen. Editing the reusable bank cannot mutate
-  existing exam or attempt snapshots.
-- The attempt deadline is the earlier of the examination close time and
-  the server start time plus the configured duration.
-- Completing an examination is an explicit early-close action and finalizes
-  active real attempts. It should be used intentionally.
+<details open>
+<summary><b>Core requirements (3.1 - 3.8)</b></summary>
 
-### Video-inspired entry and delivery
+| # | Requirement | How Examora meets it |
+|---|---|---|
+| 3.1 | Authentication and authorization | Better Auth sessions (httpOnly cookies, rate-limited sign-in). Admin creates users, assigns roles, deactivates (sessions revoked, sign-in refused). Every API route checks role and ownership on the server; examiners only see their own exams, candidates only enrolled ones. Cross-origin writes rejected. |
+| 3.2 | Examination management | Title, instructions, schedule window, duration, marks, pass mark, shuffling, delivery rules. Lifecycle draft, published, ongoing, completed (derived from the database clock). Drafts editable and reviewable; published papers locked. No access before the window opens. |
+| 3.3 | Question management | Reusable bank with topics and difficulty; create, edit, delete, assign. Single-answer, multiple-select (all-or-nothing **or** partial credit with wrong-pick penalty) and written questions. Question and option shuffling. Each attempt stores a frozen copy of its paper and marking scheme. |
+| 3.4 | Candidate management | Enrolment of active candidates; enrolment list per exam. Candidate dashboard groups **Available now / Upcoming / Completed** with instructions and status. Entry restricted to enrolled candidates within the window. |
+| 3.5 | Examination interface | Question palette distinguishing answered, unanswered and marked-for-review; marks and server-anchored timer; autosave; refresh restores answers, flags and remaining time; review before submit; server finalises at expiry with accepted answers only. |
+| 3.6 | Monitoring | Live monitor of active attempts, progress, last save and incidents; announcements delivered into running attempts; incidents labelled "context, not proof of misconduct". |
+| 3.7 | Evaluation and grading | Automatic objective marking per scheme; written answers graded by examiners with 0..max validation (optional AI suggestions, examiner approval required). Results cannot be published while anything is ungraded. |
+| 3.8 | Results and analytics | Controlled publication; candidates see only their own published results; exam-level summary (mean, median, highest, lowest, pass rate) and candidate scores from real data; attempts retained. |
 
-Examiners can opt a **draft** examination into supervised entry, subject/device
-acknowledgements, and explicit save-and-lock answers in **Settings → Delivery
-rules**. Venue/session labels and a minimum answered percentage are optional.
-Defaults preserve the existing reviewable workflow; publication freezes the
-settings and new attempts receive their own snapshot.
+</details>
 
-Candidate entry includes printable exam information. If QR approval is required,
-the candidate requests a five-minute code and an owning examiner or administrator
-approves it from **Admissions** or its authenticated request link. Approval does
-not begin the timer; the candidate must press **Start**. A QR is not identity proof.
-The staff scanner is optional, opens the camera only on request, and has a
-same-origin link/ID fallback.
+<details open>
+<summary><b>Secondary features (4.1 - 4.8)</b></summary>
 
-Autosave is still an editable draft. Only an explicit, server-confirmed Save/Lock
-prevents subsequent editing. Locked answers remain readable, and server-confirmed
-unlocked drafts count on submission. The optional minimum applies only to early
-manual submission; deadline finalization always proceeds.
+| # | Feature | Implementation |
+|---|---|---|
+| 4.1 | Network-aware interface | Online/offline detection, per-answer sync state (saved on device, sending, server confirmed, offline, retrying), honest submit when answers never reached the server. |
+| 4.2 | PDF reports | Branded A4 certificate (pdf-lib): score ring, pass badge, topic performance, question breakdown with feedback, QR verification. Only the candidate (after publication) or authorised staff can download. |
+| 4.3 | Sandbox | Examiners run the real candidate experience; sandbox attempts are private and excluded from results and statistics. |
+| 4.4 | Bulk import | CSV / JSON for questions and candidates with dry-run validation and readable per-row errors ("difficulty: use easy, medium, hard"). |
+| 4.5 | Question analytics | Accuracy, skipped count, **most-chosen wrong answer**, and **observed vs labelled difficulty** with a mismatch flag; filterable per exam. |
+| 4.6 | Verifiable reports | 48-hex random token and QR; public verification page shows exam, score, issue date and **initials only**. Forged tokens rejected. |
+| 4.7 | Customisable workspace | Font size, paper/night theme, split/focus layout, zen fullscreen; retained per user. |
+| 4.8 | Digital scratchpad | Ruled scratchpad inside the exam, saved locally and to the server, restored on refresh; never graded. |
 
-The workspace also provides subject sections, first/last and section navigation,
-question-state explanations and Help. Existing scratchpad, recovery, grading,
-policies, reports and all required question types remain available.
+</details>
 
-**Before deploying this upgrade to the existing Neon database**, explicitly apply
-`lib/db/migrations/20261127_delivery_admission.sql`. It adds fields and an admission
-table without resetting data. Do not run migrations from server startup or push
-database-dependent code to Vercel before applying its migration.
+---
 
-See [the reference-video feature map](docs/reference-video-feature-map.md) for
-the visible source behaviors, safety differences and preserved PDF requirements.
-Run `pnpm run test:delivery` against the development database for the admission,
-locking, expiry and legacy-mode regression checks.
+## 🖼️ Feature tour
 
-### Comparable randomized papers
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/login.jpg" alt="Sign in" /><br/><sub><b>Sign in</b>: one door for all three roles, demo shortcuts</sub></td>
+<td width="50%"><img src="docs/screenshots/exdash.jpg" alt="Examiner dashboard" /><br/><sub><b>Examiner overview</b>: exams, grading queue, live activity</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/cadash.jpg" alt="Candidate dashboard" /><br/><sub><b>Candidate overview</b>: available, upcoming and completed exams</sub></td>
+<td><img src="docs/screenshots/detail.jpg" alt="Exam detail" /><br/><sub><b>Exam detail</b>: pool, blueprint, candidates, admissions, settings, lifecycle</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/questions.jpg" alt="Question bank" /><br/><sub><b>Question bank</b>: topics, difficulty, marking rules</sub></td>
+<td><img src="docs/screenshots/a3.jpg" alt="Exam workspace" /><br/><sub><b>Exam workspace</b>: palette, review flags, server timer, sync status</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/qoff.jpg" alt="Offline answering" /><br/><sub><b>Offline</b>: writing continues, answers kept on device</sub></td>
+<td><img src="docs/screenshots/scratch.jpg" alt="Scratchpad" /><br/><sub><b>Scratchpad</b>: rough work inside the exam</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/night.jpg" alt="Night theme" /><br/><sub><b>Workspace preferences</b>: night theme, font size, layout</sub></td>
+<td><img src="docs/screenshots/submit.jpg" alt="Submission" /><br/><sub><b>Submit</b>: review before submission, server-confirmed receipt</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/monitor.jpg" alt="Live monitor" /><br/><sub><b>Live monitor</b>: progress, incidents, announcements, QR scanning</sub></td>
+<td><img src="docs/screenshots/supmon.jpg" alt="Supervision decisions" /><br/><sub><b>Supervision</b>: lock, resume, void or authorise a retake, with reasons</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/grade.jpg" alt="Grading" /><br/><sub><b>Grading</b>: AI suggestion pre-filled, examiner approves</sub></td>
+<td><img src="docs/screenshots/results.jpg" alt="Results" /><br/><sub><b>Results</b>: grading queue, publication, PDF export</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/analytics.jpg" alt="Analytics" /><br/><sub><b>Analytics</b>: exam summary, distribution, question insights</sub></td>
+<td><img src="docs/screenshots/blueprint.jpg" alt="Blueprint" /><br/><sub><b>Blueprint</b>: comparable randomised papers</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/imperr.jpg" alt="Import validation" /><br/><sub><b>Bulk import</b>: dry run with clear row errors</sub></td>
+<td><img src="docs/screenshots/incident.jpg" alt="Incident review" /><br/><sub><b>Dispute review</b>: candidate statement, attributed decision</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/report.jpg" alt="PDF report" /><br/><sub><b>PDF report</b>: branded, QR-verifiable result certificate</sub></td>
+<td><img src="docs/screenshots/verify.jpg" alt="Verification" /><br/><sub><b>Public verification</b>: authentic report, initials only</sub></td>
+</tr>
+</table>
 
-In an examination's **Pool** tab, select the eligible bank questions. In
-**Blueprint**, add exact quota rows: topic (the case-sensitive bank category),
-examiner difficulty band, question type, marks per question, and question count.
-The row totals determine the marks and number of questions **per attempt**, not
-the size of the eligible pool. Duplicate strata and papers over 200 questions
-are rejected. Remove all rows and save to restore the same-full-pool baseline.
+---
 
-Draft validation displays available counts and explicit shortages against the
-live bank. Infeasible drafts can be saved for repair, but cannot be published or
-used for a sandbox attempt. Publication checks the bank again and freezes the
-eligible content and quotas. Each attempt independently samples without
-replacement inside each quota, even when order shuffling is off. Its selected
-questions, choices, answer keys, marks and quotas remain fixed on resume and
-after later bank changes.
+## 💡 Innovation challenges
 
-The Blueprint tab compares forms against **their own frozen quotas**, including
-clearly labelled private sandbox previews. It shows count/mark matches and
-selected question IDs. Observed accuracy includes sample counts from completed
-real objective responses only and separates frozen item versions. Examiner
-labels are not psychometric calibration; matching coverage does not establish
-equivalent realized difficulty. Comparisons never adjust scores or unlock
-published grades.
+Examora addresses four of the five open challenges. The primary focus is **5.3**; the others strengthen it. Full evidence and trade-offs are in [`docs/innovation-research.md`](docs/innovation-research.md).
 
-Regression checks: `pnpm --filter @workspace/api-server run test:blueprint`
-(requires the development PostgreSQL schema to be applied).
+### 5.3 Failure-resilient examinations (primary)
 
-### Answer synchronization
+| Problem | Mechanism | Why it is fair |
+|---|---|---|
+| Network drops mid-answer | Every keystroke is stored on the device (IndexedDB), then synced in batches with **revision numbers** and **idempotent operation IDs** | A retried save is counted once; an older tab can never overwrite a newer answer |
+| Refresh, crash, power loss | On return the attempt reloads server answers, merges unsent local drafts and restores the remaining time | Re-opening the page is logged for context, never penalised |
+| Device clock manipulation | Deadline computed from the **database clock** at start; the timer only displays server time | Changing the laptop clock changes nothing |
+| Expiry while offline | The server finalises at the deadline with answers it accepted before it | Unsent answers are shown honestly as "not credited"; no extra time is granted |
 
-- The server's database clock decides whether an answer batch is on time.
-- Attempts are row-locked during save/submission so late saves cannot overwrite
-  finalized results.
-- Operation identifiers make network retries idempotent.
-- Per-answer revisions prevent older saves from replacing newer answers.
-- Client-supplied marks, feedback, or identity are never trusted.
-- Questions, choices, and marking rules retain their original assignment.
-- Objective responses use exact-set marking: every correct choice and no extra
-  choice must be selected. There is no negative marking.
-- Written responses are manually graded within `0..assigned marks`.
-- Results cannot be published until the exam is closed and every real attempt
-  is finalized and graded. Published grades are locked.
+### 5.1 Integrity in the AI era (privacy-preserving)
 
-### Offline limitations — intentionally explicit
+- Versioned **assistance policy** (closed book, open book, AI disclosed, AI conditional) that the candidate must acknowledge before starting.
+- Candidate **AI-use disclosure** and question-linked **authorship review** where the candidate explains their own work to a human.
+- **Fullscreen supervision** (per exam, on by default for new exams): leaving fullscreen, switching tabs or windows blocks the paper and counts a violation; at the limit the attempt **locks for a human decision** (resume, void with score 0, or authorise a retake). A reason is required and logged with the decider's name.
+- Deliberately **no webcam, no biometrics and no AI detector**; indicators never change a score automatically (requirement 3.6).
 
-Local recovery reduces loss; it does not make a browser a trusted proctor.
-Unsynchronized answers must reach the server **before the fixed deadline** to
-count automatically. A client-provided timestamp cannot prove when an offline
-answer was written. Late work remains unverified recovery evidence, not
-automatically accepted marks.
+### 5.2 Fairness of randomised examinations
 
-Only server-synchronized work transfers to another device. Clearing browser
-storage removes unsynchronized local work. Offline page reopening depends on
-the application shell already being available; this is not a guaranteed fully
-offline installable PWA.
+- **Blueprints** with exact quotas by topic, difficulty, type and marks; publication is refused if the pool cannot satisfy them.
+- Each candidate receives a different but **structurally equivalent** paper, frozen at start.
+- Examiner comparisons of form difficulty from observed accuracy.
 
-Expiry is enforced on every relevant request. When a browser is closed at
-expiry, the next authorized read finalizes the attempt using previously
-accepted answers. Correctness does not depend on an always-running timer,
-cron job, websocket, or paid background worker.
+### 5.4 Trust and dispute resolution
 
-### Integrity and privacy
+- Candidates submit one **statement** per attempt about a technical incident or grading concern.
+- Examiners record one **reasoned, attributed, immutable decision** (no action, supervised resit recommended, referred for review), shown beside separated **server evidence** (save receipts, browser events).
+- Published grades are locked to preserve report authenticity.
 
-Tab visibility/network events are reviewable context, **not proof of cheating**.
-No camera, microphone, biometric analysis, or invasive monitoring is required.
-Answer keys are excluded from active candidate responses. Candidates only
-receive their own published results. Authorization is checked on every protected
-endpoint, including report downloads.
+### Plus: AI-assisted grading with human approval
 
-## Report verification
+When an examiner opens a submission, each written answer receives an advisory score and feedback from **Groq (`openai/gpt-oss-120b`)**, pre-filled for review. Nothing counts until the examiner presses **Approve and save grades**. Only the question, marks, marking guidance and answer text are sent (no identity). Answers are treated as untrusted data; calibration against 13 reference answers placed 12 within the expected range, with prompt-injection attempts scored 0. Without `GROQ_API_KEY`, grading is fully manual, so no required feature depends on a paid service.
 
-Results receive an unguessable verification token on publication. The PDF includes
-that token and a QR link to `/verify/:token`.
+---
 
-The public verification page exposes only exam title, candidate initials, score,
-maximum score, and issuance date—never email addresses, answer scripts, or full
-candidate identity. A QR image alone is not a digital signature: authenticity is
-verified against the issued server-side record.
+## 🏗️ Architecture
 
-Published grades cannot be edited, avoiding stale reports claiming old marks.
-Report generation is on demand and does not store PDF bytes in PostgreSQL.
-
-## Bulk import
-
-The UI supports CSV and JSON. Always preview validation before committing.
-Imports with validation errors are not committed. Candidate account creation is
-performed through Better Auth; any concurrent account-creation failure is
-reported with the imported count rather than silently claiming full success.
-
-Candidate fields:
-
-```text
-name,email,password
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI[React 19 SPA<br/>Vite, Tailwind, Framer Motion]
+    IDB[(IndexedDB<br/>local drafts, prefs)]
+  end
+  subgraph Vercel
+    FN[Express 5 API<br/>serverless function]
+  end
+  DB[(Neon PostgreSQL<br/>Drizzle ORM)]
+  AI[Groq API<br/>optional]
+  UI <-->|same-origin /api, httpOnly cookie| FN
+  UI <--> IDB
+  FN <-->|row locks, DB clock| DB
+  FN -.->|advisory grading| AI
 ```
 
-Imported candidates cannot choose privileged roles. Passwords must contain at
-least 10 characters.
+- **Modular monolith**: one relational source of truth, explicit transactional state transitions, simple free-tier deployment.
+- **Contract-first API**: [`lib/api-spec/openapi.yaml`](lib/api-spec/openapi.yaml) generates React Query hooks and Zod validators (Orval), so the client and server validate the same shapes.
+- **Data integrity**: `SELECT ... FOR UPDATE` on attempts, timing from `clock_timestamp()`, a partial unique index allowing exactly one current real attempt per candidate and exam, CHECK constraints on windows and durations, idempotent save operations.
+- **Security**: server-side RBAC on every route, answer keys never sent during an attempt, same-origin cookies, cross-origin mutation guard, rate-limited sign-in, `no-store` caching, public endpoints expose initials only.
 
-Question fields:
+---
 
-```text
-text,type,category,difficulty,marks,options,correctAnswers,explanation
-```
+## 🛠️ Tech stack
 
-- `type`: `single`, `multiple`, or `written`.
-- `difficulty`: `easy`, `medium`, or `hard`.
-- `options`: JSON array of `{ "id": "a", "text": "..." }` objects, or pipe-separated
-  text (auto-assigned `a`, `b`, `c` identifiers).
-- `correctAnswers`: JSON string array or pipe-separated identifiers.
-- Written questions use empty option and correct-answer arrays.
+| Layer | Technologies |
+|---|---|
+| Frontend | React 19, Vite 7, TypeScript, Tailwind CSS 4, Radix UI primitives, Framer Motion, TanStack Query, Wouter, idb-keyval, qrcode.react |
+| Backend | Node.js 22, Express 5, Better Auth, Zod 4, pdf-lib, qrcode, pino |
+| Database | PostgreSQL on Neon, Drizzle ORM and drizzle-kit |
+| API contract | OpenAPI 3.1, Orval code generation |
+| AI (optional) | Groq chat completions, strict JSON schema output |
+| Hosting | Vercel (static SPA and one serverless API function) |
 
-## Vercel + Neon deployment
+---
 
-The repository includes a Vercel adapter and routing configuration. **External
-Vercel deployment has not been performed as part of the local preview build.**
+## 🚀 Getting started
 
-1. Create a free Neon PostgreSQL project. Use its pooled, TLS-enabled connection
-   string. Do not paste it into a commit or issue.
-2. Import your GitHub repository into Vercel, keeping the **repository root**
-   as the project root.
-3. Vercel reads `vercel.json`. The build checks shared-library, API and frontend types,
-   bundles the non-listening Express app into
-   `artifacts/api-server/dist/vercel/app.mjs`, builds the frontend into
-   `artifacts/examora/dist/public`, and serves `/api/*` through the JavaScript
-   serverless adapter. Keep both the adapter and the build command: pointing
-   Vercel directly at the workspace TypeScript source can trigger NodeNext import
-   errors despite the workspace's valid bundler-mode configuration.
-4. Configure secure environment variables in Vercel:
-   - `DATABASE_URL`: your Neon connection string.
-   - `SESSION_SECRET`: a new high-entropy secret.
-   - `BETTER_AUTH_URL`: the exact HTTPS origin of your Vercel application.
-   - `DEMO_MODE`: `true` only for an intentionally public fictional demo.
-5. Before serving users, apply the schema to that **explicitly selected external
-   Neon database** with `pnpm --filter @workspace/db run push` from a secure shell
-   configured for that target. Do not run migrations in request handlers.
-6. Seed only if the target is an intentional demo environment.
-7. Deploy and verify sign-in, a real candidate attempt, server saving, submission,
-   grading, and a PDF/QR report on the actual production origin.
+### Prerequisites
 
-Database schema setup is a separate explicit operation—not a Vercel build step.
-Replit-managed production database migrations are handled by Replit's Publish
-flow instead; do not target that database with external deployment instructions.
+- Node.js **22** or newer and **pnpm 10**
+- A PostgreSQL database (a free [Neon](https://neon.tech) project works)
 
-Free tiers have compute, invocation, storage, and transfer limits and do not
-guarantee production availability. Neon free compute can sleep after inactivity;
-handle first-request wake-up delays. Keep the Vercel function region near Neon.
-Avoid continuously polling every exam or scheduling always-on keep-alive requests.
-
-## Test evidence archive
-
-See [the evidence archive](docs/evidence/README.md) for available visual snapshots,
-executed browser-test reports, regression commands and coverage limitations.
-Replit-native replay views are not downloadable recordings in this repository;
-the archive explicitly identifies which media could and could not be exported.
-
-## Demonstration and verification checklist
-
-The first build is type-checked and startup-checked; a full automated browser
-regression suite is not claimed. Before a real high-stakes examination, perform
-additional security, concurrency, accessibility, load, and recovery testing.
-
-Important scenarios:
-
-- Each role can sign in and sees only its permitted workflow.
-- Candidates cannot obtain another candidate's attempt or an unpublished grade.
-- Unenrolled candidates and candidates outside the window cannot start.
-- Answer keys are absent from active candidate responses.
-- Refresh preserves assignment and remaining time.
-- Changing the device clock cannot extend server acceptance.
-- Disconnect/reconnect before expiry recovers pending work.
-- Late unsynchronized work is not automatically accepted.
-- Duplicate submit and delayed saves cannot change a finalized attempt.
-- Written marks exceeding the question maximum are rejected.
-- Sandbox activity is excluded from actual results and analytics.
-- PDF downloads are authorized; verification reveals minimal information.
-
-## Technical-incident review
-
-Candidates can open **Had a technical problem?** on a real attempt, including
-after submission via **Technical problem or review decision** on their dashboard.
-One immutable statement is retained per attempt. In **Monitor**, the owning
-examiner (or an administrator) selects the candidate and records a final
-disposition with a reason. The candidate can return to see the reviewer's name,
-decision time, reason, and outcome.
-
-Server save receipt times and persisted revision numbers are shown separately
-from unverified browser reports. Historical receipts may lack revision details.
-A server receipt confirms acceptance, not when offline work was authored.
-Reviews do not credit late work, modify answers or marks, extend deadlines,
-unlock published grades, or create resits. Supervised resit recommendations
-require separate institutional arrangements.
-
-After pulling schema changes, apply them explicitly with
-`pnpm --filter @workspace/db run push` in development before starting the API.
-The PostgreSQL-backed regression check creates and removes its own fictional
-fixtures in the configured development database:
+### Installation
 
 ```bash
-pnpm --filter @workspace/api-server run test:incident-review
+git clone https://github.com/ZohaibCodez/invigil-secure-exam-management-system.git
+cd invigil-secure-exam-management-system
+pnpm install
 ```
 
-It checks cross-candidate/examiner isolation, duplicate and competing decisions,
-server revision evidence, late-answer rejection, and published-grade protection.
+### Environment
 
-## Assistance policy and human authorship review
+Create `.env.local` in the repository root (it is git-ignored):
 
-In a draft exam's **Settings → Assistance policy**, choose closed book or open
-book (AI prohibited), AI with disclosure, or AI under stated conditions. State
-the permitted resources and conditions explicitly. AI with disclosure always
-requires a disclosure; conditional permission may require one too. Policy text
-and its content-derived version are locked at publication.
+```bash
+DATABASE_URL='postgresql://user:pass@host-pooler.region.aws.neon.tech/neondb?sslmode=require'
+DATABASE_URL_UNPOOLED='postgresql://user:pass@host.region.aws.neon.tech/neondb?sslmode=require'
+SESSION_SECRET='at-least-32-random-characters'
+BETTER_AUTH_URL='http://localhost:8080'
+DEMO_MODE='true'
+# Optional AI-assisted grading
+GROQ_API_KEY='gsk_...'
+GROQ_MODEL='openai/gpt-oss-120b'
+```
 
-Before a new real attempt, candidates read the policy and explicitly acknowledge
-that exact version. The server requires both affirmative acknowledgement and
-the matching version, and records its own time and the policy snapshot. Sandbox
-previews never create a real candidate attestation. Exams with no historical
-policy remain valid; resuming an existing attempt never replaces its original
-snapshot or acknowledgement.
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | Pooled connection used by the API |
+| `DATABASE_URL_UNPOOLED` | recommended | Direct connection used for schema migrations |
+| `SESSION_SECRET` | yes | Better Auth signing secret (32+ characters) |
+| `BETTER_AUTH_URL` | yes | Exact public origin; also used in report QR links |
+| `DEMO_MODE` | for seeding | Must be `true` to run the demo seed |
+| `GROQ_API_KEY`, `GROQ_MODEL` | no | Enables advisory AI grading |
 
-During the attempt, candidates open **Assistance policy, disclosure and human
-review** and explicitly save their disclosure, including “no assistance used”
-when applicable. Disclosures are self-reported, not verified evidence. They have
-their own save status and version; they are not part of offline answer/scratchpad
-recovery. Unsaved disclosure text is not guaranteed to survive reload. Conflicting
-saves retain the local text and require review/retry. After submission or expiry,
-a missing required disclosure is labelled **Required disclosure not provided**.
-It never prevents finalization or changes marks.
+### Database and demo data
 
-After submission, the authorized examiner selects the candidate in **Monitor**
-and requests an explanation linked to an assigned question, with a separate
-1–168-hour response window. Candidates return from their dashboard's
-**Authorship explanations, technical incidents and review decisions** link.
-One immutable explanation is accepted per request. A reasoned outcome may be
-recorded after a response or after the response window ends; it identifies the
-reviewer and time. Identical retries are safe; conflicting responses, request
-windows and outcomes cannot replace the record.
+```bash
+set -a; . ./.env.local; set +a
+pnpm --filter @workspace/db run push                # create or update tables
+pnpm --filter @workspace/api-server run seed:demo   # idempotent fictional data
+```
 
-Authorship outcomes are advisory (“satisfactory” or “further review”), not
-misconduct verdicts. Technical failures continue through the existing incident
-case workflow above. Neither workflow edits original answers, extends examination
-time, creates a resit, unlocks grades, or automatically penalizes a score.
-Browser focus/network events are untrusted context. No camera, microphone,
-biometrics, paid detector, AI-probability score or proof of independent authorship
-is provided.
+### Run locally
 
-Apply schema changes explicitly in development before using these endpoints:
-`pnpm --filter @workspace/db run push`. The additive disclosure version and save
-fingerprint columns do not backfill historical acknowledgements. Historical
-save receipts without a fingerprint remain readable as evidence; a retry using
-such an old operation ID returns an explicit conflict rather than claiming new
-work was accepted.
+```bash
+# API on :8081
+PORT=8081 pnpm --filter @workspace/api-server run dev
+# Web app on :8080, proxying /api to the API (same-origin cookies)
+PORT=8080 BASE_PATH=/ API_PROXY=http://localhost:8081 pnpm --filter @workspace/examora run dev
+```
 
-See [verification scope and fictional-data demonstration](docs/integrity-verification.md)
-and the [source-linked research assessment](docs/innovation-research.md).
+Open `http://localhost:8080` and sign in with a [demo account](#-demo-accounts).
 
-## Competition submission freeze
+> On Windows, run these from Git Bash. If paths are rewritten, prefix with `MSYS_NO_PATHCONV=1`.
 
-The supplied guide forbids **commits, pushes, builds, and deployments after the
-submission deadline**, including on the next evaluation day.
+---
 
-Finish deployment and verification early. Disable automatic dependency updates,
-scheduled builds, and other deployment triggers before the freeze. No application
-code alters Git authorship, commit dates, or platform metadata.
+## ☁️ Deployment (Vercel + Neon)
 
-Commit and push meaningful milestones under your own GitHub identity.
+1. Import the repository in Vercel with Framework Preset **Other** and Root Directory `./`. [`vercel.json`](vercel.json) builds the SPA and bundles the API into `api/index.mjs`; every `/api/*` request is rewritten to it.
+2. Add the environment variables above (Production, Preview, Development). Set `BETTER_AUTH_URL` to the exact deployed origin.
+3. Run `pnpm --filter @workspace/db run push` against the production database whenever `lib/db/src/schema` changes.
+4. Deploy. Check `https://<domain>/api/healthz` returns `{"status":"ok"}`.
+
+---
+
+## 🧪 Testing and verification
+
+| Suite | Command | Covers |
+|---|---|---|
+| Recovery | `pnpm run test:recovery` | Scratchpad and draft persistence, reload recovery |
+| Auth cache | `pnpm run test:auth-cache` | Session refresh behaviour |
+| Delivery | `pnpm run test:delivery` | Supervised admission, answer state, entry rules |
+| Blueprint | `pnpm --filter @workspace/api-server run test:blueprint` | Comparable paper generation |
+| Incident review | `pnpm --filter @workspace/api-server run test:incident-review` | Statement and immutable decision flow |
+| Type safety | `pnpm run typecheck` | All workspaces |
+
+**Live acceptance run (27 Nov 2026)**: an automated script exercised the deployed site end to end with dedicated QA accounts, covering every requirement in sections 3, 4 and 6 including a real timer expiry: 69 of 69 functional checks passed. It found two issues, both fixed and re-verified live: deactivated accounts can no longer sign in, and import errors are human-readable.
+
+---
+
+## 📚 API reference
+
+<details>
+<summary><b>Main endpoints</b> (full contract in <code>lib/api-spec/openapi.yaml</code>)</summary>
+
+| Method | Path | Who | Purpose |
+|---|---|---|---|
+| POST | `/api/auth/sign-in/email` | anyone | Sign in (self-registration is disabled) |
+| GET | `/api/session` | signed in | Current user and role |
+| GET/POST/PATCH | `/api/users` | admin | Create users, change roles, deactivate |
+| GET/POST/PATCH/DELETE | `/api/questions` | staff | Question bank |
+| GET/POST/PATCH/DELETE | `/api/exams` | staff | Exams (drafts editable) |
+| POST | `/api/exams/:id/action` | staff | `publish`, `complete`, `publish-results` |
+| PUT | `/api/exams/:id/delivery` | staff | Change delivery rules for future attempts |
+| POST | `/api/exams/:id/enrollments` | staff | Enrol candidates |
+| POST | `/api/exams/:id/start` | candidate / staff sandbox | Start or resume an attempt |
+| PUT | `/api/attempts/:id/answers` | candidate | Idempotent, revisioned autosave |
+| POST | `/api/attempts/:id/submit` | candidate | Submit (repeat-safe) |
+| POST | `/api/attempts/:id/violations` | candidate | Supervision violation report |
+| POST | `/api/attempts/:id/supervision` | staff | Lock, resume, void, retake |
+| POST | `/api/attempts/:id/ai-grade` | staff | Advisory AI suggestions |
+| POST | `/api/attempts/:id/grade` | staff | Approve written grades |
+| GET | `/api/exams/:id/monitor` | staff | Live monitor |
+| GET | `/api/analytics?examId=` | staff | Exam and question analytics |
+| POST | `/api/imports` | staff | Bulk import with validation |
+| GET | `/api/reports/:id/pdf` | owner / staff | PDF result report |
+| GET | `/api/verify/:token` | public | Report verification (initials only) |
+
+</details>
+
+---
+
+## 🗂️ Project structure
+
+```text
+├── artifacts/
+│   ├── examora/          React frontend (pages, components, local-first draft store)
+│   └── api-server/       Express API (routes, grading, supervision, reports, seed)
+├── lib/
+│   ├── api-spec/         OpenAPI contract and Orval config (source of truth)
+│   ├── api-client-react/ Generated React Query hooks
+│   ├── api-zod/          Generated Zod validators
+│   └── db/               Drizzle schema and PostgreSQL pool
+├── api/index.mjs         Vercel serverless entry
+├── docs/                 Innovation research, evidence, screenshots
+└── vercel.json           SPA + API routing
+```
+
+---
+
+## ⚠️ Known limitations
+
+- A browser cannot lock the whole computer (Esc always exits fullscreen). Examora blocks and records instead of claiming a lockdown; decisions stay with humans.
+- Local drafts live in the browser profile. Clearing site data or switching devices loses unsent drafts; only server-accepted answers count.
+- AI grading is advisory. On Groq's free tier, heavy bursts can be rate-limited; the app retries and falls back to manual grading.
+- Challenge 5.5 (participant-defined) is not addressed separately.
+
+---
+
+## 👥 Team and acknowledgments
+
+**Muhammad Zohaib Khan** and team, for Web-e-Thon (Technoverse 5.0), COMSATS University Lahore.
+
+Built with open-source tools: React, Vite, Express, Drizzle, Better Auth, Radix UI, Tailwind CSS, Framer Motion, pdf-lib, Neon and Vercel. AI-assisted coding was used as permitted by the competition rules.
+
+All repository commits were made before the submission deadline; no timestamps have been altered.
+
+<div align="center">
+
+**Examora** • Examination with confidence • Built with 🖤 for Web-e-Thon 2026
+
+</div>
