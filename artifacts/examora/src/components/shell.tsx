@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 import {
   LayoutDashboard,
   FileText,
@@ -96,6 +97,7 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
 
 function UserCard({ user }: { user: User }) {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const [, nav] = useLocation();
   const [busy, setBusy] = useState(false);
   return (
@@ -113,8 +115,12 @@ function UserCard({ user }: { user: User }) {
         disabled={busy}
         onClick={async () => {
           setBusy(true);
-          await signOut(qc).catch(() => {});
-          nav('/');
+          try {
+            await signOut(qc);
+            nav('/');
+          } catch (error) {
+            toast({ title: 'Sign-out failed', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+          } finally { setBusy(false); }
         }}
         className="rounded-md p-2 text-sidebar-foreground/60 transition hover:bg-sidebar-accent hover:text-sidebar-primary disabled:opacity-40"
       >

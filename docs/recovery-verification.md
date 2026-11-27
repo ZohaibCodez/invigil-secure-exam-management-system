@@ -39,3 +39,14 @@ Device-storage failures are reported separately from network/server failures.
 Server-confirmed work remains confirmed even if device storage is unavailable.
 Retrying device storage cannot extend the examination or change closed answers.
 Scratchpad notes are not graded.
+
+## Browser verification
+
+A focused browser pass on 2026-11-27 verified cross-tab comparison and explicit
+resolution, empty clears across reload, scratchpad-only unsent reload recovery,
+real IndexedDB write failures, separate server/device status, persistence retry
+and reconnection. The server deadline remained unchanged throughout.
+
+The test inspected retained **answer** data after storage was restored; it did
+not separately inspect the scratchpad's device-store copy during the injected
+storage-failure phase. This is not a full PDF acceptance or production test.

@@ -632,7 +632,7 @@ export default function AttemptPage() {
               </button>
               <div className="mt-3 space-y-1 border-t pt-3 text-[11px] text-muted-foreground">
                 <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-primary/20" />Answered</div>
-                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(38_80%_50%)]" />On device, not yet confirmed</div>
+                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(38_80%_50%)]" />Dot: not server-confirmed</div>
               </div>
             </div>
           </aside>

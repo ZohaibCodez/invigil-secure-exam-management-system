@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "test:recovery": "pnpm --filter @workspace/api-server exec tsx --test src/scratchpad.test.ts ../examora/tests/draft-persistence.test.ts",
+    "test:auth-cache": "pnpm --filter @workspace/api-server exec tsx --test ../examora/tests/session-refresh.test.ts",
     "build:vercel": "pnpm run typecheck:libs && pnpm --filter @workspace/api-server run build:vercel && pnpm --filter @workspace/examora run typecheck && PORT=3000 BASE_PATH=/ pnpm --filter @workspace/examora run build",
     "preinstall": "sh -c 'rm -f package-lock.json yarn.lock; case \"$npm_config_user_agent\" in pnpm/*) ;; *) echo \"Use pnpm instead\" >&2; exit 1 ;; esac'",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",

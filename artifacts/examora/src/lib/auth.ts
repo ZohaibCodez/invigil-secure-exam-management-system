@@ -1,4 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
+import { getGetSessionQueryKey } from '@workspace/api-client-react';
+import { refreshSessionAfterAuth } from './session-refresh';
 
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 
@@ -27,15 +29,12 @@ async function post(path: string, body: unknown) {
 
 export async function signIn(qc: QueryClient, email: string, password: string) {
   await post('/sign-in/email', { email, password });
-  qc.clear();
+  await refreshSessionAfterAuth(qc, getGetSessionQueryKey());
 }
 
 export async function signOut(qc: QueryClient) {
-  try {
-    await post('/sign-out', {});
-  } finally {
-    qc.clear();
-  }
+  await post('/sign-out', {});
+  await refreshSessionAfterAuth(qc, getGetSessionQueryKey());
 }
 
 export const DEMO_PASSWORD = 'ExamoraDemo2026!';
