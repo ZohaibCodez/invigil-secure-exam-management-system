@@ -1,5 +1,7 @@
 # Test evidence archive
 
+- [Video-inspired delivery and QR admission verification](reports/video-delivery-2026-11-27.md)
+
 This directory contains shareable evidence from development verification on
 2026-11-27. It is documentation, not runtime application code.
 
