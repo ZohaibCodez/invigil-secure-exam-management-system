@@ -51,7 +51,8 @@ export async function examValues(input: unknown, user: AppUser, tx: Tx, previous
     duration: data.duration, startsAt, endsAt, questionSnapshot,
     totalMarks: quotaTotals(previous?.blueprint ?? [], questionSnapshot).totalMarks,
     randomize: data.randomize ?? true, passPercent: data.passPercent ?? 50, assistancePolicy,
-    deliverySettings: settingsFor(data.deliverySettings ?? previous?.deliverySettings),
+    // New exams run in fullscreen by default; examiners can switch it off in Delivery rules.
+    deliverySettings: settingsFor(data.deliverySettings ?? previous?.deliverySettings ?? { requireFullscreen: true }),
   };
 }
 export function examStatus(e: ExamRow) {

@@ -26,6 +26,8 @@ import {
   Plus,
   Save,
   SkipForward,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import {
   useGetAttempt,
@@ -96,6 +98,12 @@ export default function AttemptPage() {
   const uid = me.id;
   const qc = useQueryClient();
   const { prefs, update: updatePrefs } = usePrefs();
+  const [zen, setZen] = useState(() => !!document.fullscreenElement);
+  useEffect(() => {
+    const on = () => setZen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', on);
+    return () => document.removeEventListener('fullscreenchange', on);
+  }, []);
   const online = useOnline();
 
   const q = useGetAttempt(id, { query: { queryKey: getGetAttemptQueryKey(id), enabled: !!id, refetchInterval: 15000, retry: 1 } });
@@ -666,6 +674,12 @@ export default function AttemptPage() {
             <button aria-label="Larger text" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examFont: prefs.examFont === 'sm' ? 'md' : 'lg' })} data-testid="button-font-up"><Plus className="h-3.5 w-3.5" /></button>
             <span className="mx-0.5 h-4 w-px bg-border" />
             <button aria-label="Toggle theme" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examTheme: night ? 'paper' : 'night' })} data-testid="button-exam-theme">{night ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}</button>
+            {!attempt.supervision?.requireFullscreen && (
+              <button aria-label={zen ? 'Exit zen mode' : 'Zen mode (fullscreen)'} title={zen ? 'Exit zen mode' : 'Zen mode: fullscreen, distraction-free'} className="rounded p-1.5 hover:bg-muted" data-testid="button-zen"
+                onClick={() => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen()).catch(() => {})}>
+                {zen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+              </button>
+            )}
             <button aria-label="Toggle layout" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examLayout: prefs.examLayout === 'split' ? 'focus' : 'split' })} data-testid="button-exam-layout">{prefs.examLayout === 'split' ? <Square className="h-3.5 w-3.5" /> : <Columns2 className="h-3.5 w-3.5" />}</button>
           </div>
           <HelpButton onClick={() => setHelpOpen(true)} />

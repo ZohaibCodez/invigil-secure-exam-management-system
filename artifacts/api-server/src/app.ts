@@ -36,6 +36,11 @@ app.use((_req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
 });
+// Accounts are issued by administrators (or bulk import), never self-registered.
+// Server-side creation calls auth.api directly and does not pass through this route.
+app.all("/api/auth/sign-up/{*splat}", (_req, res) => {
+  res.status(403).json({ error: "Self-registration is disabled. Ask an administrator for an account." });
+});
 app.all("/api/auth/{*splat}", toNodeHandler(auth));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));

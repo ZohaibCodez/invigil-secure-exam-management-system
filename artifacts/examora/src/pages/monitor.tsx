@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useSearch, Link } from 'wouter';
+import { useSearch, Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
-import { Radio, Megaphone, Loader2, EyeOff, WifiOff, Wifi, History, AlertTriangle, Info, ShieldAlert, Gavel, RefreshCcw } from 'lucide-react';
+import { Radio, Megaphone, Loader2, EyeOff, WifiOff, Wifi, History, AlertTriangle, Info, ShieldAlert, Gavel, RefreshCcw, ScanLine } from 'lucide-react';
 import {
   useListExams,
   useGetMonitor,
@@ -17,6 +17,7 @@ import {
 } from '@workspace/api-client-react';
 import { IncidentReview } from '@/components/incident-review';
 import { SupervisionActions } from '@/components/supervision-actions';
+import { QrScannerDialog } from '@/components/qr-scanner-dialog';
 import { IntegrityReview } from '@/components/integrity-review';
 import { PageHeader, Panel, EmptyState, ErrorState, SkeletonRows, StatusPill, Meter, Stat } from '@/components/kit';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,8 @@ export default function Monitor() {
   const announce = useCreateAnnouncement();
   const [msg, setMsg] = useState('');
   const [picked, setPicked] = useState<string | null>(null);
+  const [scan, setScan] = useState(false);
+  const [, nav] = useLocation();
   const selectedAttempt = useGetAttempt(picked ?? '', { query: { queryKey: getGetAttemptQueryKey(picked ?? ''), enabled: !!picked } });
   useEffect(() => setPicked(null), [examId]);
   const now = useNow();
@@ -74,12 +77,16 @@ export default function Monitor() {
         title="Monitor"
         description="Refreshes every five seconds. Incidents are context for the examiner — a hidden tab or dropped connection is not evidence of misconduct."
         actions={
+          <>
+          <Button variant="outline" onClick={() => setScan(true)} data-testid="button-monitor-scan"><ScanLine className="mr-2 h-4 w-4" />Scan entry QR</Button>
           <Select value={examId} onValueChange={setExamId}>
             <SelectTrigger className="w-72 bg-card" data-testid="select-monitor-exam"><SelectValue placeholder="Choose an exam" /></SelectTrigger>
             <SelectContent>{live.map((e) => <SelectItem key={e.id} value={e.id}>{e.title} · {e.status}</SelectItem>)}</SelectContent>
           </Select>
+          </>
         }
       />
+      <QrScannerDialog open={scan} onOpenChange={setScan} onAdmission={(id) => { setScan(false); nav(`/admissions/${id}`); }} />
       {exams.isLoading ? <SkeletonRows rows={5} /> : exams.isError ? <ErrorState error={exams.error} onRetry={() => exams.refetch()} /> : live.length === 0 ? (
         <EmptyState icon={<Radio className="h-5 w-5" />} title="Nothing to watch" body="Publish an exam and the monitor will follow its candidates here." action={<Button asChild variant="outline"><Link href="/exams">Go to exams</Link></Button>} />
       ) : !examId ? null : m.isError ? <ErrorState error={m.error} onRetry={() => m.refetch()} /> : m.isLoading || !data ? <SkeletonRows rows={6} /> : (
