@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,9 +17,12 @@ import {
   Menu,
   X,
   WifiOff,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import type { User } from '@workspace/api-client-react';
-import { Logo } from './kit';
+import { Logo, Seal } from './kit';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { signOut } from '@/lib/auth';
 import { initials } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -48,7 +51,7 @@ const NAV: { group: string; items: Item[] }[] = [
   { group: 'You', items: [{ href: '/settings', label: 'Settings', icon: Settings, roles: ['admin', 'examiner', 'candidate'] }] },
 ];
 
-function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
+function NavList({ user, onNav, collapsed = false }: { user: User; onNav?: () => void; collapsed?: boolean }) {
   const [loc] = useLocation();
   return (
     <nav className="space-y-6">
@@ -57,19 +60,22 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
         if (!items.length) return null;
         return (
           <div key={g.group}>
-            <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/40">{g.group}</div>
+            {collapsed ? <div className="mx-auto mb-2 h-px w-6 bg-sidebar-border" /> : <div className="mb-2 px-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-sidebar-foreground/40">{g.group}</div>}
             <ul className="space-y-0.5">
               {items.map((i) => {
                 const active = i.href === '/' ? loc === '/' : loc.startsWith(i.href);
                 const Icon = i.icon;
                 return (
                   <li key={i.href}>
+                    <Tooltip delayDuration={80}>
+                      <TooltipTrigger asChild>
                     <Link
                       href={i.href}
                       onClick={onNav}
                       data-testid={`link-nav-${i.label.toLowerCase().replace(/\s+/g, '-')}`}
                       className={cn(
                         'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors duration-200',
+                        collapsed && 'justify-center px-0',
                         active ? 'font-medium text-sidebar-accent-foreground' : 'text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground',
                       )}
                     >
@@ -82,8 +88,11 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
                       )}
                       {active && <motion.span layoutId="nav-bar" className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-sidebar-primary shadow-[0_0_12px_hsl(var(--sidebar-primary)/0.8)]" />}
                       <Icon className={cn('relative h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5', active && 'text-sidebar-primary')} strokeWidth={1.75} />
-                      <span className="relative">{i.label}</span>
+                      {!collapsed && <span className="relative truncate">{i.label}</span>}
                     </Link>
+                      </TooltipTrigger>
+                      {collapsed && <TooltipContent side="right" sideOffset={14} className="bg-primary text-primary-foreground shadow-lg">{i.label}</TooltipContent>}
+                    </Tooltip>
                   </li>
                 );
               })}
@@ -95,17 +104,17 @@ function NavList({ user, onNav }: { user: User; onNav?: () => void }) {
   );
 }
 
-function UserCard({ user }: { user: User }) {
+function UserCard({ user, collapsed = false }: { user: User; collapsed?: boolean }) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const [, nav] = useLocation();
   const [busy, setBusy] = useState(false);
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-2.5">
+    <div className={cn('flex items-center gap-3 rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-2.5', collapsed && 'flex-col gap-2 border-transparent bg-transparent p-0')}>
       <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sidebar-primary font-mono text-xs text-sidebar-primary-foreground">
         {initials(user.name)}
       </div>
-      <div className="min-w-0 flex-1">
+      <div className={cn('min-w-0 flex-1', collapsed && 'hidden')}>
         <div className="truncate text-sm text-sidebar-accent-foreground" data-testid="text-username">{user.name}</div>
         <div className="font-mono text-[10px] uppercase tracking-widest text-sidebar-foreground/50">{user.role}</div>
       </div>
@@ -130,21 +139,49 @@ function UserCard({ user }: { user: User }) {
   );
 }
 
+const SIDEBAR_KEY = 'examora:sidebar-collapsed';
+
 export function Shell({ user, children }: { user: User; children: ReactNode }) {
+  const [collapsed, setCollapsed] = useState(() => { try { return localStorage.getItem(SIDEBAR_KEY) === '1'; } catch { return false; } });
+  const toggle = () => setCollapsed((c) => { try { localStorage.setItem(SIDEBAR_KEY, c ? '0' : '1'); } catch { /* private mode */ } return !c; });
+  // Ctrl/Cmd + B toggles the sidebar, like most enterprise consoles.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); toggle(); } };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const [open, setOpen] = useState(false);
   const [loc] = useLocation();
   const online = useOnline();
   return (
-    <div className="min-h-[100dvh] bg-background">
-      <aside className="grid-paper fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 text-sidebar-foreground lg:flex">
-        <Link href="/" className="mb-8 flex items-center gap-2.5 px-2 pt-1" data-testid="link-home">
-          <Logo tone="dark" height={60} />
+    <div className="min-h-[100dvh] bg-background" style={{ '--sb': collapsed ? '80px' : '256px' } as CSSProperties}>
+      <motion.aside
+        initial={false}
+        animate={{ width: collapsed ? 80 : 256 }}
+        transition={{ type: 'spring', stiffness: 420, damping: 40 }}
+        className={cn('grid-paper fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-sidebar-border bg-sidebar py-4 text-sidebar-foreground lg:flex', collapsed ? 'px-3' : 'px-4')}
+      >
+        <button
+          onClick={toggle}
+          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          title={`${collapsed ? 'Expand' : 'Collapse'} sidebar (Ctrl+B)`}
+          data-testid="button-sidebar-toggle"
+          className="absolute -right-3.5 top-9 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-card text-foreground shadow-md transition hover:scale-110 hover:text-accent"
+        >
+          {collapsed ? <PanelLeftOpen className="h-3.5 w-3.5" /> : <PanelLeftClose className="h-3.5 w-3.5" />}
+        </button>
+        <Link href="/" className={cn("mb-8 flex items-center gap-2.5 pt-1", collapsed ? "justify-center" : "px-2")} data-testid="link-home">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span key={collapsed ? 'mark' : 'full'} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.18 }}>
+              {collapsed ? <Seal tone="dark" size={44} /> : <Logo tone="dark" height={60} />}
+            </motion.span>
+          </AnimatePresence>
         </Link>
         <div className="flex-1 overflow-y-auto">
-          <NavList user={user} />
+          <NavList user={user} collapsed={collapsed} />
         </div>
-        <UserCard user={user} />
-      </aside>
+        <UserCard user={user} collapsed={collapsed} />
+      </motion.aside>
 
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
         <Link href="/" className="flex items-center gap-2">
@@ -180,7 +217,7 @@ export function Shell({ user, children }: { user: User; children: ReactNode }) {
         )}
       </AnimatePresence>
 
-      <main className="lg:pl-64">
+      <main className="transition-[padding] duration-300 ease-out lg:pl-[var(--sb)]">
         <AnimatePresence>
           {!online && (
             <motion.div
