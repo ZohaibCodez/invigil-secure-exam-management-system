@@ -1,0 +1,16 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "CgpgCBpPnK7OHLIy3Tng0"
+uri = "file://generated-artifacts/hackathon-report/Examora-Hackathon-Dossier.pdf"
+type = "pdf"
+title = "Examora — Detailed Hackathon Dossier"
+description = "28 professionally designed pages covering every requirement group, all innovations and extra features, the stack, deployment, evidence, demo plan and remaining sign-off work."
+logical_id = "96b0420a-33be-4405-a26b-127b94006356"
+content_hash = "sha256:1af99c4ce633e623d2d69111c228be527257f23029d54cdf218de102da1ec110"
+size = 466403
+mtime_ms = 1795782200717
+storage_uri = "gcs://replit-rams-assets-sisko/rams/assets/repl:f5aa4f9e-12ef-4454-ba98-6da15ea96648/96b0420a-33be-4405-a26b-127b94006356/e2ecb5c1-0b14-4ec3-a52b-13be2326f7d7"
+storage_version_token = "1795782237135984"
+content_type = "application/pdf"

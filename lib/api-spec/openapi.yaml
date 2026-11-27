@@ -791,7 +791,7 @@ components:
       type: object
       required: [mode, resources, requireDisclosure]
       properties:
-        mode: { type: string, enum: [closed_book, open_book, ai_disclosed] }
+        mode: { type: string, enum: [closed_book, open_book, ai_disclosed, ai_conditional] }
         resources: { type: string, minLength: 5, maxLength: 5000 }
         requireDisclosure: { type: boolean }
     AssistancePolicy:
@@ -858,6 +858,7 @@ components:
         instructionsRead: { type: boolean }
         deviceReady: { type: boolean }
         subjectsConfirmed: { type: boolean }
+        policyAcknowledged: { type: boolean }
     Answer:
       type: object
       required: [questionId, value, markedForReview, revision]
@@ -942,7 +943,7 @@ components:
         savedAt: { type: string }
         serverNow: { type: string }
         accepted: { type: boolean }
-        conflict: { type: string, enum: [answer, scratchpad] }
+        conflict: { type: string, enum: [answer, scratchpad, operation] }
         scratchpadVersion: { type: integer, minimum: 0 }
     Attempt:
       type: object
@@ -972,9 +973,10 @@ components:
             - { type: "null" }
     DisclosureInput:
       type: object
-      required: [disclosure]
+      required: [disclosure, version]
       properties:
         disclosure: { type: string, maxLength: 5000 }
+        version: { type: integer, minimum: 0 }
     AuthorshipInput:
       type: object
       required: [questionId, prompt, hours]
@@ -995,7 +997,7 @@ components:
         reason: { type: string, minLength: 10, maxLength: 5000 }
     AuthorshipReview:
       type: object
-      required: [id, attemptId, questionId, prompt, requestedAt, responseDeadline, response, respondedAt, outcome, reason, reviewedAt]
+      required: [id, attemptId, questionId, prompt, requestedAt, responseDeadline, response, respondedAt, outcome, reason, reviewedAt, requesterName, reviewerName]
       properties:
         id: { type: string }
         attemptId: { type: string }
@@ -1008,9 +1010,11 @@ components:
         outcome: { type: [string, "null"] }
         reason: { type: [string, "null"] }
         reviewedAt: { type: [string, "null"] }
+        requesterName: { type: string }
+        reviewerName: { type: [string, "null"] }
     IntegrityRecord:
       type: object
-      required: [attemptId, policy, acknowledgedAt, disclosure, reviews, serverNow, attemptStatus, sandbox]
+      required: [attemptId, policy, acknowledgedAt, disclosure, disclosureVersion, disclosureStatus, reviews, serverNow, attemptStatus, sandbox]
       properties:
         attemptId: { type: string }
         policy:
@@ -1019,6 +1023,8 @@ components:
             - { type: "null" }
         acknowledgedAt: { type: [string, "null"] }
         disclosure: { type: string }
+        disclosureVersion: { type: integer, minimum: 0 }
+        disclosureStatus: { type: string, enum: [not_required, pending, provided, missing_required] }
         reviews: { type: array, items: { $ref: "#/components/schemas/AuthorshipReview" } }
         serverNow: { type: string }
         attemptStatus: { type: string }

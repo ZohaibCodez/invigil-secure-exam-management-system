@@ -23,4 +23,7 @@ export interface AuthorshipReview {
   reason: string | null;
   /** @nullable */
   reviewedAt: string | null;
+  requesterName: string;
+  /** @nullable */
+  reviewerName: string | null;
 }

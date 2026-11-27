@@ -26,6 +26,13 @@ monitoring, grading, controlled publication, and verifiable PDF results.
   customization, and a digital scratchpad.
 - **Innovation challenge 5.3:** failure-resilient examination delivery without
   granting extra time based on untrusted client clocks.
+- **Innovation challenge 5.1:** versioned resource/AI policies, explicit candidate
+  acknowledgement, assistance disclosures, and question-linked human explanations
+  within a separate review window. These are safeguards, not AI detection.
+- **Innovation challenge 5.2:** exact coverage blueprints with explicit shortages,
+  frozen eligible pools and papers, and form comparisons—not calibrated equivalence.
+- **Innovation challenge 5.4:** candidate statements and reasoned, immutable
+  technical-incident decisions, with no automatic grade or deadline changes.
 
 ## Stack and architecture
 
@@ -84,6 +91,19 @@ pnpm --filter @workspace/api-spec run codegen
 pnpm run typecheck
 pnpm --filter @workspace/db run push
 ```
+
+Source-only checks that emit no build outputs:
+
+```sh
+pnpm exec tsc -p artifacts/api-server/tsconfig.source.json --noEmit
+pnpm exec tsc -p artifacts/examora/tsconfig.source.json --noEmit
+pnpm --filter @workspace/api-server exec tsx --test src/integrity.test.ts src/blueprint.test.ts
+```
+
+The API development workflow runs source through `tsx watch`; restarting it
+does not run a production build. Standard root typechecking and the codegen
+wrapper emit library declarations, so do not use those as a way around the
+competition build freeze.
 
 Do not expose your database connection string in browser variables or source code.
 
@@ -370,6 +390,57 @@ pnpm --filter @workspace/api-server run test:incident-review
 
 It checks cross-candidate/examiner isolation, duplicate and competing decisions,
 server revision evidence, late-answer rejection, and published-grade protection.
+
+## Assistance policy and human authorship review
+
+In a draft exam's **Settings → Assistance policy**, choose closed book or open
+book (AI prohibited), AI with disclosure, or AI under stated conditions. State
+the permitted resources and conditions explicitly. AI with disclosure always
+requires a disclosure; conditional permission may require one too. Policy text
+and its content-derived version are locked at publication.
+
+Before a new real attempt, candidates read the policy and explicitly acknowledge
+that exact version. The server requires both affirmative acknowledgement and
+the matching version, and records its own time and the policy snapshot. Sandbox
+previews never create a real candidate attestation. Exams with no historical
+policy remain valid; resuming an existing attempt never replaces its original
+snapshot or acknowledgement.
+
+During the attempt, candidates open **Assistance policy, disclosure and human
+review** and explicitly save their disclosure, including “no assistance used”
+when applicable. Disclosures are self-reported, not verified evidence. They have
+their own save status and version; they are not part of offline answer/scratchpad
+recovery. Unsaved disclosure text is not guaranteed to survive reload. Conflicting
+saves retain the local text and require review/retry. After submission or expiry,
+a missing required disclosure is labelled **Required disclosure not provided**.
+It never prevents finalization or changes marks.
+
+After submission, the authorized examiner selects the candidate in **Monitor**
+and requests an explanation linked to an assigned question, with a separate
+1–168-hour response window. Candidates return from their dashboard's
+**Authorship explanations, technical incidents and review decisions** link.
+One immutable explanation is accepted per request. A reasoned outcome may be
+recorded after a response or after the response window ends; it identifies the
+reviewer and time. Identical retries are safe; conflicting responses, request
+windows and outcomes cannot replace the record.
+
+Authorship outcomes are advisory (“satisfactory” or “further review”), not
+misconduct verdicts. Technical failures continue through the existing incident
+case workflow above. Neither workflow edits original answers, extends examination
+time, creates a resit, unlocks grades, or automatically penalizes a score.
+Browser focus/network events are untrusted context. No camera, microphone,
+biometrics, paid detector, AI-probability score or proof of independent authorship
+is provided.
+
+Apply schema changes explicitly in development before using these endpoints:
+`pnpm --filter @workspace/db run push`. The additive disclosure version and save
+fingerprint columns do not backfill historical acknowledgements. Historical
+save receipts without a fingerprint remain readable as evidence; a retry using
+such an old operation ID returns an explicit conflict rather than claiming new
+work was accepted.
+
+See [verification scope and fictional-data demonstration](docs/integrity-verification.md)
+and the [source-linked research assessment](docs/innovation-research.md).
 
 ## Competition submission freeze
 

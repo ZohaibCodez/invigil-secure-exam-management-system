@@ -7,15 +7,15 @@ import { Reveal } from './chrome';
 
 export function Problem() {
   const items = [
-    ['A lost connection', 'is treated as a lost answer.'],
-    ['A tab switch', 'is treated as a confession.'],
-    ['A device clock', 'is treated as the deadline.'],
+    ['A lost connection', 'needs a visible saving status.'],
+    ['A tab switch', 'is untrusted context, not a confession.'],
+    ['A device clock', 'cannot grant extra examination time.'],
   ];
   return (
     <section id="problem" className="scroll-mt-16 border-y border-[hsl(var(--ink)/.1)] py-24 md:py-32" aria-labelledby="problem-title">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal><p className="eyebrow verm-text">01 · The quiet failures</p></Reveal>
-        <Reveal delay={0.05}><h2 id="problem-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">Most exam tools fail in ways nobody can explain afterwards.</h2></Reveal>
+        <Reveal delay={0.05}><h2 id="problem-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">Exam interruptions need an explanation, not an assumption.</h2></Reveal>
         <div className="mt-14 divide-y divide-[hsl(var(--ink)/.12)] border-y border-[hsl(var(--ink)/.12)]">
           {items.map(([a, b], i) => (
             <Reveal key={a} delay={i * 0.06}>
@@ -102,7 +102,7 @@ export function Capabilities() {
 }
 
 export function Integrity() {
-  const does = ['Backend permissions per role', 'Frozen question snapshots per attempt', 'Controlled result publication', 'Tab and network events shown as context', 'Human decision on every incident'];
+  const does = ['Versioned resource and AI policies with acknowledgement', 'Assistance disclosures with missing entries visible', 'Question-linked human explanations, separate review window', 'Frozen papers, coverage quotas and controlled results', 'Untrusted browser context and reasoned advisory reviews'];
   const doesnt = ['Face scanning or webcam recording', 'Automated cheating scores', 'Detection of external AI assistants', 'Identity verification', 'Automatic mark deductions'];
   return (
     <section id="integrity" className="scroll-mt-16 py-24 md:py-32" aria-labelledby="integrity-title">
@@ -123,7 +123,7 @@ export function Integrity() {
             </div>
           </Reveal>
         </div>
-        <Reveal><p className="mt-8 max-w-2xl text-sm text-[hsl(var(--ink)/.6)]">These are safeguards, not guarantees. They reduce some risks; they do not establish that an exam was cheating-free or universally fair.</p></Reveal>
+        <Reveal><p className="mt-8 max-w-2xl text-sm text-[hsl(var(--ink)/.6)]">These are safeguards, not guarantees. Browser events are untrusted context; neither logs nor a human explanation prove independent authorship. Coverage quotas do not establish calibrated paper equivalence. See the research assessment for verification scope and remaining limitations.</p></Reveal>
       </div>
     </section>
   );

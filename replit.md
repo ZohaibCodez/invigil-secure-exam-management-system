@@ -50,6 +50,10 @@ A role-based examination platform focused on fair timing, resilient answer savin
 - Required functionality must not depend on paid services or billing information, per the supplied competition brief.
 - Published exams and grades are deliberately locked; late offline work never automatically earns marks.
 - Application schemas are applied explicitly in development, never from server startup.
+- Assistance policy snapshots and acknowledgements belong to the original attempt.
+  New controls must never retroactively impose policy on historical attempts.
+- Authorship explanations have a separate review window. Like incident cases,
+  their reasoned outcomes are advisory and must not edit answers, time or grades.
 
 ## Product
 
@@ -71,6 +75,10 @@ PDFs and minimal public verification; imports and question analytics.
 - No commits, pushes, builds or deployments after the hackathon submission deadline.
 - Demo accounts are public fictional accounts, not a secure deployment for real student data.
 - Import Drizzle operators through `@workspace/db` so optional peer variants cannot produce mismatched SQL types.
+- To type-check source without emitting library declarations, use
+  `pnpm exec tsc -p artifacts/api-server/tsconfig.source.json --noEmit` and
+  `pnpm exec tsc -p artifacts/examora/tsconfig.source.json --noEmit`.
+- API development uses `tsx watch`, not a build on each workflow restart.
 
 ## Pointers
 

@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { and, eq } from "@workspace/db";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { db, attempts, exams, saveOperations, incidents, type AnswerData } from "@workspace/db";
 import { SaveAnswersBody, RecordEventBody, GradeAttemptBody, GetAttemptResponse, CommitQuestionBody } from "@workspace/api-zod";
 import { paramId, HttpError, requireStaff } from "../lib/access";
@@ -16,11 +16,24 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
   const a = await authorizedAttempt(paramId(req), req.appUser, true);
   const input = SaveAnswersBody.parse(req.body);
   if (new Set(input.answers.map(a => a.questionId)).size !== input.answers.length) throw new HttpError(400, "Duplicate answers in a save batch.");
+  // Canonicalize the content so identical retries are safe, but reusing an
+  // operation ID for different work never produces a false confirmation.
+  const payloadHash = createHash("sha256").update(JSON.stringify({
+    answers: [...input.answers].sort((a, b) => a.questionId.localeCompare(b.questionId)).map(a => [a.questionId, a.value, a.markedForReview, a.revision]),
+    scratchpad: input.scratchpad ?? null, scratchpadVersion: input.scratchpadVersion ?? null,
+  })).digest("hex");
   const receipt = await db.transaction(async tx => {
     const [locked] = await tx.select().from(attempts).where(eq(attempts.id, a.id)).for("update");
     const [previous] = await tx.select().from(saveOperations).where(and(eq(saveOperations.attemptId, a.id), eq(saveOperations.operationId, input.operationId)));
     const now = await databaseNow(tx);
-    if (previous) return { savedAt: previous.savedAt.toISOString(), accepted: true, serverNow: now.toISOString(), scratchpadVersion: previous.scratchpadVersion ?? 0 };
+    if (previous) {
+      // Historical receipts have no content fingerprint. Do not invent one
+      // or claim that a new payload was accepted under that old identifier.
+      if (!previous.payloadHash || previous.payloadHash !== payloadHash) {
+        return { savedAt: previous.savedAt.toISOString(), accepted: false, conflict: "operation", serverNow: now.toISOString(), scratchpadVersion: locked!.scratchpadVersion };
+      }
+      return { savedAt: previous.savedAt.toISOString(), accepted: true, serverNow: now.toISOString(), scratchpadVersion: previous.scratchpadVersion ?? 0 };
+    }
     if (locked!.status !== "active" || now >= locked!.deadline) {
       if (locked!.status === "active") await finalizeLocked(tx, locked!);
       // Return rather than throw, so expiry finalization is committed.
@@ -53,7 +66,7 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
     const scratchpadVersion = locked!.scratchpadVersion + (input.scratchpad !== undefined ? 1 : 0);
     await tx.update(attempts).set({ answers, lastSavedAt: now, ...(input.scratchpad !== undefined ? { scratchpad: input.scratchpad, scratchpadVersion } : {}) }).where(eq(attempts.id, a.id));
     await tx.insert(saveOperations).values({
-      id: randomUUID(), attemptId: a.id, operationId: input.operationId, savedAt: now,
+      id: randomUUID(), attemptId: a.id, operationId: input.operationId, payloadHash, savedAt: now,
       // Record the persisted revisions, not stale revisions claimed by a tab.
       revisions: answers.map(({ questionId, revision }) => ({ questionId, revision })),
       scratchpadVersion,

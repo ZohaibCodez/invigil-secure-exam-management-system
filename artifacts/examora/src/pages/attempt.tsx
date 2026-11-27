@@ -236,7 +236,7 @@ export default function AttemptPage() {
       });
       if (!receipt.accepted) {
         setSync('failed');
-        setSyncErr(receipt.conflict === 'scratchpad' ? 'Different notes were saved by another tab. Compare the copies below.' : 'A newer answer exists on the server. Refreshing to resolve the conflict; this batch was not confirmed.');
+        setSyncErr(receipt.conflict === 'scratchpad' ? 'Different notes were saved by another tab. Compare the copies below.' : receipt.conflict === 'operation' ? 'This request identifier belongs to a different or historical save. This batch was not confirmed; it will retry with a new identifier.' : 'A newer answer exists on the server. Refreshing to resolve the conflict; this batch was not confirmed.');
         await qc.invalidateQueries({ queryKey: getGetAttemptQueryKey(id) });
         const latest = qc.getQueryData<Attempt>(getGetAttemptQueryKey(id));
         if (receipt.conflict === 'scratchpad' && latest) setConflict({ text: latest.scratchpad, version: latest.scratchpadVersion ?? 0 });
@@ -628,7 +628,7 @@ export default function AttemptPage() {
           )}
           {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes were not confirmed by the server before the attempt closed. Notes are not graded. {device.status !== 'stored' && 'Local recovery is not confirmed; copy these notes before closing.'}</p>}
           <AttemptSafety localError={device.error} retry={() => writeDraft(draftRef.current)} conflict={scratchConflict} mine={draft.scratchpad} resolve={resolveScratch} closed />
-          {!attempt.sandbox && <IntegrityReview attemptId={attempt.id} staff={false} />}
+          {!attempt.sandbox && <IntegrityReview attemptId={attempt.id} staff={false} questions={attempt.questions} />}
           {!attempt.sandbox && <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" className="mt-5" />}
           <Button asChild className="mt-7 w-full"><Link href={attempt.sandbox ? `/exams/${attempt.examId}` : '/'} data-testid="link-after-submit">{attempt.sandbox ? 'Back to exam configuration' : 'Back to overview'}</Link></Button>
         </motion.div>
@@ -835,7 +835,7 @@ export default function AttemptPage() {
       {!attempt.sandbox && (
         <div className="mx-auto max-w-3xl px-4 pb-10">
           <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" />
-          <details className="mt-4 rounded-xl border bg-card p-4"><summary className="cursor-pointer font-medium">Assistance policy, disclosure and human review</summary><IntegrityReview attemptId={attempt.id} staff={false} /></details>
+          <details className="mt-4 rounded-xl border bg-card p-4"><summary className="cursor-pointer font-medium">Assistance policy, disclosure and human review</summary><IntegrityReview attemptId={attempt.id} staff={false} questions={attempt.questions} /></details>
         </div>
       )}
 

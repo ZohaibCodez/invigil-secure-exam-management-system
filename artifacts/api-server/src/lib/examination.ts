@@ -43,6 +43,7 @@ export async function examValues(input: unknown, user: AppUser, tx: Tx, previous
     ...policy, resources: policy.resources.trim(),
     version: createHash("sha256").update(JSON.stringify([policy.mode, policy.resources.trim(), policy.requireDisclosure])).digest("hex"),
   };
+  if (policy?.mode === "ai_disclosed" && !policy.requireDisclosure) throw new HttpError(400, "AI with disclosure requires a written disclosure. Use conditional AI permission for a different policy.");
   if (assistancePolicy && assistancePolicy.resources.length < 5) throw new HttpError(400, "Explain the permitted resources in at least five characters.");
   return {
     title: data.title.trim(), subject: data.subject?.trim() || "General", instructions: data.instructions,

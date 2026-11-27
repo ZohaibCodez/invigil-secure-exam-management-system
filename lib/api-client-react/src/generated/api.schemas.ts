@@ -229,6 +229,7 @@ export const AssistancePolicyInputMode = {
   closed_book: 'closed_book',
   open_book: 'open_book',
   ai_disclosed: 'ai_disclosed',
+  ai_conditional: 'ai_conditional',
 } as const;
 
 export interface AssistancePolicyInput {
@@ -449,6 +450,7 @@ export interface AttemptInput {
   admissionId?: string;
   instructionsRead?: boolean;
   deviceReady?: boolean;
+  policyAcknowledged?: boolean;
   subjectsConfirmed?: boolean;
 }
 
@@ -571,6 +573,7 @@ export type SaveReceiptConflict = typeof SaveReceiptConflict[keyof typeof SaveRe
 export const SaveReceiptConflict = {
   answer: 'answer',
   scratchpad: 'scratchpad',
+  operation: 'operation',
 } as const;
 
 export interface SaveReceipt {
@@ -619,6 +622,8 @@ export interface Attempt {
 export interface DisclosureInput {
   /** @maxLength 5000 */
   disclosure: string;
+  /** @minimum 0 */
+  version: number;
 }
 
 export interface AuthorshipInput {
@@ -677,7 +682,20 @@ export interface AuthorshipReview {
   reason: string | null;
   /** @nullable */
   reviewedAt: string | null;
+  requesterName: string;
+  /** @nullable */
+  reviewerName: string | null;
 }
+
+export type IntegrityRecordDisclosureStatus = typeof IntegrityRecordDisclosureStatus[keyof typeof IntegrityRecordDisclosureStatus];
+
+
+export const IntegrityRecordDisclosureStatus = {
+  not_required: 'not_required',
+  pending: 'pending',
+  provided: 'provided',
+  missing_required: 'missing_required',
+} as const;
 
 export interface IntegrityRecord {
   attemptId: string;
@@ -685,6 +703,9 @@ export interface IntegrityRecord {
   /** @nullable */
   acknowledgedAt: string | null;
   disclosure: string;
+  /** @minimum 0 */
+  disclosureVersion: number;
+  disclosureStatus: IntegrityRecordDisclosureStatus;
   reviews: AuthorshipReview[];
   serverNow: string;
   attemptStatus: string;

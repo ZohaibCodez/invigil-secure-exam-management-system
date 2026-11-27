@@ -12,6 +12,8 @@ import {
   getListExamsQueryKey,
   getGetMonitorQueryKey,
   getGetExamQueryKey,
+  getGetIntegrityRecordQueryKey,
+  getGetIncidentDossierQueryKey,
 } from '@workspace/api-client-react';
 import { IncidentReview } from '@/components/incident-review';
 import { IntegrityReview } from '@/components/integrity-review';
@@ -121,7 +123,15 @@ export default function Monitor() {
               <div className="xl:col-span-2">
                 {picked && data.attempts.some((a) => a.id === picked) ? (
                   <div>
-                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground" data-testid="text-review-candidate">Reviewing · {data.attempts.find((a) => a.id === picked)?.candidateName}</div>
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                      <div className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground" data-testid="text-review-candidate">Reviewing · {data.attempts.find((a) => a.id === picked)?.candidateName}</div>
+                      <Button size="sm" variant="outline" data-testid="button-refresh-reviews" onClick={() => {
+                        void qc.invalidateQueries({ queryKey: getGetIntegrityRecordQueryKey(picked) });
+                        void qc.invalidateQueries({ queryKey: getGetIncidentDossierQueryKey(picked) });
+                        void qc.invalidateQueries({ queryKey: getGetAttemptQueryKey(picked) });
+                      }}>Refresh review records</Button>
+                    </div>
+                    <p className="mb-3 text-xs text-muted-foreground">Review records refresh every 10–15 seconds while this page is visible. Refresh now to check for a recent response.</p>
                     <IncidentReview key={picked} attemptId={picked} mode="staff" defaultOpen />
                     <IntegrityReview key={`integrity-${picked}`} attemptId={picked} staff questions={selectedAttempt.data?.questions} />
                   </div>

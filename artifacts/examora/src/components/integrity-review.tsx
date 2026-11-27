@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Loader2, Check, Gavel, MessageSquareText, Info, Clock, FlaskConical } from 'lucide-react';
+import { Loader2, Check, Gavel, MessageSquareText, Info, Clock, FlaskConical, FileWarning } from 'lucide-react';
 import {
   useGetIntegrityRecord,
   useSaveDisclosure,
@@ -18,14 +18,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
-import { errMsg, fmtDate } from '@/lib/format';
+import { errMsg, errStatus, fmtDate } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 type Q = { id: string; text: string };
 
 const OUTCOMES: Record<AuthorshipDecisionInputOutcome, { label: string; body: string }> = {
   satisfactory: { label: 'Satisfactory', body: 'The explanation is consistent with the submitted answer.' },
-  further_review: { label: 'Further review', body: 'Refer to the institution’s process. Advisory only; marks are unchanged.' },
+  further_review: { label: 'Further review', body: 'Advisory referral to the institution’s existing incident process. Not a grade or misconduct decision; marks are unchanged.' },
 };
 
 function Eyebrow({ children, className }: { children: ReactNode; className?: string }) {
@@ -46,6 +46,8 @@ function DisclosureBlock({ rec, staff }: { rec: IntegrityRecord; staff: boolean 
   const [text, setText] = useState(rec.disclosure);
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const edited = useRef(false);
+  useEffect(() => { if (!edited.current) setText(rec.disclosure); }, [rec.disclosure]);
   const active = rec.attemptStatus === 'active';
   const canEdit = !staff && active && !rec.sandbox;
   const dirty = text !== rec.disclosure;
@@ -55,6 +57,12 @@ function DisclosureBlock({ rec, staff }: { rec: IntegrityRecord; staff: boolean 
         <Eyebrow>Assistance disclosure · self-reported</Eyebrow>
         {rec.disclosure ? <p className="mt-2 whitespace-pre-wrap text-sm" data-testid="text-disclosure">{rec.disclosure}</p>
           : <p className="mt-2 text-sm text-muted-foreground">{rec.sandbox ? 'Sandbox attempts do not record disclosures.' : 'No disclosure was written.'}</p>}
+        {rec.disclosureStatus === 'missing_required' && (
+          <p className="mt-3 flex items-start gap-2 rounded-md border border-dashed border-accent/50 p-2.5 text-[11.5px]" data-testid="status-disclosure-missing">
+            <FileWarning className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+            <span>Required disclosure not provided. Recorded as a fact only; it is not a finding of misconduct and did not block finalising the attempt at its deadline.</span>
+          </p>
+        )}
         {!staff && !active && !rec.sandbox && <p className="mt-2 text-[11px] text-muted-foreground">Closed when the attempt ended.</p>}
       </section>
     );
@@ -62,7 +70,7 @@ function DisclosureBlock({ rec, staff }: { rec: IntegrityRecord; staff: boolean 
   return (
     <section className="space-y-2 rounded-lg border bg-card p-4" data-testid="section-disclosure">
       <label htmlFor="disclosure" className="block"><Eyebrow>Assistance disclosure{rec.policy?.requireDisclosure ? ' · required' : ' · optional'}</Eyebrow></label>
-      <Textarea id="disclosure" rows={4} maxLength={5000} value={text} onChange={(e) => { setText(e.target.value); setSaved(false); }} data-testid="input-disclosure"
+      <Textarea id="disclosure" rows={4} maxLength={5000} value={text} onChange={(e) => { edited.current = true; setText(e.target.value); setSaved(false); }} data-testid="input-disclosure"
         placeholder="Which tools or resources you used, and for what. Saving does not pause your timer." />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Count n={text.length} min={0} max={5000} />
@@ -71,12 +79,19 @@ function DisclosureBlock({ rec, staff }: { rec: IntegrityRecord; staff: boolean 
             {m.isPending ? 'Saving' : saved && !dirty ? <span className="inline-flex items-center gap-1"><Check className="h-3 w-3" />Saved</span> : dirty ? 'Unsaved' : ''}
           </span>
           <Button size="sm" disabled={!dirty || m.isPending} data-testid="button-save-disclosure"
-            onClick={() => { setErr(null); m.mutate({ id: rec.attemptId, data: { disclosure: text } }, { onSuccess: () => { setSaved(true); inv(); }, onError: (e) => setErr(errMsg(e)) }); }}>
+            onClick={() => { setErr(null); const sent = text; m.mutate({ id: rec.attemptId, data: { disclosure: sent, version: rec.disclosureVersion } }, { onSuccess: () => { setSaved(true); setText((t) => { if (t === sent) edited.current = false; return t; }); inv(); }, onError: (e) => { setErr(errStatus(e) === 409 ? 'Your disclosure changed elsewhere (another tab or device). Your text is kept here; review it and save again.' : errMsg(e)); inv(); } }); }}>
             {m.isPending && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}Save disclosure
           </Button>
         </div>
       </div>
       <p className="text-[11px] text-muted-foreground">You can revise this until your original deadline. The deadline never pauses.</p>
+      <p className="text-[11px] text-muted-foreground">Save explicitly while online. Unsaved disclosures are not included in answer or scratchpad recovery.</p>
+      {err && dirty && rec.disclosure && (
+        <details className="rounded-md border p-2 text-xs">
+          <summary className="cursor-pointer">Compare the currently saved disclosure</summary>
+          <p className="mt-2 whitespace-pre-wrap">{rec.disclosure}</p>
+        </details>
+      )}
       {err && <p role="alert" className="text-xs text-accent" data-testid="text-disclosure-error">{err}</p>}
     </section>
   );
@@ -86,6 +101,9 @@ function RequestForm({ rec, questions }: { rec: IntegrityRecord; questions?: Q[]
   const inv = useInvalidate(rec.attemptId);
   const m = useRequestAuthorshipReview();
   const [qid, setQid] = useState(questions?.[0]?.id ?? '');
+  useEffect(() => {
+    if (questions?.length && !questions.some((q) => q.id === qid)) setQid(questions[0].id);
+  }, [questions, qid]);
   const [prompt, setPrompt] = useState('');
   const [hours, setHours] = useState('24');
   const [err, setErr] = useState<string | null>(null);
@@ -113,6 +131,7 @@ function RequestForm({ rec, questions }: { rec: IntegrityRecord; questions?: Q[]
           <Input id="rv-h" className="mt-1" type="number" min={1} max={168} value={hours} onChange={(e) => setHours(e.target.value)} data-testid="input-review-hours" aria-invalid={!hOk} />
         </div>
       </div>
+      <p className="text-[11px] text-muted-foreground">A separate response window. It never reopens or edits the original answers and never extends the exam deadline.</p>
       {!hOk && <p className="text-[11px] text-accent">Choose a whole number of hours from 1 to 168.</p>}
       <Textarea rows={3} aria-label="Prompt for the candidate" value={prompt} maxLength={5200} onChange={(e) => setPrompt(e.target.value)} data-testid="input-review-prompt"
         placeholder="Walk me through how you reached your answer to this question. The candidate will read this exactly." />
@@ -191,7 +210,7 @@ function ReviewCard({ r, rec, staff, questions, index }: { r: AuthorshipReview; 
   return (
     <li className="rounded-lg border bg-card p-4" data-testid={`card-review-${r.id}`}>
       <div className="flex flex-wrap items-center gap-2">
-        <Eyebrow>Request {index + 1} · {fmtDate(r.requestedAt)}</Eyebrow>
+        <Eyebrow>Request {index + 1} · {r.requesterName} · {fmtDate(r.requestedAt)}</Eyebrow>
         <span className="ml-auto rounded bg-muted px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-wider" data-testid={`status-review-${r.id}`}>{status}</span>
       </div>
       <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">{qLabel}</p>
@@ -208,7 +227,7 @@ function ReviewCard({ r, rec, staff, questions, index }: { r: AuthorshipReview; 
         <div className="mt-3 rounded-md border border-primary/25 bg-primary/[0.04] p-3" data-testid={`card-decision-${r.id}`}>
           <div className="flex items-center gap-2"><Gavel className="h-4 w-4" /><span className="font-display text-lg">{OUTCOMES[r.outcome as AuthorshipDecisionInputOutcome]?.label ?? r.outcome}</span></div>
           <p className="mt-1 whitespace-pre-wrap text-sm">{r.reason}</p>
-          <p className="mt-2 font-mono text-[10.5px] text-muted-foreground">{fmtDate(r.reviewedAt)} · advisory, does not change marks · final</p>
+          <p className="mt-2 font-mono text-[10.5px] text-muted-foreground">{r.reviewerName ? `${r.reviewerName} · ` : ''}{fmtDate(r.reviewedAt)} · advisory, does not change marks · final</p>
         </div>
       ) : staff && (r.respondedAt || expired) ? (
         <DecideForm r={r} inv={inv} />
@@ -235,7 +254,7 @@ export function IntegrityReview({ attemptId, staff, questions }: { attemptId: st
       {rec.policy ? (
         <div>
           <PolicySummary policy={rec.policy} />
-          <p className="mt-1 font-mono text-[10.5px] text-muted-foreground" data-testid="text-acknowledged">{rec.acknowledgedAt ? `Acknowledged ${fmtDate(rec.acknowledgedAt)}` : 'Not acknowledged (started before a policy existed)'}</p>
+          <p className="mt-1 font-mono text-[10.5px] text-muted-foreground" data-testid="text-acknowledged">{rec.acknowledgedAt ? `Acknowledged ${fmtDate(rec.acknowledgedAt)}` : rec.sandbox ? 'Sandbox attempt: no candidate attestation recorded' : 'Not acknowledged'}</p>
         </div>
       ) : <p className="text-xs text-muted-foreground">No assistance policy applied to this exam.</p>}
       <DisclosureBlock key={rec.attemptId} rec={rec} staff={staff} />

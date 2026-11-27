@@ -66,7 +66,7 @@ export const GetDashboardResponse = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMin).max(getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -125,7 +125,7 @@ export const ListExamsResponseItem = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(listExamsResponseAssistancePolicyOneOneResourcesMin).max(listExamsResponseAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -185,7 +185,7 @@ export const CreateExamBody = zod.object({
   "randomize": zod.boolean().default(createExamBodyRandomizeDefault),
   "passPercent": zod.int().min(createExamBodyPassPercentMin).max(createExamBodyPassPercentMax).default(createExamBodyPassPercentDefault),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(createExamBodyAssistancePolicyOneResourcesMin).max(createExamBodyAssistancePolicyOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }),zod.null()]).optional(),
@@ -232,7 +232,7 @@ export const CreateExamResponse = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(createExamResponseAssistancePolicyOneOneResourcesMin).max(createExamResponseAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -302,7 +302,7 @@ export const GetExamResponse = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(getExamResponseOneAssistancePolicyOneOneResourcesMin).max(getExamResponseOneAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -395,7 +395,7 @@ export const UpdateExamBody = zod.object({
   "randomize": zod.boolean().default(updateExamBodyRandomizeDefault),
   "passPercent": zod.int().min(updateExamBodyPassPercentMin).max(updateExamBodyPassPercentMax).default(updateExamBodyPassPercentDefault),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(updateExamBodyAssistancePolicyOneResourcesMin).max(updateExamBodyAssistancePolicyOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }),zod.null()]).optional(),
@@ -442,7 +442,7 @@ export const UpdateExamResponse = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(updateExamResponseAssistancePolicyOneOneResourcesMin).max(updateExamResponseAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -696,7 +696,7 @@ export const ExamActionResponse = zod.object({
   "attemptStatus": zod.string().nullish(),
   "createdAt": zod.string().optional(),
   "assistancePolicy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(examActionResponseAssistancePolicyOneOneResourcesMin).max(examActionResponseAssistancePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -752,6 +752,7 @@ export const StartAttemptBody = zod.object({
   "admissionId": zod.string().max(startAttemptBodyAdmissionIdMax).optional(),
   "instructionsRead": zod.boolean().optional(),
   "deviceReady": zod.boolean().optional(),
+  "policyAcknowledged": zod.boolean().optional(),
   "subjectsConfirmed": zod.boolean().optional()
 })
 
@@ -1537,7 +1538,7 @@ export const SaveAnswersResponse = zod.object({
   "savedAt": zod.string(),
   "serverNow": zod.string(),
   "accepted": zod.boolean(),
-  "conflict": zod.enum(['answer', 'scratchpad']).optional(),
+  "conflict": zod.enum(['answer', 'scratchpad', 'operation']).optional(),
   "scratchpadVersion": zod.int().min(saveAnswersResponseScratchpadVersionMin).optional()
 })
 
@@ -1761,12 +1762,14 @@ export const GetIntegrityRecordParams = zod.object({
 export const getIntegrityRecordResponsePolicyOneOneResourcesMin = 5;
 export const getIntegrityRecordResponsePolicyOneOneResourcesMax = 5000;
 
+export const getIntegrityRecordResponseDisclosureVersionMin = 0;
+
 
 
 export const GetIntegrityRecordResponse = zod.object({
   "attemptId": zod.string(),
   "policy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(getIntegrityRecordResponsePolicyOneOneResourcesMin).max(getIntegrityRecordResponsePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -1774,6 +1777,8 @@ export const GetIntegrityRecordResponse = zod.object({
 })),zod.null()]),
   "acknowledgedAt": zod.string().nullable(),
   "disclosure": zod.string(),
+  "disclosureVersion": zod.int().min(getIntegrityRecordResponseDisclosureVersionMin),
+  "disclosureStatus": zod.enum(['not_required', 'pending', 'provided', 'missing_required']),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
   "attemptId": zod.string(),
@@ -1785,7 +1790,9 @@ export const GetIntegrityRecordResponse = zod.object({
   "respondedAt": zod.string().nullable(),
   "outcome": zod.string().nullable(),
   "reason": zod.string().nullable(),
-  "reviewedAt": zod.string().nullable()
+  "reviewedAt": zod.string().nullable(),
+  "requesterName": zod.string(),
+  "reviewerName": zod.string().nullable()
 })),
   "serverNow": zod.string(),
   "attemptStatus": zod.string(),
@@ -1799,21 +1806,26 @@ export const SaveDisclosureParams = zod.object({
 
 export const saveDisclosureBodyDisclosureMax = 5000;
 
+export const saveDisclosureBodyVersionMin = 0;
+
 
 
 export const SaveDisclosureBody = zod.object({
-  "disclosure": zod.string().max(saveDisclosureBodyDisclosureMax)
+  "disclosure": zod.string().max(saveDisclosureBodyDisclosureMax),
+  "version": zod.int().min(saveDisclosureBodyVersionMin)
 })
 
 export const saveDisclosureResponsePolicyOneOneResourcesMin = 5;
 export const saveDisclosureResponsePolicyOneOneResourcesMax = 5000;
+
+export const saveDisclosureResponseDisclosureVersionMin = 0;
 
 
 
 export const SaveDisclosureResponse = zod.object({
   "attemptId": zod.string(),
   "policy": zod.union([zod.object({
-  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
   "resources": zod.string().min(saveDisclosureResponsePolicyOneOneResourcesMin).max(saveDisclosureResponsePolicyOneOneResourcesMax),
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
@@ -1821,6 +1833,8 @@ export const SaveDisclosureResponse = zod.object({
 })),zod.null()]),
   "acknowledgedAt": zod.string().nullable(),
   "disclosure": zod.string(),
+  "disclosureVersion": zod.int().min(saveDisclosureResponseDisclosureVersionMin),
+  "disclosureStatus": zod.enum(['not_required', 'pending', 'provided', 'missing_required']),
   "reviews": zod.array(zod.object({
   "id": zod.string(),
   "attemptId": zod.string(),
@@ -1832,7 +1846,9 @@ export const SaveDisclosureResponse = zod.object({
   "respondedAt": zod.string().nullable(),
   "outcome": zod.string().nullable(),
   "reason": zod.string().nullable(),
-  "reviewedAt": zod.string().nullable()
+  "reviewedAt": zod.string().nullable(),
+  "requesterName": zod.string(),
+  "reviewerName": zod.string().nullable()
 })),
   "serverNow": zod.string(),
   "attemptStatus": zod.string(),
@@ -1868,7 +1884,9 @@ export const RequestAuthorshipReviewResponse = zod.object({
   "respondedAt": zod.string().nullable(),
   "outcome": zod.string().nullable(),
   "reason": zod.string().nullable(),
-  "reviewedAt": zod.string().nullable()
+  "reviewedAt": zod.string().nullable(),
+  "requesterName": zod.string(),
+  "reviewerName": zod.string().nullable()
 })
 
 
@@ -1896,7 +1914,9 @@ export const RespondToAuthorshipResponse = zod.object({
   "respondedAt": zod.string().nullable(),
   "outcome": zod.string().nullable(),
   "reason": zod.string().nullable(),
-  "reviewedAt": zod.string().nullable()
+  "reviewedAt": zod.string().nullable(),
+  "requesterName": zod.string(),
+  "reviewerName": zod.string().nullable()
 })
 
 
@@ -1925,7 +1945,9 @@ export const DecideAuthorshipResponse = zod.object({
   "respondedAt": zod.string().nullable(),
   "outcome": zod.string().nullable(),
   "reason": zod.string().nullable(),
-  "reviewedAt": zod.string().nullable()
+  "reviewedAt": zod.string().nullable(),
+  "requesterName": zod.string(),
+  "reviewerName": zod.string().nullable()
 })
 
 

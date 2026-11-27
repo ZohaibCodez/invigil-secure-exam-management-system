@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "node:crypto";
-import { db, attempts, authorshipReviews, eq, and, asc } from "@workspace/db";
+import { db, attempts, authorshipReviews, users, eq, and, asc } from "@workspace/db";
 import {
   GetIntegrityRecordResponse, SaveDisclosureBody, RequestAuthorshipReviewBody,
   RespondToAuthorshipBody, DecideAuthorshipBody, RequestAuthorshipReviewResponse,
@@ -10,19 +10,31 @@ import { HttpError, paramId, requireStaff, type AppUser } from "../lib/access";
 
 const router: IRouter = Router();
 type Review = typeof authorshipReviews.$inferSelect;
-const view = (r: Review) => ({
+const view = async (r: Review) => {
+  const [[requester], reviewers] = await Promise.all([
+    db.select({ name: users.name }).from(users).where(eq(users.id, r.requestedBy)),
+    r.reviewedBy ? db.select({ name: users.name }).from(users).where(eq(users.id, r.reviewedBy)) : Promise.resolve([]),
+  ]);
+  return ({
   id: r.id, attemptId: r.attemptId, questionId: r.questionId, prompt: r.prompt,
   requestedAt: r.requestedAt.toISOString(), responseDeadline: r.responseDeadline.toISOString(),
   response: r.response, respondedAt: r.respondedAt?.toISOString() ?? null,
   outcome: r.outcome, reason: r.reason, reviewedAt: r.reviewedAt?.toISOString() ?? null,
-});
+  requesterName: requester?.name ?? "Historical examiner",
+  reviewerName: r.reviewedBy ? reviewers[0]?.name ?? "Historical reviewer" : null,
+  });
+};
 
 async function record(id: string, user: AppUser) {
-  const a = await authorizedAttempt(id, user);
+  await authorizedAttempt(id, user);
+  const a = await finalizeIfExpired(id);
   const reviews = await db.select().from(authorshipReviews).where(eq(authorshipReviews.attemptId, id)).orderBy(asc(authorshipReviews.requestedAt));
   return GetIntegrityRecordResponse.parse({
     attemptId: id, policy: a.policySnapshot, acknowledgedAt: a.acknowledgedAt?.toISOString() ?? null,
-    disclosure: a.disclosure, reviews: reviews.map(view), serverNow: new Date().toISOString(),
+    disclosure: a.disclosure, disclosureVersion: a.disclosureVersion,
+    disclosureStatus: a.disclosure.trim() ? "provided" : a.policySnapshot?.requireDisclosure && !a.sandbox
+      ? a.status === "active" ? "pending" : "missing_required" : "not_required",
+    reviews: await Promise.all(reviews.map(view)), serverNow: (await databaseNow(db)).toISOString(),
     attemptStatus: a.status, sandbox: a.sandbox,
   });
 }
@@ -45,15 +57,18 @@ router.put("/attempts/:id/integrity", async (req, res): Promise<void> => {
   const id = paramId(req);
   const a = await authorizedAttempt(id, req.appUser, true);
   if (req.appUser.role !== "candidate" || a.sandbox) throw new HttpError(403, "Only a real candidate can record assistance used.");
-  const { disclosure } = SaveDisclosureBody.parse(trimmed(req.body, "disclosure"));
+  const { disclosure, version } = SaveDisclosureBody.parse(trimmed(req.body, "disclosure"));
   const saved = await db.transaction(async tx => {
     const [locked] = await tx.select().from(attempts).where(eq(attempts.id, id)).for("update");
     const now = await databaseNow(tx);
+    // Identical retries do not create a new version, even after finalization.
+    if (locked!.disclosure === disclosure && (version === locked!.disclosureVersion || version === locked!.disclosureVersion - 1)) return true;
     if (locked!.status !== "active" || now >= locked!.deadline) {
       if (locked!.status === "active") await finalizeLocked(tx, locked!);
       return false;
     }
-    await tx.update(attempts).set({ disclosure }).where(eq(attempts.id, id));
+    if (version !== locked!.disclosureVersion) throw new HttpError(409, "A different disclosure was saved in another tab. Refresh and compare before saving again.");
+    await tx.update(attempts).set({ disclosure, disclosureVersion: version + 1 }).where(eq(attempts.id, id));
     return true;
   });
   if (!saved) throw new HttpError(409, "Disclosure is locked with the original attempt. No extra examination time is granted.");
@@ -72,7 +87,8 @@ router.post("/attempts/:id/authorship", async (req, res): Promise<void> => {
     if (locked!.status === "active") throw new HttpError(409, "Wait until the original examination attempt is submitted.");
     const [existing] = await tx.select().from(authorshipReviews).where(and(eq(authorshipReviews.attemptId, id), eq(authorshipReviews.questionId, input.questionId)));
     if (existing) {
-      if (existing.requestedBy === req.appUser.id && existing.prompt === input.prompt) return existing;
+      const originalHours = (existing.responseDeadline.getTime() - existing.requestedAt.getTime()) / 3600000;
+      if (existing.requestedBy === req.appUser.id && existing.prompt === input.prompt && originalHours === input.hours) return existing;
       throw new HttpError(409, "A review for this question is already on record.");
     }
     const now = await databaseNow(tx);
@@ -82,7 +98,7 @@ router.post("/attempts/:id/authorship", async (req, res): Promise<void> => {
     }).returning();
     return r!;
   });
-  res.status(201).json(RequestAuthorshipReviewResponse.parse(view(row)));
+  res.status(201).json(RequestAuthorshipReviewResponse.parse(await view(row)));
 });
 router.put("/authorship-reviews/:id/response", async (req, res): Promise<void> => {
   const id = paramId(req);
@@ -100,7 +116,7 @@ router.put("/authorship-reviews/:id/response", async (req, res): Promise<void> =
     const [updated] = await tx.update(authorshipReviews).set({ response, respondedAt: now }).where(eq(authorshipReviews.id, id)).returning();
     return updated!;
   });
-  res.json(RequestAuthorshipReviewResponse.parse(view(row)));
+  res.json(RequestAuthorshipReviewResponse.parse(await view(row)));
 });
 router.post("/authorship-reviews/:id/decision", async (req, res): Promise<void> => {
   requireStaff(req.appUser);
@@ -119,6 +135,6 @@ router.post("/authorship-reviews/:id/decision", async (req, res): Promise<void> 
     return updated!;
   });
   // Advisory only: original answers, deadlines and published grades are untouched.
-  res.json(RequestAuthorshipReviewResponse.parse(view(row)));
+  res.json(RequestAuthorshipReviewResponse.parse(await view(row)));
 });
 export default router;
