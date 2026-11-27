@@ -48,7 +48,7 @@ PDFs and minimal public verification; imports and question analytics.
 
 ## User preferences
 
-- Do not create commits yourself or change Git authorship. Leave changes for the user to commit through their own GitHub account, and provide commit messages.
+- Author all commits as Zohaib, not Replit Agent.
 - UI/UX must be professional, modern and creative, with micro-interactions, transitions and restrained animation.
 - Keep the application deployable on free tiers such as Vercel and Neon.
 

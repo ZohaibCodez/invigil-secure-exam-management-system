@@ -311,7 +311,7 @@ export default function AttemptPage() {
         setSync('locked');
         if (hasPendingWork(d)) {
           setLateWork(pending);
-          pushEvent('late-recovery', `${pending.length} local answer(s)${scratchPending ? ' and unsynced scratchpad notes' : ''} found after submission; retained on device, not credited.`);
+          pushEvent('late-recovery', `${pending.length} local answer(s)${scratchPending ? ' and unsynced scratchpad notes' : ''} found after submission; not credited. Device persistence is reported separately.`);
         }
       }
     })();
@@ -533,7 +533,7 @@ export default function AttemptPage() {
           {lateWork.length > 0 && (
             <div className="mt-5 flex gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-left text-xs">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-              <span>{lateWork.length} answer(s) on this device never reached the server before the attempt closed. They are kept here, unverified, and are not credited. The examiner has been notified as context.</span>
+              <span>{lateWork.length} answer(s) never reached the server before the attempt closed and are not credited. {device.status === 'stored' ? 'A draft is retained on this device.' : 'Device recovery is not confirmed; copy this work before closing.'} A contextual notification is queued for the examiner.</span>
             </div>
           )}
           {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes were not confirmed by the server before the attempt closed. Notes are not graded. {device.status !== 'stored' && 'Local recovery is not confirmed; copy these notes before closing.'}</p>}
@@ -585,7 +585,7 @@ export default function AttemptPage() {
           </div>
         )}
         {locked && sync === 'locked' && (
-          <div className="border-t bg-muted px-4 py-1.5 text-center text-xs text-muted-foreground">The server has closed this attempt. Further changes are kept on this device only and won't be credited.</div>
+          <div className="border-t bg-muted px-4 py-1.5 text-center text-xs text-muted-foreground">The server has closed this attempt. Further changes will not be credited. {device.status === 'stored' ? 'A draft is retained on this device.' : 'Device recovery is not confirmed.'}</div>
         )}
       </header>
 
@@ -648,7 +648,7 @@ export default function AttemptPage() {
                   <span className="rounded bg-secondary px-2 py-0.5 font-mono text-[11px]">{qn.marks} mark{qn.marks === 1 ? '' : 's'}</span>
                   <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{qn.type === 'single' ? 'Choose one' : qn.type === 'multiple' ? 'Choose all that apply' : 'Written answer'}</span>
                   <span className="ml-auto font-mono text-[10.5px]" data-testid="status-question-sync">
-                    {!draft.answers[qn.id] ? null : unsynced.includes(qn.id) ? <span className="text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]">on device</span> : <span className="text-[hsl(158_40%_32%)] dark:text-[hsl(158_40%_62%)]">server confirmed</span>}
+                    {!draft.answers[qn.id] ? null : unsynced.includes(qn.id) ? <span className="text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]">{device.status === 'stored' ? 'draft on device' : 'not retained on device'}</span> : <span className="text-[hsl(158_40%_32%)] dark:text-[hsl(158_40%_62%)]">server confirmed</span>}
                   </span>
                 </div>
                 <p className="exam-text whitespace-pre-wrap">{qn.text}</p>
@@ -754,7 +754,7 @@ export default function AttemptPage() {
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm">
                 {submitStage === 'unsynced' ? (
-                  <p>{unsynced.length > 0 ? `${unsynced.length} answer(s) exist only on this device. ` : ''}{scratchPending ? 'Scratchpad notes exist only on this device. ' : ''}The last send failed ({syncErr ?? 'network unavailable'}). You can retry, or submit using only what the server already has. Unsent answers will not be credited; unsent notes stay on this device and are not graded.</p>
+                  <p>{unsynced.length > 0 ? `${unsynced.length} answer(s) are not server-confirmed. ` : ''}{scratchPending ? 'Scratchpad notes are not server-confirmed. ' : ''}The last send failed ({syncErr ?? 'network unavailable'}). You can retry, or submit using only what the server already has. Unsent answers will not be credited; notes are not graded. {device.status === 'stored' ? 'A draft is retained on this device.' : 'Device recovery is not confirmed. Copy any unsent work before closing.'}</p>
                 ) : (
                   <>
                     <div className="grid grid-cols-3 gap-2 text-center">
@@ -795,8 +795,8 @@ export default function AttemptPage() {
               <p className="mt-2 text-sm text-muted-foreground">
                 {submitM.isPending || sync === 'saving' ? 'Sending your last answers and submitting…' : attempt.status !== 'active' || locked ? 'Your attempt has been submitted with the answers the server received.' : 'Submitting…'}
               </p>
-              {unsynced.length > 0 && locked && <p className="mt-3 rounded-lg bg-accent/10 p-2 text-xs text-accent">{unsynced.length} answer(s) didn't reach the server in time. They stay on this device, unverified, and won't be credited.</p>}
-              {scratchPending && locked && <p className="mt-3 text-xs text-accent">Scratchpad notes stay on this device only; the server did not confirm them before the attempt closed. Notes are not graded.</p>}
+              {unsynced.length > 0 && locked && <p className="mt-3 rounded-lg bg-accent/10 p-2 text-xs text-accent">{unsynced.length} answer(s) didn't reach the server in time and won't be credited. {device.status === 'stored' ? 'A draft is retained on this device.' : 'Device recovery is not confirmed; copy unsent work before closing.'}</p>}
+              {scratchPending && locked && <p className="mt-3 text-xs text-accent">The server did not confirm scratchpad notes before the attempt closed. Notes are not graded. {device.status !== 'stored' && 'Device recovery is not confirmed.'}</p>}
               <Button asChild className="mt-6 w-full" disabled={!locked}><Link href="/">Back to overview</Link></Button>
             </div>
           </motion.div>
