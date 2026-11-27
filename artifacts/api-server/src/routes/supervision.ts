@@ -10,7 +10,7 @@ import {
   authorizedAttempt, attemptView, databaseNow, finalizeIfExpired, finalizeLocked, hasAnswer, supervisionView,
 } from "../lib/attempts";
 import { settingsFor } from "../lib/delivery";
-import { aiGradingConfigured, suggestGrade } from "../lib/ai-grading";
+import { aiGradingConfigured, suggestGrade, mapLimited } from "../lib/ai-grading";
 
 const router: IRouter = Router();
 
@@ -126,12 +126,15 @@ router.post("/attempts/:id/ai-grade", async (req, res): Promise<void> => {
   const attempt = await finalizeIfExpired(a.id);
   if (attempt.status === "active") throw new HttpError(409, "The candidate has not submitted yet.");
   if (attempt.voidedAt) throw new HttpError(409, "Voided attempts are not graded.");
+  // At most 4 answers per request keeps each call well inside the 30 s serverless limit
+  // (about 6 s per answer, two at a time). The grading dialog asks again for the rest.
   const pending = attempt.questions.filter(q => {
     const ans = attempt.answers.find(x => x.questionId === q.id);
     return q.type === "written" && ans && ans.score === null && !ans.aiSuggestion && hasAnswer(q, ans.value);
-  });
-  const settled = await Promise.allSettled(pending.map(async q =>
-    [q.id, await suggestGrade(q, attempt.answers.find(x => x.questionId === q.id)!.value)] as const));
+  }).slice(0, 4);
+  // Two at a time keeps free-tier bursts under Groq's rate limit; suggestGrade also retries 429s.
+  const settled = await mapLimited(pending, 2, async q =>
+    [q.id, await suggestGrade(q, attempt.answers.find(x => x.questionId === q.id)!.value)] as const);
   const suggestions = new Map(settled.flatMap(s => s.status === "fulfilled" ? [s.value] : []));
   const failures = settled.filter(s => s.status === "rejected").length;
   if (pending.length && !suggestions.size) {

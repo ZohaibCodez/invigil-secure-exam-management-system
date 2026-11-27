@@ -50,20 +50,21 @@ function GradeDialog({ result, onClose }: { result: Result; onClose: () => void 
   };
 
   // Ask the AI once per dialog for written answers that have neither a grade nor a suggestion.
-  const aiAsked = useRef(false);
+  // Each request grades up to 4 answers; keep asking while new suggestions arrive.
+  const aiAsked = useRef(0);
   useEffect(() => {
-    if (!a || aiAsked.current || result.published || a.supervision?.voidedAt) return;
+    if (!a || ai.isPending || aiAsked.current >= 10 || aiNote || result.published || a.supervision?.voidedAt) return;
     const needs = a.questions.some((qu) => {
       const ans = ansBy.get(qu.id);
       return qu.type === 'written' && ans && ans.score == null && !ans.aiSuggestion && ans.value.trim();
     });
     if (!needs) return;
-    aiAsked.current = true;
+    aiAsked.current += 1;
     ai.mutate({ id: a.id }, {
       onSuccess: (next) => qc.setQueryData(getGetAttemptQueryKey(a.id), next),
       onError: (e) => setAiNote(`AI check unavailable: ${errMsg(e)} Grade manually.`),
     });
-  }, [a, ansBy, result.published]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [a, ansBy, result.published, ai.isPending, aiNote]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const save = () => {
     if (!a) return;
