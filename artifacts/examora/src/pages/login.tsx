@@ -94,7 +94,7 @@ export default function Login({ demoEnabled }: { demoEnabled: boolean }) {
           ))}
           <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" strokeWidth=".6" />
         </svg>
-        <Logo tone="dark" height={52} className="self-start" />
+        <Logo tone="dark" height={68} className="self-start" />
         <div className="my-auto max-w-xl py-12">
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
@@ -120,7 +120,7 @@ export default function Login({ demoEnabled }: { demoEnabled: boolean }) {
 
       <section className="relative flex flex-col justify-center px-6 py-12 sm:px-12">
         <div className="mx-auto w-full max-w-[400px]">
-          <Logo height={44} className="mb-10 lg:hidden" />
+          <Logo height={52} className="mb-10 lg:hidden" />
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <h2 className="font-display text-4xl leading-none"><Typewriter text="Sign in" speed={60} /></h2>
             <p className="mt-3 text-sm text-muted-foreground">Use the account your institution issued. Examiners, candidates and administrators share one door.</p>

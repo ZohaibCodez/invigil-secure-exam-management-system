@@ -15,7 +15,7 @@ export default function Verify() {
     <div className="ruled flex min-h-[100dvh] items-center justify-center px-4 py-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-[0_30px_60px_-30px_hsl(222_40%_14%/0.35)]">
         <div className="mb-8 flex items-center justify-between">
-          <Logo height={34} />
+          <Logo height={44} />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Report verification</span>
         </div>
         {q.isLoading ? (

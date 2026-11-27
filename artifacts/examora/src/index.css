@@ -438,8 +438,6 @@
   /* One sans family across the platform. Display headings are weight, not a second typeface. */
   .font-display { font-family: var(--app-font-sans); font-weight: 700; letter-spacing: -0.025em; }
   .font-display.italic, .font-display .italic, .font-display em { font-style: normal; }
-  /* Small uppercase labels: sans with measured tracking instead of mono, for a consistent enterprise look. */
-  .font-mono.uppercase { font-family: var(--app-font-sans); font-weight: 600; letter-spacing: 0.08em; }
   .tnum { font-variant-numeric: tabular-nums; }
   ::selection { background: hsl(var(--accent) / 0.22); }
   :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
@@ -473,3 +471,7 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .tw-caret { display: inline-block; width: 2px; height: 0.9em; margin-left: 2px; vertical-align: -0.08em; background: hsl(var(--accent)); animation: tw-blink 0.9s steps(2) infinite; }
 @keyframes tw-blink { 50% { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tw-caret { animation: none; } }
+
+/* Unlayered so it wins over Tailwind utilities: small uppercase labels use the sans family
+   with measured tracking instead of monospace, for one consistent enterprise voice. */
+.font-mono.uppercase, .mk .mono.uppercase, .mk .uppercase.mono { font-family: var(--app-font-sans); font-weight: 600; letter-spacing: 0.08em; }
