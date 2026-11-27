@@ -1,7 +1,9 @@
 # Public deployment smoke check
 
-**Date:** 2026-11-27  
-**Target:** https://invigil-secure-exam-management-syst.vercel.app/  
+**Date:** 2026-11-27
+
+**Target:** https://invigil-secure-exam-management-syst.vercel.app/
+
 **Hosting/database:** Vercel and Neon PostgreSQL, as confirmed by the user
 
 Only unauthenticated HTTP GET requests were made.
