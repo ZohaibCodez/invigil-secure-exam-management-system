@@ -74,10 +74,12 @@ function parseImportRow(row: Record<string, unknown>, kind: string) {
   let options = row.options;
   let correctAnswers = row.correctAnswers;
   if (typeof options === "string") {
-    try { options = JSON.parse(options); } catch { options = options.split("|").map((text, i) => ({ id: String.fromCharCode(97 + i), text: text.trim() })); }
+    const raw = options;
+    try { options = JSON.parse(raw); } catch { options = raw.split("|").map((text, i) => ({ id: String.fromCharCode(97 + i), text: text.trim() })); }
   }
   if (typeof correctAnswers === "string") {
-    try { correctAnswers = JSON.parse(correctAnswers); } catch { correctAnswers = correctAnswers.split("|").map(v => v.trim()).filter(Boolean); }
+    const raw = correctAnswers;
+    try { correctAnswers = JSON.parse(raw); } catch { correctAnswers = raw.split("|").map(v => v.trim()).filter(Boolean); }
   }
   return validateQuestion({ ...row, marks: Number(row.marks), options: options ?? [], correctAnswers: correctAnswers ?? [] });
 }

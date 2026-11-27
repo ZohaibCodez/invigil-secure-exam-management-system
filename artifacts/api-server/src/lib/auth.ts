@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { pool } from "@workspace/db";
 
 const baseURL = process.env.BETTER_AUTH_URL ??
-  (process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : undefined);
+  (process.env.NODE_ENV !== "production" && process.env.REPLIT_DEV_DOMAIN ? `https://${process.env.REPLIT_DEV_DOMAIN}` : undefined);
 if (!process.env.SESSION_SECRET) throw new Error("SESSION_SECRET is required for authentication.");
 
 export const auth = betterAuth({

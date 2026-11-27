@@ -1,6 +1,6 @@
-# [Project name]
+# Examora — Secure Examination Management
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A role-based examination platform focused on fair timing, resilient answer saving, secure grading, and verifiable reports.
 
 ## Run & Operate
 
@@ -10,6 +10,8 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - Required env: `DATABASE_URL` — Postgres connection string
+- `pnpm --filter @workspace/api-server run seed:demo` — explicit fictional demo seed; requires `DEMO_MODE=true`
+- Authentication requires `SESSION_SECRET`; published origins must set `BETTER_AUTH_URL`.
 
 ## Stack
 
@@ -18,27 +20,43 @@ _Replace the heading above with the project's name, and this line with one sente
 - DB: PostgreSQL + Drizzle ORM
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
+- Web: React + Vite, Tailwind, accessible components, Framer Motion
+- Auth: Better Auth, SQL-backed sessions and rate limits
 - Build: esbuild (CJS bundle)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml`: API contract; regenerate hooks after changes.
+- `lib/db/src/schema/`: identity, exam, attempt, incident and audit models.
+- `artifacts/api-server/src/lib/`: authorization, timing and marking rules.
+- `artifacts/api-server/src/routes/`: role-scoped routes.
+- `artifacts/examora/src/`: application frontend.
+- `README.md`: setup, policies, demo credentials, Vercel/Neon guidance and limitations.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- Prefer a complete, reliable examination workflow over optional AI integrations.
+- Required functionality must not depend on paid services or billing information, per the supplied competition brief.
+- Published exams and grades are deliberately locked; late offline work never automatically earns marks.
+- Application schemas are applied explicitly in development, never from server startup.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Administrator account management; examiner exam/question/enrollment workflows;
+candidate timed attempts; monitoring and announcements; grading and publication;
+PDFs and minimal public verification; imports and question analytics.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Do not commit under the assistant's name or change Git authorship; the user is attaching their own GitHub account.
+- UI/UX must be professional, modern and creative, with micro-interactions, transitions and restrained animation.
+- Keep the application deployable on free tiers such as Vercel and Neon.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- No commits, pushes, builds or deployments after the hackathon submission deadline.
+- Demo accounts are public fictional accounts, not a secure deployment for real student data.
+- Import Drizzle operators through `@workspace/db` so optional peer variants cannot produce mismatched SQL types.
 
 ## Pointers
 
