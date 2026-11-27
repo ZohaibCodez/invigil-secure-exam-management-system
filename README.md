@@ -277,6 +277,13 @@ guarantee production availability. Neon free compute can sleep after inactivity;
 handle first-request wake-up delays. Keep the Vercel function region near Neon.
 Avoid continuously polling every exam or scheduling always-on keep-alive requests.
 
+## Test evidence archive
+
+See [the evidence archive](docs/evidence/README.md) for available visual snapshots,
+executed browser-test reports, regression commands and coverage limitations.
+Replit-native replay views are not downloadable recordings in this repository;
+the archive explicitly identifies which media could and could not be exported.
+
 ## Demonstration and verification checklist
 
 The first build is type-checked and startup-checked; a full automated browser
