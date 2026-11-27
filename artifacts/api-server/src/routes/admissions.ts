@@ -24,7 +24,7 @@ async function view(row: AdmissionRow, tx: Tx) {
   return {
     id: row.id, examId: row.examId, examTitle: exam!.title,
     candidateId: row.candidateId, candidateName: candidate!.name,
-    status: now >= row.expiresAt && (row.status === "pending" || row.status === "approved") ? "expired" : row.status,
+    status: now >= row.expiresAt && row.status !== "consumed" ? "expired" : row.status,
     requestedAt: row.requestedAt.toISOString(), expiresAt: row.expiresAt.toISOString(),
     decidedAt: row.decidedAt?.toISOString() ?? null, reviewerName: reviewer?.name ?? null,
     reason: row.reason, serverNow: now.toISOString(),

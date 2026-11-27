@@ -480,7 +480,7 @@ export default function AttemptPage() {
     if (!qn || readOnly || committing) return false;
     const qid = qn.id;
     if (!navigator.onLine) {
-      setCommitErr('Offline. Locking needs the server; your draft stays on this device and is not locked.');
+      setCommitErr('Offline. Saving and locking needs the server, so reconnect to continue. Your draft stays on this device and is not locked.');
       return false;
     }
     setCommitting(true);
@@ -557,7 +557,7 @@ export default function AttemptPage() {
   const flaggedCount = questions.filter((x) => draft.answers[x.id]?.markedForReview).length;
   const lockedCount = questions.filter((x) => draft.answers[x.id]?.lockedAt).length;
   const minimum = minimumRequired(questions.length, delivery.minimumAttemptPercent);
-  const countForMinimum = lockMode ? lockedCount : answeredCount;
+  const countForMinimum = answeredCount;
   const belowMinimum = minimum > 0 && countForMinimum < minimum && (remaining === null || remaining > 0);
   const anns = attempt?.announcements ?? [];
   const freshAnn = anns.find((a) => !seenAnn.includes(a.id));
@@ -854,10 +854,10 @@ export default function AttemptPage() {
                       <div className="rounded-lg border p-2"><div className="font-display text-2xl text-foreground tnum">{questions.length - answeredCount}</div><div className="text-[11px]">blank</div></div>
                       <div className="rounded-lg border p-2"><div className="font-display text-2xl text-foreground tnum">{flaggedCount}</div><div className="text-[11px]">flagged</div></div>
                     </div>
-                    {lockMode && <p data-testid="text-submit-locked">{lockedCount} answer(s) saved and locked.{answeredCount - lockedCount > 0 ? ` ${answeredCount - lockedCount} drafted answer(s) are not locked.` : ''}</p>}
+                    {lockMode && <p data-testid="text-submit-locked">{lockedCount} answer(s) saved and locked.{answeredCount - lockedCount > 0 ? ` ${answeredCount - lockedCount} unlocked draft(s) will also be submitted once the server confirms them.` : ''}</p>}
                     {minimum > 0 && (
                       <p className={cn('rounded-lg border p-2', belowMinimum && 'border-accent/40 text-accent')} data-testid="text-submit-minimum">
-                        Early submission needs at least {minimum} {lockMode ? 'locked' : 'answered'} question(s). You have {countForMinimum}. {belowMinimum ? 'Keep working; when time ends the server submits automatically.' : ''}
+                        Early submission needs at least {minimum} answered question(s); server-confirmed drafts count. You have {countForMinimum}. {belowMinimum ? 'Keep working; when time ends the server submits automatically.' : ''}
                       </p>
                     )}
                     <p>We'll send any unsaved work first, then submit. You can't change answers afterwards.</p>
@@ -888,12 +888,11 @@ export default function AttemptPage() {
         <AlertDialogContent className={cn(night && 'dark')} data-testid="dialog-unlocked-leave">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-display text-2xl font-normal">This answer is not locked</AlertDialogTitle>
-            <AlertDialogDescription>Save to lock it on the server, or leave it as an editable draft. Locked answers cannot be changed later.</AlertDialogDescription>
+            <AlertDialogDescription>A selected answer cannot be skipped in this exam. Save to lock it on the server, or stay and clear it first. Locked answers stay readable but cannot be changed.{!online ? ' You are offline: saving needs a connection, so reconnect before moving on.' : ''}</AlertDialogDescription>
           </AlertDialogHeader>
           {commitErr && <p role="alert" className="text-xs text-accent">{commitErr}</p>}
           <AlertDialogFooter className="gap-2">
             <AlertDialogCancel disabled={committing} data-testid="button-stay">Stay here</AlertDialogCancel>
-            <Button variant="outline" disabled={committing} onClick={() => { const t = pendingNav; setPendingNav(null); if (t !== null) go(t); }} data-testid="button-leave-draft">Leave as draft</Button>
             <Button disabled={committing || !online} onClick={async () => { const t = pendingNav; if (await commitCurrent()) { setPendingNav(null); if (t !== null) go(t); } }} data-testid="button-save-leave">
               {committing && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}Save and lock
             </Button>

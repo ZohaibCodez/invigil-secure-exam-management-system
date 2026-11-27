@@ -15,10 +15,19 @@ export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boo
   const [msg, setMsg] = useState<string | null>(null);
   const [manual, setManual] = useState('');
   const doneRef = useRef(false);
+  const genRef = useRef(0);
+  const openRef = useRef(open);
+  openRef.current = open;
   const onAdmissionRef = useRef(onAdmission);
   onAdmissionRef.current = onAdmission;
 
+  const killVideo = (v: HTMLVideoElement | null) => {
+    const stream = v?.srcObject as MediaStream | null | undefined;
+    stream?.getTracks().forEach((t) => t.stop());
+    if (v) v.srcObject = null;
+  };
   const stop = useCallback(() => {
+    genRef.current += 1;
     try { controlsRef.current?.stop(); } catch { /* ignore */ }
     controlsRef.current = null;
     const v = videoRef.current;
@@ -36,7 +45,7 @@ export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boo
       doneRef.current = false;
     }
   }, [open, stop]);
-  useEffect(() => stop, [stop]);
+  useEffect(() => () => { openRef.current = false; stop(); }, [stop]);
 
   const accept = (raw: string) => {
     const r = extractAdmissionId(raw);
@@ -57,20 +66,35 @@ export function QrScannerDialog({ open, onOpenChange, onAdmission }: { open: boo
       setMsg('This browser cannot open a camera here. Paste the link or type the request ID instead.');
       return;
     }
+    stop(); // invalidates any earlier session so only one reader exists
+    const gen = ++genRef.current;
+    const video = videoRef.current;
+    const stale = () => gen !== genRef.current || !openRef.current || videoRef.current !== video;
+    doneRef.current = false;
     setState('starting');
+    let controls: Controls | null = null;
     try {
       const { BrowserQRCodeReader } = await import('@zxing/browser');
+      if (stale() || !video) return;
       const reader = new BrowserQRCodeReader();
-      if (!videoRef.current) return;
-      const controls = await reader.decodeFromVideoDevice(undefined, videoRef.current, (result) => {
-        if (!result || doneRef.current) return;
+      controls = await reader.decodeFromVideoDevice(undefined, video, (result) => {
+        if (!result || doneRef.current || gen !== genRef.current) return;
         accept(result.getText());
       });
+      if (stale() || doneRef.current) {
+        try { controls.stop(); } catch { /* ignore */ }
+        // Only clear the element when no newer session could own it.
+        if (!openRef.current || doneRef.current || genRef.current === gen + 1 && !controlsRef.current) killVideo(video);
+        return;
+      }
       controlsRef.current = controls;
-      if (doneRef.current) stop();
-      else setState('scanning');
+      setState('scanning');
     } catch (e) {
+      try { controls?.stop(); } catch { /* ignore */ }
+      if (gen !== genRef.current) return; // stale: never touch a newer session
       stop();
+      killVideo(video);
+      if (!openRef.current) return;
       setState('error');
       setMsg(e instanceof Error && /permission|denied|notallowed/i.test(e.name + e.message) ? 'Camera permission was declined. Paste the link or type the request ID instead.' : 'The camera could not start. Paste the link or type the request ID instead.');
     }

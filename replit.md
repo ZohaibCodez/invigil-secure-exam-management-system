@@ -64,6 +64,7 @@ PDFs and minimal public verification; imports and question analytics.
 - Keep the application deployable on free tiers such as Vercel and Neon.
 - Preserve every PDF-required feature when adding reference-video functionality
   and new UI/UX; additions must not remove existing required capabilities.
+- For the supplied ECAT/NUST reference videos, study the frames; transcription is not needed.
 
 ## Gotchas
 

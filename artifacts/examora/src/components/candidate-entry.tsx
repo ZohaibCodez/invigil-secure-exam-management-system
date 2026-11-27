@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -71,28 +71,40 @@ function AdmissionStep({ examId, open, admissionId, setAdmissionId, onAdmission 
   const online = useOnline();
   const request = useRequestAdmission();
   const [err, setErr] = useState<string | null>(null);
+  const expiredRef = useRef(false);
   const q = useGetAdmission(admissionId ?? '', {
     query: {
       queryKey: getGetAdmissionQueryKey(admissionId ?? ''),
       enabled: open && !!admissionId,
-      refetchInterval: (query) => (open && query.state.data?.status === 'pending' ? 3000 : false),
+      refetchInterval: (query) => {
+        const st = query.state.data?.status;
+        if (!open || expiredRef.current) return false;
+        return st === 'pending' ? 3000 : st === 'approved' || st === 'denied' ? 10000 : false;
+      },
     },
   });
   const a = q.data && q.data.id === admissionId ? q.data : null;
-  useEffect(() => onAdmission(a), [a, onAdmission]);
   const [now, setNow] = useState(() => performance.now());
   const [anchor, setAnchor] = useState<{ left: number; perf: number } | null>(null);
   useEffect(() => {
     if (a) setAnchor({ left: Date.parse(a.expiresAt) - Date.parse(a.serverNow), perf: performance.now() });
   }, [a?.expiresAt, a?.serverNow]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
-    if (!a || a.status !== 'pending') return;
+    if (!a || !(a.status === 'pending' || a.status === 'approved' || a.status === 'denied')) return;
     const t = setInterval(() => setNow(performance.now()), 1000);
     return () => clearInterval(t);
   }, [a?.status]); // eslint-disable-line react-hooks/exhaustive-deps
   const left = anchor ? Math.max(0, anchor.left - (now - anchor.perf)) : null;
-  const locallyExpired = a?.status === 'pending' && left === 0;
+  const locallyExpired = !!a && a.status !== 'consumed' && a.status !== 'expired' && left === 0;
   const status = a ? (locallyExpired ? 'expired' : a.status) : null;
+  expiredRef.current = status === 'expired';
+  // Report the normalized status to the parent only when id/status change (no loops).
+  const aRef = useRef(a);
+  aRef.current = a;
+  useEffect(() => {
+    const cur = aRef.current;
+    onAdmission(cur && status ? { ...cur, status } : null);
+  }, [a?.id, status, onAdmission]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ask = async () => {
     setErr(null);
@@ -137,10 +149,11 @@ function AdmissionStep({ examId, open, admissionId, setAdmissionId, onAdmission 
                 </div>
               </div>
             )}
-            {status === 'approved' && <p className="flex items-center gap-2 text-sm" data-testid="text-admission-approved"><CheckCircle2 className="h-4 w-4 text-[hsl(158_45%_32%)]" />Approved{a.reviewerName ? ` by ${a.reviewerName}` : ''}. Press Start when you are ready; your timer has not started.</p>}
+            {status === 'approved' && <p className="flex items-center gap-2 text-sm" data-testid="text-admission-approved"><CheckCircle2 className="h-4 w-4 shrink-0 text-[hsl(158_45%_32%)]" /><span>Approved{a.reviewerName ? ` by ${a.reviewerName}` : ''}. Press Start before it expires in <span className="font-mono tnum" data-testid="text-admission-expiry">{left === null ? '--:--' : clock(left)}</span>; your timer has not started.</span></p>}
             {(status === 'denied' || status === 'expired' || status === 'consumed') && (
               <div className="space-y-2 text-sm">
                 <p className="text-muted-foreground">{ADMISSION_COPY[status].body}{a.reason ? ` Reason: ${a.reason}` : ''}</p>
+                {status === 'denied' && left !== null && <p className="text-xs text-muted-foreground">A new request is possible in <span className="font-mono tnum">{clock(left)}</span>.</p>}
                 {status === 'expired' && <Button size="sm" variant="outline" disabled={request.isPending || !online} onClick={ask} data-testid="button-refresh-admission"><RefreshCw className="mr-1.5 h-3.5 w-3.5" />Request a fresh code</Button>}
               </div>
             )}
@@ -243,7 +256,7 @@ export function CandidateEntry({ exam }: { exam: Exam }) {
             <div role="alert" className="rounded-lg border border-accent/40 p-3 text-xs" data-testid="text-entry-info-error">{errMsg(info.error)} <button className="underline" onClick={() => info.refetch()}>Retry</button></div>
           ) : <Skeleton className="h-28 w-full" />)}
 
-          {e && strict && (
+          {e && (
             <section className="rounded-xl border bg-muted/30 p-4 text-sm" data-testid="section-entry-information">
               <div className="mb-2 flex items-center justify-between">
                 <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Entry information</div>

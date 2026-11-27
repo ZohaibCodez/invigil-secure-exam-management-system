@@ -33,7 +33,7 @@ async function call(router: IRouter, method: string, path: string, id: string, a
 test("supervised admission binds candidate/exam, consumes once and never starts a timer before approval", async () => {
   const prefix = `delivery-fixture-${randomUUID()}`;
   const userIds = ["owner", "candidate", "other", "outsider", "admin"].map(s => `${prefix}-${s}`);
-  const examIds = [`${prefix}-exam`, `${prefix}-second`];
+  const examIds = [`${prefix}-exam`, `${prefix}-second`, `${prefix}-legacy`];
   const questionIds = [`${prefix}-q1`, `${prefix}-q2`];
   try {
     const people = await db.insert(users).values(userIds.map((id, i) => ({
@@ -47,13 +47,18 @@ test("supervised admission binds candidate/exam, consumes once and never starts 
       difficulty: "easy", marks: 1, options: [{ id: "a", text: "A" }, { id: "b", text: "B" }], correctAnswers: ["a"],
     }));
     await db.insert(questions).values(paper.map(data => ({ id: data.id, ownerId: owner!.id, data })));
-    await db.insert(exams).values(examIds.map(id => ({
+    await db.insert(exams).values(examIds.slice(0, 2).map(id => ({
       id, ownerId: owner!.id, title: "Supervised delivery fixture", instructions: "Fixture only",
       duration: 10, startsAt: new Date(now - 60_000), endsAt: new Date(now + 600_000),
       status: "published", questionSnapshot: paper, totalMarks: 2, randomize: false,
       deliverySettings: { ...DEFAULT_DELIVERY_SETTINGS, requireProctorApproval: true,
         requireReadiness: true, confirmSubjects: true, lockOnSave: true, minimumAttemptPercent: 50 },
     })));
+    await db.insert(exams).values({
+      id: examIds[2]!, ownerId: owner!.id, title: "Legacy reviewable fixture", instructions: "Fixture only",
+      duration: 10, startsAt: new Date(now - 60_000), endsAt: new Date(now + 600_000),
+      status: "published", questionSnapshot: paper, totalMarks: 2, randomize: false,
+    });
     await db.insert(enrollments).values(examIds.flatMap(examId =>
       [candidate!, other!].map(u => ({ examId, userId: u.id }))));
     const entry = await call(admissionRouter, "get", "/exams/:id/entry-information", examIds[0]!, candidate!);
@@ -77,6 +82,7 @@ test("supervised admission binds candidate/exam, consumes once and never starts 
     assert.equal(repeated.data.id, grantId);
     assert.equal(repeated.data.expiresAt, requested.data.expiresAt);
     assert.equal((await request(owner!)).status, 403);
+    assert.equal((await start({ sandbox: true })).status, 403);
     assert.equal((await call(admissionRouter, "get", "/admissions/:id", grantId, other!)).status, 403);
     assert.equal((await call(admissionRouter, "get", "/admissions/:id", grantId, outsider!)).status, 403);
     assert.equal((await decide(grantId, "approve", candidate!)).status, 403);
@@ -129,6 +135,9 @@ test("supervised admission binds candidate/exam, consumes once and never starts 
     assert.equal((await decide(renewed.data.id, "deny")).data.status, "denied");
     assert.equal((await request(other!)).data.id, renewed.data.id);
     assert.equal((await start({ ...startBody, admissionId: renewed.data.id }, other!)).status, 403);
+    await db.update(admissions).set({ requestedAt: new Date(now - 600_000), expiresAt: new Date(now - 1000) })
+      .where(eq(admissions.id, renewed.data.id));
+    assert.equal((await call(admissionRouter, "get", "/admissions/:id", renewed.data.id, other!)).data.status, "expired");
 
     const submit = () => call(attemptRouter, "post", "/attempts/:id/submit", attemptId, candidate!);
     assert.equal((await submit()).status, 409);
@@ -188,6 +197,19 @@ test("supervised admission binds candidate/exam, consumes once and never starts 
       operationId: randomUUID(), answers: [{ questionId: paper[0]!.id, value: '["a"]', revision: 1, markedForReview: false }],
     });
     assert.equal(lateSave.status, 409);
+    const legacy = await start({}, candidate!, examIds[2]!);
+    assert.equal(legacy.status, 200);
+    assert.equal(legacy.data.deliverySettings.lockOnSave, false);
+    assert.equal(legacy.data.entryAttestation, null);
+    assert.equal((await commit(paper[0]!.id, '["a"]', 1, candidate!, legacy.data.id)).status, 409);
+    for (const [revision, value] of [[1, '["a"]'], [2, '["b"]']] as const) {
+      const response = await call(attemptRouter, "put", "/attempts/:id/answers", legacy.data.id, candidate!, {
+        operationId: randomUUID(), answers: [{ questionId: paper[0]!.id, value, revision, markedForReview: false }],
+      });
+      assert.equal(response.data.accepted, true);
+    }
+    assert.equal((await call(attemptRouter, "post", "/attempts/:id/submit", legacy.data.id, candidate!)).status, 200);
+    assert.equal((await db.select().from(admissions).where(eq(admissions.examId, examIds[2]!))).length, 0);
   } finally {
     const rows = await db.select({ id: attempts.id }).from(attempts).where(inArray(attempts.examId, examIds));
     if (rows.length) await db.delete(saveOperations).where(inArray(saveOperations.attemptId, rows.map(a => a.id)));

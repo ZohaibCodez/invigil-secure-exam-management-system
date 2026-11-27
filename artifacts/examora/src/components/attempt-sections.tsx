@@ -110,12 +110,13 @@ export function HelpDialog({ open, onOpenChange, lockMode, minimum, night }: { o
               <>
                 <li>Choosing an option only drafts it. Press <strong className="text-foreground">Save</strong> to lock that answer on the server; it then cannot be changed.</li>
                 <li>Locked answers stay readable. Unanswered questions can be skipped and revisited.</li>
-                <li>To skip a question you have drafted, clear it first, or you will be asked before leaving.</li>
+                <li>A selected answer cannot be skipped: save and lock it, or clear it first. Saving needs a connection.</li>
+                <li>At final submission the server counts every answer it has confirmed, including unlocked drafts.</li>
               </>
             ) : (
               <li>Answers are stored on this device as you work and sent to the server automatically. You can change them until you submit.</li>
             )}
-            {minimum > 0 && <li>You need {minimum} answered questions before submitting early. When time ends, the server submits whatever it has.</li>}
+            {minimum > 0 && <li>You need {minimum} answered questions (server-confirmed drafts count) before submitting early. When time ends, the server submits whatever it has.</li>}
             <li>Use the section bar to move between subjects, and the grid to jump to any question.</li>
             <li>Text size, night paper, layout and scratchpad controls are in the header.</li>
           </ul>
