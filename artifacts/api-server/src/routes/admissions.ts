@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { randomUUID } from "node:crypto";
-import { and, eq, desc, sql, db, admissions, exams, users, enrollments, attempts } from "@workspace/db";
+import { and, eq, desc, db, admissions, exams, users, enrollments, attempts } from "@workspace/db";
 import { DecideAdmissionBody } from "@workspace/api-zod";
 import { ownedExam, paramId, HttpError, type AppUser } from "../lib/access";
 import { databaseNow } from "../lib/attempts";

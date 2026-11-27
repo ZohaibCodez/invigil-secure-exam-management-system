@@ -100,7 +100,8 @@ router.post("/attempts/:id/commit-question", async (req, res): Promise<void> => 
       if (previous.value !== input.value) throw new HttpError(409, "This answer was already locked and cannot be changed.");
       return locked!;
     }
-    if (previous && input.revision < previous.revision)
+    if (previous && (input.revision < previous.revision ||
+        (input.revision === previous.revision && input.value !== previous.value)))
       throw new HttpError(409, "A newer answer is on the server. Reload before locking.");
     const answer: AnswerData = {
       questionId: question.id, value: input.value, markedForReview: input.markedForReview,

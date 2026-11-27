@@ -60,6 +60,8 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 import { BlueprintPanel } from '@/components/blueprint-panel';
+import { DeliverySettingsPanel } from '@/components/delivery-settings-panel';
+import { AdmissionsPanel } from '@/components/admissions-panel';
 
 const STEPS = ['draft', 'published', 'ongoing', 'completed'] as const;
 
@@ -424,14 +426,17 @@ export default function ExamDetail() {
             <TabsTrigger value="blueprint" data-testid="tab-blueprint">Blueprint</TabsTrigger>
             <TabsTrigger value="candidates" data-testid="tab-candidates">Candidates · {exam.enrolledCount}</TabsTrigger>
             <TabsTrigger value="announce" data-testid="tab-announcements">Announcements</TabsTrigger>
+            <TabsTrigger value="admissions" data-testid="tab-admissions">Admissions</TabsTrigger>
             <TabsTrigger value="settings" data-testid="tab-settings">Settings</TabsTrigger>
           </TabsList>
           <TabsContent value="paper"><PaperTab exam={exam} /></TabsContent>
           <TabsContent value="blueprint"><BlueprintPanel key={exam.id} exam={exam} /></TabsContent>
           <TabsContent value="candidates"><CandidatesTab exam={exam} /></TabsContent>
           <TabsContent value="announce"><AnnouncementsTab exam={exam} /></TabsContent>
+          <TabsContent value="admissions"><AdmissionsPanel exam={exam} /></TabsContent>
           <TabsContent value="settings">
             <div className="mb-5"><AssistancePolicyEditor exam={exam} /></div>
+            <div className="mb-5"><DeliverySettingsPanel key={exam.id + (exam.entryVersion ?? '') + JSON.stringify(exam.deliverySettings ?? {})} exam={exam} /></div>
             <Panel title="Exam settings">
               {exam.status !== 'draft' ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground"><Lock className="h-4 w-4" /> Settings are locked once published.</div>

@@ -24,12 +24,15 @@ import {
   Lock,
   Minus,
   Plus,
+  Save,
+  SkipForward,
 } from 'lucide-react';
 import {
   useGetAttempt,
   useSaveAnswers,
   useSubmitAttempt,
   useRecordEvent,
+  useCommitQuestion,
   getGetAttemptQueryKey,
   getGetDashboardQueryKey,
   getListExamsQueryKey,
@@ -68,6 +71,8 @@ import {
 } from '@/lib/local';
 import { clock, errMsg, errStatus, fmtDate, parseSelected } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { minimumRequired, withDefaults } from '@/lib/delivery';
+import { buildSections, QuestionTile, Legend, SectionBar, HelpButton, HelpDialog, type QState } from '@/components/attempt-sections';
 
 type SyncState = 'idle' | 'pending' | 'saving' | 'saved' | 'failed' | 'offline' | 'locked';
 
@@ -106,6 +111,13 @@ export default function AttemptPage() {
   submitRef.current = submitM.mutateAsync;
   const eventRef = useRef(eventM.mutateAsync);
   eventRef.current = eventM.mutateAsync;
+  const commitM = useCommitQuestion();
+  const commitRef = useRef(commitM.mutateAsync);
+  commitRef.current = commitM.mutateAsync;
+  const [committing, setCommitting] = useState(false);
+  const [commitErr, setCommitErr] = useState<string | null>(null);
+  const [pendingNav, setPendingNav] = useState<number | null>(null);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   const [cached, setCached] = useState<Attempt | null>(null);
   const [cacheChecked, setCacheChecked] = useState(false);
@@ -205,7 +217,7 @@ export default function AttemptPage() {
   const doFlush = useCallback(async (): Promise<boolean> => {
     if (lockedRef.current) return false;
     const d = draftRef.current;
-    const dirty = Object.values(d.answers).filter((a) => a.revision > (d.confirmed[a.questionId] ?? 0));
+    const dirty = Object.values(d.answers).filter((a) => !a.lockedAt && a.revision > (d.confirmed[a.questionId] ?? 0));
     const scratchDirty = d.scratchRev > d.scratchConfirmed && !conflictRef.current;
     if (!dirty.length && !scratchDirty) {
       setSync(hasPendingWork(d) ? 'failed' : 'saved');
@@ -287,7 +299,8 @@ export default function AttemptPage() {
       const d: AttemptDraft = { ...emptyDraft(), ...local, answers: { ...local.answers }, confirmed: { ...local.confirmed } };
       for (const s of attempt.answers) {
         const l = d.answers[s.questionId];
-        if (!l || s.revision >= l.revision) d.answers[s.questionId] = { questionId: s.questionId, value: s.value, markedForReview: s.markedForReview, revision: s.revision };
+        // A server lock is authoritative: no local draft can supersede it.
+        if (!l || s.revision >= l.revision || s.lockedAt) d.answers[s.questionId] = { questionId: s.questionId, value: s.value, markedForReview: s.markedForReview, revision: s.revision, lockedAt: s.lockedAt ?? null };
         d.confirmed[s.questionId] = Math.max(d.confirmed[s.questionId] ?? 0, s.revision);
       }
       if (d.scratchRev <= d.scratchConfirmed) {
@@ -326,8 +339,8 @@ export default function AttemptPage() {
     const confirmed = { ...cur.confirmed };
     for (const s of q.data.answers) {
       const l = answers[s.questionId];
-      if (!l || s.revision > l.revision) {
-        answers[s.questionId] = { questionId: s.questionId, value: s.value, markedForReview: s.markedForReview, revision: s.revision };
+      if (!l || s.revision > l.revision || (s.lockedAt && !l.lockedAt)) {
+        answers[s.questionId] = { questionId: s.questionId, value: s.value, markedForReview: s.markedForReview, revision: s.revision, lockedAt: s.lockedAt ?? null };
         changed = true;
       }
       if ((confirmed[s.questionId] ?? 0) < s.revision) {
@@ -437,16 +450,74 @@ export default function AttemptPage() {
   const qn = questions[current];
   const readOnly = locked || !attempt || attempt.status !== 'active' || (remaining !== null && remaining <= 0 && !fromCache);
 
+  const delivery = withDefaults(attempt?.deliverySettings);
+  const lockMode = delivery.lockOnSave;
+  const qLocked = !!(qn && draft.answers[qn.id]?.lockedAt);
+  const editable = !readOnly && !qLocked;
+
   const setAnswer = (qid: string, patch: Partial<Pick<LocalAnswer, 'value' | 'markedForReview'>>) => {
     if (readOnly) return;
     const cur = draftRef.current;
+    if (cur.answers[qid]?.lockedAt) return;
     const prev = cur.answers[qid] ?? { questionId: qid, value: '', markedForReview: false, revision: 0 };
     writeDraft({ ...cur, answers: { ...cur.answers, [qid]: { ...prev, ...patch, revision: nextRevision() } } });
     schedule();
   };
   const go = (i: number) => {
+    setCommitErr(null);
     writeDraft({ ...draftRef.current, current: Math.max(0, Math.min(questions.length - 1, i)) });
     void flush();
+  };
+  /** Lock mode: an answered-but-unlocked question asks before leaving. Reviewable mode is unchanged. */
+  const requestGo = (i: number) => {
+    if (i === current) return;
+    const a = qn ? draftRef.current.answers[qn.id] : undefined;
+    if (lockMode && !readOnly && a && !a.lockedAt && isAnswered(a)) setPendingNav(i);
+    else go(i);
+  };
+  /** Explicit Save in lock mode. Waits for queued autosaves, then asks the server to lock. Never optimistic. */
+  const commitCurrent = async (): Promise<boolean> => {
+    if (!qn || readOnly || committing) return false;
+    const qid = qn.id;
+    if (!navigator.onLine) {
+      setCommitErr('Offline. Locking needs the server; your draft stays on this device and is not locked.');
+      return false;
+    }
+    setCommitting(true);
+    setCommitErr(null);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = null;
+    const run = async (): Promise<boolean> => {
+      const a = draftRef.current.answers[qid];
+      if (!a || !isAnswered(a)) return false;
+      if (a.lockedAt) return true;
+      try {
+        const res = await commitRef.current({ id, data: { questionId: qid, value: a.value, markedForReview: a.markedForReview, revision: a.revision } });
+        const s = res.answers.find((x) => x.questionId === qid);
+        if (!s?.lockedAt) {
+          setCommitErr('The server did not confirm the lock. Your answer is still a draft; try again.');
+          return false;
+        }
+        const cur = draftRef.current;
+        // Only the committed question is rebased; other unsynced answers and notes are untouched.
+        writeDraft({
+          ...cur,
+          answers: { ...cur.answers, [qid]: { questionId: qid, value: s.value, markedForReview: s.markedForReview, revision: s.revision, lockedAt: s.lockedAt } },
+          confirmed: { ...cur.confirmed, [qid]: Math.max(cur.confirmed[qid] ?? 0, s.revision) },
+        });
+        qc.setQueryData(getGetAttemptQueryKey(id), res);
+        return true;
+      } catch (e) {
+        setCommitErr(errStatus(e) === 409 ? `Not locked: ${errMsg(e)}` : `Not locked: ${errMsg(e)}. Your draft is kept.`);
+        if (errStatus(e) === 409) qc.invalidateQueries({ queryKey: getGetAttemptQueryKey(id) });
+        return false;
+      }
+    };
+    chainRef.current = chainRef.current.then(doFlush, doFlush).then(run, run);
+    const ok = await chainRef.current;
+    setCommitting(false);
+    if (!hasPendingWork(draftRef.current)) setSync('saved');
+    return ok;
   };
   const setScratch = (v: string) => {
     const cur = draftRef.current;
@@ -466,9 +537,28 @@ export default function AttemptPage() {
   };
 
   const unsynced = useMemo(() => unsyncedIds(draft), [draft]);
+  const sections = useMemo(() => buildSections(questions), [questions]);
+  const activeSection = Math.max(0, sections.findIndex((s) => s.indices.includes(current)));
+  const visited = draft.visited ?? [];
+  const qState = (qid: string): QState => {
+    const a = draft.answers[qid];
+    if (a?.lockedAt) return 'locked';
+    if (isAnswered(a)) return 'answered';
+    return visited.includes(qid) ? 'unanswered' : 'unvisited';
+  };
+  // Record only questions actually opened.
+  useEffect(() => {
+    if (!ready || !qn) return;
+    const cur = draftRef.current;
+    if (!(cur.visited ?? []).includes(qn.id)) writeDraft({ ...cur, visited: [...(cur.visited ?? []), qn.id] });
+  }, [ready, qn?.id, writeDraft]); // eslint-disable-line react-hooks/exhaustive-deps
   const scratchPending = draft.scratchRev > draft.scratchConfirmed;
   const answeredCount = questions.filter((x) => isAnswered(draft.answers[x.id])).length;
   const flaggedCount = questions.filter((x) => draft.answers[x.id]?.markedForReview).length;
+  const lockedCount = questions.filter((x) => draft.answers[x.id]?.lockedAt).length;
+  const minimum = minimumRequired(questions.length, delivery.minimumAttemptPercent);
+  const countForMinimum = lockMode ? lockedCount : answeredCount;
+  const belowMinimum = minimum > 0 && countForMinimum < minimum && (remaining === null || remaining > 0);
   const anns = attempt?.announcements ?? [];
   const freshAnn = anns.find((a) => !seenAnn.includes(a.id));
 
@@ -562,7 +652,10 @@ export default function AttemptPage() {
           <Seal size={24} className="hidden sm:block" />
           <div className="min-w-0 flex-1">
             <div className="truncate text-sm font-medium">{attempt.examTitle}</div>
-            <SyncBadge />
+            <div className="flex flex-wrap items-center gap-x-3">
+              <SyncBadge />
+              <span className="hidden font-mono text-[11px] text-muted-foreground tnum lg:inline" data-testid="text-attempt-progress">Started {fmtDate(attempt.startedAt, 'HH:mm')} · {answeredCount}/{questions.length} answered{lockMode ? ` · ${lockedCount} locked` : ''}</span>
+            </div>
           </div>
           <div className="hidden items-center gap-0.5 rounded-lg border p-0.5 md:flex">
             <button aria-label="Smaller text" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examFont: prefs.examFont === 'lg' ? 'md' : 'sm' })} data-testid="button-font-down"><Minus className="h-3.5 w-3.5" /></button>
@@ -572,6 +665,7 @@ export default function AttemptPage() {
             <button aria-label="Toggle theme" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examTheme: night ? 'paper' : 'night' })} data-testid="button-exam-theme">{night ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}</button>
             <button aria-label="Toggle layout" className="rounded p-1.5 hover:bg-muted" onClick={() => updatePrefs({ examLayout: prefs.examLayout === 'split' ? 'focus' : 'split' })} data-testid="button-exam-layout">{prefs.examLayout === 'split' ? <Square className="h-3.5 w-3.5" /> : <Columns2 className="h-3.5 w-3.5" />}</button>
           </div>
+          <HelpButton onClick={() => setHelpOpen(true)} />
           <button onClick={() => setScratchOpen((s) => !s)} aria-pressed={scratchOpen} className={cn('rounded-lg border p-2 transition', scratchOpen && 'border-accent text-accent')} aria-label="Scratchpad" data-testid="button-scratchpad"><NotebookPen className="h-4 w-4" /></button>
           <div className={cn('rounded-lg border px-3 py-1.5 text-right transition-colors', urgent && 'border-accent bg-accent/10 text-accent')} data-testid="text-timer">
             <div className="font-mono text-lg font-medium leading-none tnum">{remaining === null ? '--:--' : clock(remaining)}</div>
@@ -607,38 +701,20 @@ export default function AttemptPage() {
             <div className="rounded-xl border bg-card p-3">
               <div className="mb-2 flex items-center justify-between text-xs"><span className="font-medium">Questions</span><span className="font-mono text-muted-foreground tnum">{answeredCount}/{questions.length}</span></div>
               <div className="grid grid-cols-6 gap-1.5 md:grid-cols-5">
-                {navList.map(({ x, i }) => {
-                  const a = draft.answers[x.id];
-                  const done = isAnswered(a);
-                  const unsync = unsynced.includes(x.id);
-                  return (
-                    <button
-                      key={x.id}
-                      onClick={() => go(i)}
-                      data-testid={`button-nav-q-${i + 1}`}
-                      aria-label={`Question ${i + 1}${done ? ', answered' : ''}${a?.markedForReview ? ', flagged' : ''}`}
-                      aria-current={i === current}
-                      className={cn('relative grid aspect-square place-items-center rounded-md border font-mono text-xs transition', i === current ? 'border-foreground bg-foreground text-background' : done ? 'border-primary/30 bg-primary/10' : 'hover:border-foreground/40')}
-                    >
-                      {i + 1}
-                      {a?.markedForReview && <Flag className="absolute -right-1 -top-1 h-3 w-3 fill-accent text-accent" />}
-                      {unsync && <span className="absolute bottom-0.5 h-1 w-1 rounded-full bg-[hsl(38_80%_50%)]" />}
-                    </button>
-                  );
-                })}
+                {navList.map(({ x, i }) => (
+                  <QuestionTile key={x.id} n={i + 1} state={qState(x.id)} flagged={!!draft.answers[x.id]?.markedForReview} current={i === current} unsynced={unsynced.includes(x.id)} onClick={() => requestGo(i)} />
+                ))}
               </div>
               <button onClick={() => setFlaggedOnly((f) => !f)} className={cn('mt-3 flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs', flaggedOnly ? 'bg-accent/10 text-accent' : 'text-muted-foreground hover:bg-muted')} data-testid="button-flagged-only">
                 <span className="flex items-center gap-1.5"><Flag className="h-3 w-3" />Flagged only</span><span className="tnum">{flaggedCount}</span>
               </button>
-              <div className="mt-3 space-y-1 border-t pt-3 text-[11px] text-muted-foreground">
-                <div className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-primary/20" />Answered</div>
-                <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-[hsl(38_80%_50%)]" />Dot: not server-confirmed</div>
-              </div>
+              <div className="mt-3 border-t pt-3"><Legend lockMode={lockMode} /></div>
             </div>
           </aside>
         )}
 
         <main className={cn(prefs.examLayout === 'focus' && 'mx-auto w-full max-w-3xl')}>
+          <SectionBar sections={sections} active={activeSection} current={current} onJump={requestGo} answeredIn={(sec) => sec.indices.filter((i) => isAnswered(draft.answers[questions[i].id])).length} />
           {qn ? (
             <AnimatePresence mode="wait">
               <motion.article key={qn.id} initial={{ opacity: 0, x: 12 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={{ duration: 0.18 }} className="rounded-2xl border bg-card p-5 md:p-8">
@@ -647,8 +723,9 @@ export default function AttemptPage() {
                   <span className="font-mono text-xs text-muted-foreground">of {questions.length}</span>
                   <span className="rounded bg-secondary px-2 py-0.5 font-mono text-[11px]">{qn.marks} mark{qn.marks === 1 ? '' : 's'}</span>
                   <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">{qn.type === 'single' ? 'Choose one' : qn.type === 'multiple' ? 'Choose all that apply' : 'Written answer'}</span>
+                  {sections.length > 1 && <span className="font-mono text-[11px] text-muted-foreground" data-testid="text-question-section">{qn.category}</span>}
                   <span className="ml-auto font-mono text-[10.5px]" data-testid="status-question-sync">
-                    {!draft.answers[qn.id] ? null : unsynced.includes(qn.id) ? <span className="text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]">{device.status === 'stored' ? 'draft on device' : 'not retained on device'}</span> : <span className="text-[hsl(158_40%_32%)] dark:text-[hsl(158_40%_62%)]">server confirmed</span>}
+                    {qLocked ? <span className="inline-flex items-center gap-1 text-foreground" data-testid="status-question-locked"><Lock className="lock-in h-3 w-3" />locked {fmtDate(draft.answers[qn.id]?.lockedAt, 'HH:mm:ss')} · read only</span> : !draft.answers[qn.id] ? null : unsynced.includes(qn.id) ? <span className="text-[hsl(30_70%_40%)] dark:text-[hsl(38_70%_62%)]">{device.status === 'stored' ? 'draft on device' : 'not retained on device'}</span> : <span className="text-[hsl(158_40%_32%)] dark:text-[hsl(158_40%_62%)]">server confirmed</span>}
                   </span>
                 </div>
                 <p className="exam-text whitespace-pre-wrap">{qn.text}</p>
@@ -659,7 +736,7 @@ export default function AttemptPage() {
                       data-testid="input-written-answer"
                       value={draft.answers[qn.id]?.value ?? ''}
                       onChange={(e) => setAnswer(qn.id, { value: e.target.value })}
-                      readOnly={readOnly}
+                      readOnly={!editable}
                       rows={12}
                       maxLength={20000}
                       className="exam-text resize-y bg-background"
@@ -674,16 +751,16 @@ export default function AttemptPage() {
                       return (
                         <li key={o.id}>
                           <motion.button
-                            whileTap={readOnly ? undefined : { scale: 0.995 }}
+                            whileTap={!editable ? undefined : { scale: 0.995 }}
                             role={qn.type === 'single' ? 'radio' : 'checkbox'}
                             aria-checked={on}
-                            disabled={readOnly}
+                            disabled={!editable}
                             data-testid={`option-${k}`}
                             onClick={() => {
                               const next = qn.type === 'single' ? (on ? [] : [o.id]) : on ? selected.filter((s) => s !== o.id) : [...selected, o.id];
                               setAnswer(qn.id, { value: JSON.stringify(next) });
                             }}
-                            className={cn('exam-text flex w-full items-start gap-4 rounded-xl border px-4 py-3 text-left transition', on ? 'border-primary bg-primary/[0.06]' : 'hover:border-foreground/30', readOnly && 'cursor-default opacity-80')}
+                            className={cn('exam-text flex w-full items-start gap-4 rounded-xl border px-4 py-3 text-left transition', on ? 'border-primary bg-primary/[0.06]' : 'hover:border-foreground/30', !editable && 'cursor-default opacity-80')}
                           >
                             <span className={cn('mt-0.5 grid h-7 w-7 shrink-0 place-items-center border font-mono text-xs transition', qn.type === 'single' ? 'rounded-full' : 'rounded-md', on ? 'border-primary bg-primary text-primary-foreground' : '')}>{String.fromCharCode(65 + k)}</span>
                             <span>{o.text}</span>
@@ -694,21 +771,36 @@ export default function AttemptPage() {
                   </ul>
                 )}
 
+                {commitErr && <p role="alert" className="mt-4 rounded-lg border border-accent/40 bg-accent/[0.06] p-2.5 text-xs text-accent" data-testid="text-commit-error">{commitErr}</p>}
                 <div className="mt-8 flex flex-wrap items-center gap-2 border-t pt-5">
-                  <Button variant="outline" onClick={() => go(current - 1)} disabled={current === 0} data-testid="button-prev"><ArrowLeft className="mr-1.5 h-4 w-4" />Previous</Button>
+                  <Button variant="outline" onClick={() => requestGo(current - 1)} disabled={current === 0} data-testid="button-prev"><ArrowLeft className="mr-1.5 h-4 w-4" />Previous</Button>
                   <Button
                     variant="ghost"
-                    disabled={readOnly}
+                    disabled={!editable}
                     onClick={() => setAnswer(qn.id, { value: draft.answers[qn.id]?.value ?? (qn.type === 'written' ? '' : '[]'), markedForReview: !draft.answers[qn.id]?.markedForReview })}
                     className={cn(draft.answers[qn.id]?.markedForReview && 'text-accent')}
                     data-testid="button-flag"
                   >
                     <Flag className={cn('mr-1.5 h-4 w-4', draft.answers[qn.id]?.markedForReview && 'fill-accent')} />{draft.answers[qn.id]?.markedForReview ? 'Flagged for review' : 'Flag for review'}
                   </Button>
-                  {qn.type !== 'written' && selected.length > 0 && !readOnly && <Button variant="ghost" onClick={() => setAnswer(qn.id, { value: '[]' })} data-testid="button-clear">Clear</Button>}
+                  {editable && isAnswered(draft.answers[qn.id]) && <Button variant="ghost" onClick={() => setAnswer(qn.id, { value: qn.type === 'written' ? '' : '[]' })} data-testid="button-clear">Clear</Button>}
                   <div className="flex-1" />
-                  {current < questions.length - 1 ? (
-                    <Button onClick={() => go(current + 1)} data-testid="button-next">Next<ArrowRight className="ml-1.5 h-4 w-4" /></Button>
+                  {lockMode && !readOnly && !qLocked ? (
+                    <>
+                      {current < questions.length - 1 && (
+                        <Button variant="ghost" disabled={isAnswered(draft.answers[qn.id]) || committing} onClick={() => go(current + 1)} title={isAnswered(draft.answers[qn.id]) ? 'Clear your answer to skip, or save it' : undefined} data-testid="button-skip"><SkipForward className="mr-1.5 h-4 w-4" />Skip</Button>
+                      )}
+                      <Button variant="outline" disabled={!isAnswered(draft.answers[qn.id]) || committing || !online} onClick={() => void commitCurrent()} data-testid="button-save-lock">
+                        {committing ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Save className="mr-1.5 h-4 w-4" />}Save
+                      </Button>
+                      {current < questions.length - 1 ? (
+                        <Button disabled={!isAnswered(draft.answers[qn.id]) || committing || !online} onClick={async () => { if (await commitCurrent()) go(current + 1); }} data-testid="button-save-next">Save and next<ArrowRight className="ml-1.5 h-4 w-4" /></Button>
+                      ) : (
+                        <Button variant="secondary" onClick={() => { setSubmitStage('confirm'); setSubmitOpen(true); }} data-testid="button-finish">Review &amp; submit</Button>
+                      )}
+                    </>
+                  ) : current < questions.length - 1 ? (
+                    <Button onClick={() => requestGo(current + 1)} data-testid="button-next">Next<ArrowRight className="ml-1.5 h-4 w-4" /></Button>
                   ) : (
                     <Button onClick={() => { setSubmitStage('confirm'); setSubmitOpen(true); }} disabled={readOnly} data-testid="button-finish">Review &amp; submit</Button>
                   )}
@@ -721,7 +813,7 @@ export default function AttemptPage() {
           {prefs.examLayout === 'focus' && (
             <div className="mt-4 flex flex-wrap justify-center gap-1">
               {questions.map((x, i) => (
-                <button key={x.id} onClick={() => go(i)} aria-label={`Question ${i + 1}`} className={cn('h-2 rounded-full transition-all', i === current ? 'w-6 bg-foreground' : isAnswered(draft.answers[x.id]) ? 'w-2 bg-primary/50' : 'w-2 bg-muted-foreground/25', draft.answers[x.id]?.markedForReview && 'bg-accent')} />
+                <button key={x.id} onClick={() => requestGo(i)} aria-label={`Question ${i + 1}`} className={cn('h-2 rounded-full transition-all', i === current ? 'w-6 bg-foreground' : isAnswered(draft.answers[x.id]) ? 'w-2 bg-primary/50' : 'w-2 bg-muted-foreground/25', draft.answers[x.id]?.markedForReview && 'bg-accent')} />
               ))}
             </div>
           )}
@@ -762,6 +854,12 @@ export default function AttemptPage() {
                       <div className="rounded-lg border p-2"><div className="font-display text-2xl text-foreground tnum">{questions.length - answeredCount}</div><div className="text-[11px]">blank</div></div>
                       <div className="rounded-lg border p-2"><div className="font-display text-2xl text-foreground tnum">{flaggedCount}</div><div className="text-[11px]">flagged</div></div>
                     </div>
+                    {lockMode && <p data-testid="text-submit-locked">{lockedCount} answer(s) saved and locked.{answeredCount - lockedCount > 0 ? ` ${answeredCount - lockedCount} drafted answer(s) are not locked.` : ''}</p>}
+                    {minimum > 0 && (
+                      <p className={cn('rounded-lg border p-2', belowMinimum && 'border-accent/40 text-accent')} data-testid="text-submit-minimum">
+                        Early submission needs at least {minimum} {lockMode ? 'locked' : 'answered'} question(s). You have {countForMinimum}. {belowMinimum ? 'Keep working; when time ends the server submits automatically.' : ''}
+                      </p>
+                    )}
                     <p>We'll send any unsaved work first, then submit. You can't change answers afterwards.</p>
                   </>
                 )}
@@ -774,10 +872,10 @@ export default function AttemptPage() {
             {submitStage === 'unsynced' ? (
               <>
                 <Button variant="outline" onClick={startSubmit} data-testid="button-retry-sync">Retry sending</Button>
-                <Button variant="destructive" onClick={() => void finishSubmit()} data-testid="button-submit-server-only">Submit server-saved answers</Button>
+                <Button variant="destructive" disabled={belowMinimum} onClick={() => void finishSubmit()} data-testid="button-submit-server-only">Submit server-saved answers</Button>
               </>
             ) : (
-              <Button onClick={startSubmit} disabled={submitStage !== 'confirm'} data-testid="button-confirm-submit">
+              <Button onClick={startSubmit} disabled={submitStage !== 'confirm' || belowMinimum} data-testid="button-confirm-submit">
                 {submitStage !== 'confirm' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {submitStage === 'syncing' ? 'Sending answers' : submitStage === 'submitting' ? 'Submitting' : 'Sync and submit'}
               </Button>
@@ -785,6 +883,25 @@ export default function AttemptPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={pendingNav !== null} onOpenChange={(o) => !o && !committing && setPendingNav(null)}>
+        <AlertDialogContent className={cn(night && 'dark')} data-testid="dialog-unlocked-leave">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-display text-2xl font-normal">This answer is not locked</AlertDialogTitle>
+            <AlertDialogDescription>Save to lock it on the server, or leave it as an editable draft. Locked answers cannot be changed later.</AlertDialogDescription>
+          </AlertDialogHeader>
+          {commitErr && <p role="alert" className="text-xs text-accent">{commitErr}</p>}
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel disabled={committing} data-testid="button-stay">Stay here</AlertDialogCancel>
+            <Button variant="outline" disabled={committing} onClick={() => { const t = pendingNav; setPendingNav(null); if (t !== null) go(t); }} data-testid="button-leave-draft">Leave as draft</Button>
+            <Button disabled={committing || !online} onClick={async () => { const t = pendingNav; if (await commitCurrent()) { setPendingNav(null); if (t !== null) go(t); } }} data-testid="button-save-leave">
+              {committing && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}Save and lock
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <HelpDialog open={helpOpen} onOpenChange={setHelpOpen} lockMode={lockMode} minimum={minimum} night={night} />
 
       <AnimatePresence>
         {timeUp && (

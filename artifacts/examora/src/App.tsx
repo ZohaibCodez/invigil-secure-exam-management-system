@@ -1,6 +1,6 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Route, Switch, useLocation, Link, Redirect, Router as WouterRouter } from 'wouter';
+import { Route, Switch, useLocation, useSearch, Link, Redirect, Router as WouterRouter } from 'wouter';
 import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { useGetSession, getGetSessionQueryKey, type User } from '@workspace/api-client-react';
@@ -26,6 +26,8 @@ import Analytics from '@/pages/analytics';
 import Imports from '@/pages/imports';
 import Settings from '@/pages/settings';
 import AttemptPage from '@/pages/attempt';
+import AdmissionPage from '@/pages/admission';
+import { safeInternalPath } from '@/lib/delivery';
 import { RouteMetadata } from '@/components/route-metadata';
 
 const Landing = lazy(() => import('@/pages/landing'));
@@ -93,6 +95,7 @@ function SignedIn({ user }: { user: User }) {
           <Route path="/results" component={Results} />
           <Route path="/analytics">{() => <Staff user={user}><Analytics /></Staff>}</Route>
           <Route path="/imports">{() => <Staff user={user}><Imports /></Staff>}</Route>
+          <Route path="/admissions/:id" component={AdmissionPage} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
@@ -103,6 +106,7 @@ function SignedIn({ user }: { user: User }) {
 
 function Gate() {
   const [loc] = useLocation();
+  const search = useSearch();
   const publicRoute = loc === '/welcome' || loc === '/research';
   const s = useGetSession({ query: { queryKey: getGetSessionQueryKey(), enabled: !publicRoute, refetchInterval: 60000, staleTime: 30000 } });
   // Marketing content remains available even if the examination API is offline.
@@ -127,7 +131,7 @@ function Gate() {
       </div>
     );
   const user = s.data.user;
-  if (user?.active && loc === '/login') return <Redirect to="/" replace />;
+  if (user?.active && loc === '/login') return <Redirect to={safeInternalPath(new URLSearchParams(search).get('returnTo'))} replace />;
   return (
     <PrefsProvider userId={user?.id ?? null}>
       {user && user.active ? (
