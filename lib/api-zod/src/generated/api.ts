@@ -499,6 +499,91 @@ export const DeleteExamResponse = zod.object({
 })
 
 
+/**
+ * Change delivery rules after publication. Applies to attempts started afterwards; attempts in progress keep the rules they started with.
+ */
+export const UpdateDeliverySettingsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const updateDeliverySettingsBodyMinimumAttemptPercentMin = 0;
+export const updateDeliverySettingsBodyMinimumAttemptPercentMax = 100;
+
+export const updateDeliverySettingsBodyVenueMax = 200;
+
+export const updateDeliverySettingsBodySessionLabelMax = 100;
+
+export const updateDeliverySettingsBodyMaxViolationsMax = 10;
+
+
+
+export const UpdateDeliverySettingsBody = zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(updateDeliverySettingsBodyMinimumAttemptPercentMin).max(updateDeliverySettingsBodyMinimumAttemptPercentMax),
+  "venue": zod.string().max(updateDeliverySettingsBodyVenueMax),
+  "sessionLabel": zod.string().max(updateDeliverySettingsBodySessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(updateDeliverySettingsBodyMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
+})
+
+export const updateDeliverySettingsResponseAssistancePolicyOneOneResourcesMin = 5;
+export const updateDeliverySettingsResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+export const updateDeliverySettingsResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const updateDeliverySettingsResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const updateDeliverySettingsResponseDeliverySettingsVenueMax = 200;
+
+export const updateDeliverySettingsResponseDeliverySettingsSessionLabelMax = 100;
+
+export const updateDeliverySettingsResponseDeliverySettingsMaxViolationsMax = 10;
+
+
+
+export const UpdateDeliverySettingsResponse = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "subject": zod.string(),
+  "instructions": zod.string(),
+  "duration": zod.int(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string(),
+  "status": zod.enum(['draft', 'published', 'ongoing', 'completed']),
+  "totalMarks": zod.number(),
+  "questionCount": zod.int(),
+  "enrolledCount": zod.int(),
+  "submittedCount": zod.int(),
+  "resultsPublished": zod.boolean(),
+  "randomize": zod.boolean(),
+  "passPercent": zod.int(),
+  "attemptId": zod.string().nullish(),
+  "attemptStatus": zod.string().nullish(),
+  "createdAt": zod.string().optional(),
+  "assistancePolicy": zod.union([zod.object({
+  "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed', 'ai_conditional']),
+  "resources": zod.string().min(updateDeliverySettingsResponseAssistancePolicyOneOneResourcesMin).max(updateDeliverySettingsResponseAssistancePolicyOneOneResourcesMax),
+  "requireDisclosure": zod.boolean()
+}).and(zod.object({
+  "version": zod.string()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(updateDeliverySettingsResponseDeliverySettingsMinimumAttemptPercentMin).max(updateDeliverySettingsResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(updateDeliverySettingsResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(updateDeliverySettingsResponseDeliverySettingsSessionLabelMax),
+  "requireFullscreen": zod.boolean().optional().describe('Exits from fullscreen and tab switches count as violations'),
+  "maxViolations": zod.int().min(1).max(updateDeliverySettingsResponseDeliverySettingsMaxViolationsMax).optional().describe('Violations before the attempt locks for examiner review')
+}).optional(),
+  "entryVersion": zod.string().optional()
+})
+
+
 export const GetBlueprintReportParams = zod.object({
   "id": zod.coerce.string()
 })

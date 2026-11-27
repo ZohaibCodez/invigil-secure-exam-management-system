@@ -87,6 +87,23 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+  /exams/{id}/delivery:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    put:
+      operationId: updateDeliverySettings
+      description: Change delivery rules after publication. Applies to attempts started afterwards; attempts in progress keep the rules they started with.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeliverySettings" }
+      responses:
+        "200":
+          description: Updated examination
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Exam" }
   /exams/{id}/blueprint:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }

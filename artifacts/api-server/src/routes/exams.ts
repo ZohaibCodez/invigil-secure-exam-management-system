@@ -6,7 +6,7 @@ import { db, exams, enrollments, attempts, users, announcements, admissions } fr
 import {
   GetExamResponse, ListExamsResponse, CreateExamResponse, CreateExamBody, UpdateExamBody,
   ExamActionBody, EnrollCandidatesBody, StartAttemptBody, CreateAnnouncementBody,
-  SetBlueprintBody, GetBlueprintReportResponse, SetBlueprintResponse,
+  SetBlueprintBody, GetBlueprintReportResponse, SetBlueprintResponse, UpdateDeliverySettingsBody,
 } from "@workspace/api-zod";
 import { requireStaff, ownedExam, visibleExams, publicUser, audit, paramId, HttpError } from "../lib/access";
 import { examView, examValues, getAnnouncements, shuffled } from "../lib/examination";
@@ -178,6 +178,23 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
 router.get("/exams/:id/blueprint", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser);
   res.json(GetBlueprintReportResponse.parse(await blueprintReport(exam, req.appUser)));
+});
+// Delivery rules stay editable after publication: every attempt snapshots the rules it
+// started with, so changes only affect attempts that begin afterwards.
+router.put("/exams/:id/delivery", async (req, res): Promise<void> => {
+  const exam = await ownedExam(paramId(req), req.appUser);
+  const input = UpdateDeliverySettingsBody.parse(req.body);
+  const settings = settingsFor({ ...input, venue: input.venue.trim(), sessionLabel: input.sessionLabel.trim() });
+  const updated = await db.transaction(async tx => {
+    const [locked] = await tx.select().from(exams).where(eq(exams.id, exam.id)).for("update");
+    if (locked!.resultsPublished) throw new HttpError(409, "Results are published. Delivery rules are final.");
+    if (locked!.status === "completed" || await databaseNow(tx) >= locked!.endsAt)
+      throw new HttpError(409, "The examination window has closed. Delivery rules can no longer change.");
+    const [row] = await tx.update(exams).set({ deliverySettings: settings }).where(eq(exams.id, exam.id)).returning();
+    return row!;
+  });
+  if (exam.status !== "draft") await audit(exam.ownerId, "Delivery rules updated", `${exam.title}: applies to attempts started from now on`, "exam", exam.id);
+  res.json(await examView(updated, req.appUser));
 });
 router.put("/exams/:id/blueprint", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser);
