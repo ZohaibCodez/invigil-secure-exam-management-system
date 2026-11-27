@@ -85,7 +85,7 @@ export default function Dashboard() {
     <div>
       <PageHeader
         eyebrow={fmtDate(new Date().toISOString(), 'EEEE, d MMMM')}
-        title={<>{greeting()}, <em className="text-accent">{first}</em>.</>}
+        title={`${greeting()}, ${first}.`}
         description={isCandidate ? 'Your examinations, in order. Answers are kept on this device the moment you type them.' : 'What needs your attention across examinations, grading and people.'}
         actions={
           !isCandidate && (

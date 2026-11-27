@@ -2,7 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowRight, Eye, EyeOff, Loader2, ShieldCheck, Clock3, CloudOff, CheckCheck } from 'lucide-react';
-import { Seal } from '@/components/kit';
+import { Logo } from '@/components/kit';
+import { Typewriter } from '@/components/motion';
 import { Input } from '@/components/ui/input';
 import { signIn, DEMO_ACCOUNTS, DEMO_PASSWORD } from '@/lib/auth';
 
@@ -93,23 +94,15 @@ export default function Login({ demoEnabled }: { demoEnabled: boolean }) {
           ))}
           <circle cx="100" cy="100" r="94" fill="none" stroke="currentColor" strokeWidth=".6" />
         </svg>
-        <div className="flex items-center gap-3">
-          <Seal size={34} />
-          <span className="font-display text-3xl text-sidebar-accent-foreground">Examora</span>
-        </div>
+        <Logo tone="dark" height={52} className="self-start" />
         <div className="my-auto max-w-xl py-12">
-          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mb-5 font-mono text-[11px] uppercase tracking-[0.24em] text-sidebar-primary">
-            Secure examinations for universities
-          </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="font-display text-[clamp(3rem,5.2vw,5.4rem)] leading-[0.95] text-sidebar-accent-foreground"
+            className="font-display text-[clamp(2.4rem,3.8vw,3.6rem)] leading-[1.05] text-sidebar-accent-foreground"
           >
-            The connection drops.
-            <br />
-            <em className="text-sidebar-primary">The exam doesn't.</em>
+            <Typewriter text="The connection drops." accent="The exam doesn't." accentClassName="text-sidebar-primary" />
           </motion.h1>
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }} className="mt-6 max-w-md text-[15px] leading-relaxed text-sidebar-foreground/70">
             Every keystroke lands on the candidate's device first, then reaches the server in order. Time is kept by the server, not the laptop. Grades are published when you say so.
@@ -127,12 +120,9 @@ export default function Login({ demoEnabled }: { demoEnabled: boolean }) {
 
       <section className="relative flex flex-col justify-center px-6 py-12 sm:px-12">
         <div className="mx-auto w-full max-w-[400px]">
-          <div className="mb-10 flex items-center gap-2.5 lg:hidden">
-            <Seal size={30} />
-            <span className="font-display text-3xl">Examora</span>
-          </div>
+          <Logo height={44} className="mb-10 lg:hidden" />
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h2 className="font-display text-5xl leading-none">Sign in</h2>
+            <h2 className="font-display text-4xl leading-none"><Typewriter text="Sign in" speed={60} /></h2>
             <p className="mt-3 text-sm text-muted-foreground">Use the account your institution issued. Examiners, candidates and administrators share one door.</p>
           </motion.div>
 

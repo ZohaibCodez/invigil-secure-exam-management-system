@@ -1,5 +1,6 @@
 import { Link } from 'wouter';
 import { ArrowLeft, ArrowUpRight } from 'lucide-react';
+import { Typewriter } from '@/components/motion';
 import { researchSources, innovationDirections } from '@/content/research';
 import { MarketingFooter, MarketingHeader, Reveal } from '@/components/marketing/chrome';
 
@@ -13,7 +14,7 @@ export default function Research() {
         <div className="mx-auto max-w-7xl px-5 md:px-8">
           <Link href="/welcome" className="link-u inline-flex items-center gap-1.5 text-sm text-[hsl(var(--ink)/.65)]" data-testid="link-back-welcome"><ArrowLeft className="h-4 w-4" aria-hidden /> Overview</Link>
           <p className="eyebrow verm-text mt-8">Research & sources</p>
-          <h1 className="serif mt-4 max-w-4xl text-[clamp(2.75rem,7vw,5.5rem)] leading-[0.95]">What the evidence says, and <span className="italic verm-text">what it does not.</span></h1>
+          <h1 className="serif mt-4 max-w-4xl text-[clamp(2.25rem,5vw,4rem)] leading-[1.02]"><Typewriter text="What the evidence says, and" accent="what it does not." accentClassName="verm-text" /></h1>
           <p className="mt-6 max-w-2xl text-lg text-[hsl(var(--ink)/.7)]">Each source below shaped a design decision. Each also carries a stated limitation. None of these organisations endorse Examora.</p>
 
           <section aria-labelledby="dir-title" className="mt-20">

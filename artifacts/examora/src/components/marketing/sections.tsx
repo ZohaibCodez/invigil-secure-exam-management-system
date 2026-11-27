@@ -14,7 +14,6 @@ export function Problem() {
   return (
     <section id="problem" className="scroll-mt-16 border-y border-[hsl(var(--ink)/.1)] py-24 md:py-32" aria-labelledby="problem-title">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <Reveal><p className="eyebrow verm-text">01 · The quiet failures</p></Reveal>
         <Reveal delay={0.05}><h2 id="problem-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">Exam interruptions need an explanation, not an assumption.</h2></Reveal>
         <div className="mt-14 divide-y divide-[hsl(var(--ink)/.12)] border-y border-[hsl(var(--ink)/.12)]">
           {items.map(([a, b], i) => (
@@ -48,7 +47,6 @@ export function Workflow() {
   return (
     <section id="workflow" className="scroll-mt-16 py-24 md:py-32" aria-labelledby="workflow-title">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <Reveal><p className="eyebrow verm-text">03 · One room, three roles</p></Reveal>
         <Reveal delay={0.05}><h2 id="workflow-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">From blank paper to a verifiable result.</h2></Reveal>
         <div className="mt-14 grid gap-8 lg:grid-cols-[22rem_1fr]">
           <div role="tablist" aria-label="Workflow stages" className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
@@ -107,7 +105,6 @@ export function Integrity() {
   return (
     <section id="integrity" className="scroll-mt-16 py-24 md:py-32" aria-labelledby="integrity-title">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
-        <Reveal><p className="eyebrow verm-text">04 · Integrity, stated plainly</p></Reveal>
         <Reveal delay={0.05}><h2 id="integrity-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">Evidence for a human, not a verdict from a machine.</h2></Reveal>
         <div className="mt-14 grid gap-5 md:grid-cols-[1.15fr_1fr]">
           <Reveal>

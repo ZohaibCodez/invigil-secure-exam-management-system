@@ -188,7 +188,7 @@ export default function Monitor() {
                       {data.incidents.map((i) => {
                         const meta = INC[i.type] ?? { icon: Info, label: i.type };
                         return (
-                          <motion.li key={i.id} initial={{ opacity: 0, backgroundColor: 'hsl(8 72% 52% / 0.08)' }} animate={{ opacity: 1, backgroundColor: 'hsl(8 72% 52% / 0)' }} transition={{ duration: 1.2 }} className="flex gap-3 px-4 py-2.5">
+                          <motion.li key={i.id} initial={{ opacity: 0, backgroundColor: 'hsl(18 93% 53% / 0.08)' }} animate={{ opacity: 1, backgroundColor: 'hsl(18 93% 53% / 0)' }} transition={{ duration: 1.2 }} className="flex gap-3 px-4 py-2.5">
                             <meta.icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
                             <div className="min-w-0"><div className="text-sm"><span className="font-medium">{i.candidateName}</span> · {meta.label}</div>{i.detail && <div className="truncate text-xs text-muted-foreground">{i.detail}</div>}<div className="font-mono text-[10px] text-muted-foreground">{fmtDate(i.createdAt, 'HH:mm:ss')}</div></div>
                           </motion.li>

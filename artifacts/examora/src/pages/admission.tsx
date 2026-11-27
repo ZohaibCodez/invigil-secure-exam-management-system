@@ -62,7 +62,6 @@ export default function AdmissionPage() {
         <div className="flex items-center gap-3">
           <Seal size={30} />
           <div className="flex-1">
-            <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Admission request</div>
             <h1 className="font-display text-3xl">{a.candidateName}</h1>
           </div>
           <AdmissionBadge status={a.status} />

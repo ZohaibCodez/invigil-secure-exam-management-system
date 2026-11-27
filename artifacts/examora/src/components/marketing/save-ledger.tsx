@@ -37,7 +37,6 @@ export function SaveLedger() {
     <section id="ledger" className="ink ink-grid scroll-mt-16 py-24 md:py-32" aria-labelledby="ledger-title">
       <div className="mx-auto grid max-w-7xl gap-14 px-5 md:px-8 lg:grid-cols-[1fr_1.1fr]">
         <Reveal>
-          <p className="eyebrow verm-text">02 · The save ledger</p>
           <h2 id="ledger-title" className="serif mt-4 text-5xl leading-[1] md:text-6xl">Two columns of truth, never blurred.</h2>
           <p className="mt-6 max-w-md text-[hsl(var(--paper)/.7)]">Every answer revision lives in one of two places. The candidate sees which. The examiner sees which. Nothing on a device is quietly promoted to an accepted answer.</p>
           <ul className="mt-8 space-y-3 text-sm text-[hsl(var(--paper)/.8)]">

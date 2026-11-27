@@ -2,7 +2,7 @@ import { useParams, Link } from 'wouter';
 import { motion } from 'framer-motion';
 import { BadgeCheck, ShieldX } from 'lucide-react';
 import { useVerifyReport, getVerifyReportQueryKey } from '@workspace/api-client-react';
-import { Seal } from '@/components/kit';
+import { Logo } from '@/components/kit';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fmtDate } from '@/lib/format';
 
@@ -15,10 +15,7 @@ export default function Verify() {
     <div className="ruled flex min-h-[100dvh] items-center justify-center px-4 py-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md rounded-2xl border bg-card p-8 shadow-[0_30px_60px_-30px_hsl(222_40%_14%/0.35)]">
         <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Seal size={26} />
-            <span className="font-display text-2xl">Examora</span>
-          </div>
+          <Logo height={34} />
           <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Report verification</span>
         </div>
         {q.isLoading ? (

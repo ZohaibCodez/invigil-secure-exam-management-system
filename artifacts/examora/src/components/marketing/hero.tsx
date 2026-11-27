@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
 import { ArrowRight, BookOpenText } from 'lucide-react';
+import { Typewriter } from '@/components/motion';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -51,14 +52,8 @@ export function Hero() {
     <section className="relative min-h-[100dvh] pt-28 pb-16 md:pt-32" aria-labelledby="hero-title">
       <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 md:px-8 lg:grid-cols-[1.25fr_1fr]">
         <div>
-          <motion.div initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} className="eyebrow inline-flex items-center gap-2 rounded-full border border-[hsl(var(--ink)/.15)] px-3 py-1.5 text-[hsl(var(--ink)/.7)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[hsl(var(--verm))]" /> Examination workspace for unreliable connections
-          </motion.div>
-          <h1 id="hero-title" className="serif mt-7 text-[clamp(3rem,8vw,6.75rem)] leading-[0.92]">
-            {words.map((w, i) => (
-              <motion.span key={i} className="mr-[0.22em] inline-block" initial={reduce ? false : { y: '0.15em' }} animate={{ y: 0 }} transition={{ delay: 0.04 * i, duration: 0.5, ease }}>{w}</motion.span>
-            ))}
-            <motion.span className="verm-text inline-block italic" initial={reduce ? false : { y: '0.15em' }} animate={{ y: 0 }} transition={{ delay: 0.2, duration: 0.5, ease }}>submitted.</motion.span>
+          <h1 id="hero-title" className="serif text-[clamp(2.5rem,6vw,4.75rem)] leading-[1.02]">
+            <Typewriter text={words.join(' ')} accent="submitted." accentClassName="verm-text" speed={38} />
           </h1>
           <motion.p initial={reduce ? false : { y: 8 }} animate={{ y: 0 }} transition={{ duration: 0.5, ease }} className="mt-7 max-w-xl text-lg leading-relaxed text-[hsl(var(--ink)/.72)]">
             Examora keeps candidates writing when the network drops, and keeps examiners honest about what actually reached the server. Local drafts, revisioned saves, server receipts, and one fixed deadline.

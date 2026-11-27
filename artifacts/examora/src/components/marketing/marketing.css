@@ -1,19 +1,20 @@
 /* Scoped marketing styles — only apply under .mk */
 .mk {
-  --ink: 222 44% 11%;
-  --ink-2: 222 34% 17%;
-  --paper: 40 36% 95%;
-  --verm: 8 78% 52%;
-  --verm-deep: 6 70% 40%;
+  --ink: 216 60% 11%;
+  --ink-2: 216 45% 17%;
+  --paper: 220 20% 97%;
+  --verm: 18 93% 53%;
+  --verm-deep: 14 85% 42%;
   --sage: 158 32% 38%;
   --amber: 38 82% 52%;
   background: hsl(var(--paper));
   color: hsl(var(--ink));
   overflow-x: clip;
 }
-.mk .serif { font-family: var(--app-font-serif); font-weight: 400; letter-spacing: -0.015em; }
+.mk .serif { font-family: var(--app-font-sans); font-weight: 700; letter-spacing: -0.03em; }
+.mk .serif.italic, .mk .serif .italic, .mk .serif em { font-style: normal; }
 .mk .mono { font-family: var(--app-font-mono); }
-.mk .eyebrow { font-family: var(--app-font-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
+.mk .eyebrow { font-family: var(--app-font-sans); font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .mk .ink { background: hsl(var(--ink)); color: hsl(var(--paper)); }
 .mk .ink-grid {
   background-image: linear-gradient(hsl(var(--paper)/.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--paper)/.05) 1px, transparent 1px);

@@ -5,15 +5,18 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { errMsg } from '@/lib/format';
+import { Typewriter, Reveal } from './motion';
 
-export function Seal({ className, size = 36 }: { className?: string; size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 40 40" className={className} aria-hidden>
-      <circle cx="20" cy="20" r="18.5" fill="hsl(var(--accent))" />
-      <circle cx="20" cy="20" r="14.5" fill="none" stroke="hsl(var(--accent-foreground))" strokeOpacity=".55" strokeDasharray="1.5 2.2" />
-      <path d="M14 13h12M14 20h9M14 27h12M14 13v14" stroke="hsl(var(--accent-foreground))" strokeWidth="2.4" strokeLinecap="round" fill="none" />
-    </svg>
-  );
+const BRAND = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/brand`;
+
+/** Examora icon (graduation cap and checked paper). `tone="dark"` for dark surfaces. */
+export function Seal({ className, size = 36, tone = 'light' }: { className?: string; size?: number; tone?: 'light' | 'dark' }) {
+  return <img src={`${BRAND}/logo-mark${tone === 'dark' ? '-dark' : ''}.png`} width={size} height={size} alt="" aria-hidden className={cn('shrink-0 select-none object-contain', className)} draggable={false} />;
+}
+
+/** Full Examora wordmark with tagline. Height drives size; width follows the 3.4:1 artwork. */
+export function Logo({ className, height = 40, tone = 'light' }: { className?: string; height?: number; tone?: 'light' | 'dark' }) {
+  return <img src={`${BRAND}/logo-full${tone === 'dark' ? '-dark' : ''}.png`} height={height} style={{ height, width: 'auto' }} alt="Examora" className={cn('select-none object-contain', className)} draggable={false} />;
 }
 
 export function PageHeader({
@@ -35,11 +38,9 @@ export function PageHeader({
       className="mb-8 flex flex-col gap-4 border-b border-border/80 pb-6 md:flex-row md:items-end md:justify-between"
     >
       <div className="min-w-0">
-        {eyebrow && (
-          <div className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-accent">{eyebrow}</div>
-        )}
-        <h1 className="font-display text-4xl leading-[1.05] md:text-5xl">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{description}</p>}
+        {/* `eyebrow` is accepted for compatibility but intentionally not rendered. */}
+        <h1 className="font-display text-3xl leading-tight md:text-[2.125rem]">{typeof title === 'string' ? <Typewriter text={title} /> : title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </motion.header>
@@ -118,7 +119,7 @@ export function Panel({
   bodyClass?: string;
 }) {
   return (
-    <section className={cn('rounded-xl border bg-card', className)}>
+    <Reveal as="section" className={cn('rounded-xl border bg-card shadow-[0_1px_2px_hsl(var(--foreground)/0.04)]', className)}>
       {title && (
         <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
           <h2 className="text-sm font-medium">{title}</h2>
@@ -126,7 +127,7 @@ export function Panel({
         </div>
       )}
       <div className={cn('p-4', bodyClass)}>{children}</div>
-    </section>
+    </Reveal>
   );
 }
 

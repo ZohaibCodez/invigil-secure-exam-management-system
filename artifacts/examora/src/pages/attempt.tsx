@@ -909,8 +909,7 @@ export default function AttemptPage() {
         {timeUp && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={cn('fixed inset-0 z-50 grid place-items-center bg-background/85 p-6 backdrop-blur', night && 'dark')}>
             <div className="w-full max-w-md rounded-2xl border bg-card p-8 text-center" role="alertdialog" aria-live="assertive">
-              <div className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Time is up</div>
-              <h2 className="mt-2 font-display text-4xl">Pens down.</h2>
+              <h2 className="font-display text-3xl">Time is up</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 {submitM.isPending || sync === 'saving' ? 'Sending your last answers and submitting…' : attempt.status !== 'active' || locked ? 'Your attempt has been submitted with the answers the server received.' : 'Submitting…'}
               </p>

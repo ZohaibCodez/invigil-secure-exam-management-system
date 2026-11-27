@@ -19,7 +19,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import type { User } from '@workspace/api-client-react';
-import { Seal } from './kit';
+import { Logo } from './kit';
 import { signOut } from '@/lib/auth';
 import { initials } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -138,8 +138,7 @@ export function Shell({ user, children }: { user: User; children: ReactNode }) {
     <div className="min-h-[100dvh] bg-background">
       <aside className="grid-paper fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-sidebar-border bg-sidebar p-4 text-sidebar-foreground lg:flex">
         <Link href="/" className="mb-8 flex items-center gap-2.5 px-2 pt-1" data-testid="link-home">
-          <Seal size={30} />
-          <span className="font-display text-2xl text-sidebar-accent-foreground">Examora</span>
+          <Logo tone="dark" height={46} />
         </Link>
         <div className="flex-1 overflow-y-auto">
           <NavList user={user} />
@@ -149,8 +148,7 @@ export function Shell({ user, children }: { user: User; children: ReactNode }) {
 
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
         <Link href="/" className="flex items-center gap-2">
-          <Seal size={26} />
-          <span className="font-display text-xl text-sidebar-accent-foreground">Examora</span>
+          <Logo tone="dark" height={32} />
         </Link>
         <button aria-label="Open menu" data-testid="button-menu" onClick={() => setOpen(true)} className="rounded-md p-2 hover:bg-sidebar-accent">
           <Menu className="h-5 w-5" />

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
-import { Seal } from '@/components/kit';
+import { Logo } from '@/components/kit';
 import './marketing.css';
 
 const NAV = [
@@ -48,8 +48,7 @@ export function MarketingHeader() {
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-50 focus:rounded focus:bg-[hsl(var(--ink))] focus:px-3 focus:py-2 focus:text-[hsl(var(--paper))]">Skip to content</a>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 md:px-8">
         <Link href="/welcome" className="flex items-center gap-2.5" data-testid="link-home">
-          <Seal size={30} />
-          <span className="serif text-2xl">Examora</span>
+          <Logo height={38} />
         </Link>
         <nav aria-label="Primary" className="hidden items-center gap-7 text-sm md:flex">
           {NAV.map((n) => (
@@ -85,7 +84,7 @@ export function MarketingFooter() {
     <footer className="ink ink-grid">
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:px-8">
         <div>
-          <div className="flex items-center gap-2.5"><Seal size={30} /><span className="serif text-2xl">Examora</span></div>
+          <Logo tone="dark" height={44} />
           <p className="mt-4 max-w-sm text-sm text-[hsl(var(--paper)/.65)]">An examination workspace that tells you what was saved on a device and what the server accepted. A hackathon project with documented safeguards and limitations.</p>
         </div>
         <nav aria-label="Footer: product" className="flex flex-col gap-2.5 text-sm">
