@@ -6,7 +6,7 @@ production coverage.
 
 | Command | Result |
 | --- | --- |
-| `pnpm run typecheck` | Workspace library, API, frontend, sandbox and script type checks passed |
+| `pnpm run typecheck` | Workspace type checks passed |
 | `pnpm run test:recovery` | 6 tests passed |
 | `pnpm run test:auth-cache` | 1 test passed |
 | `pnpm --filter @workspace/api-server exec tsx --test src/blueprint.test.ts src/incident-review.test.ts` | 3 tests passed |

@@ -11,6 +11,7 @@ This directory contains shareable evidence from development verification on
 | Candidate recovery browser results | [Detailed report](reports/recovery-2026-11-27.md) |
 | Sign-in browser follow-up | [Detailed report](reports/sign-in-2026-11-27.md) |
 | Automated regression checks | [Commands and outcomes](reports/regression-checks.md) |
+| Public Vercel deployment checks | [Read-only HTTP results](reports/live-smoke-2026-11-27.md) |
 | Five screenshots returned by the browser tester | Retained as Replit observation images; no file export was exposed |
 | Replit interactive test replay | Review in the original Replit testing session; not exported here |
 | Downloadable video, Playwright trace or HAR from these runs | Not created by the recorded test setup |
@@ -30,6 +31,10 @@ These six images were available as workspace screenshot files and were visually
 reviewed before inclusion. They are **visual snapshots**, not screenshots exported
 from the recovery browser test. Some are historical, mid-animation captures and
 do not represent the final settled page.
+
+File integrity hashes are recorded in [SHA256SUMS](screenshots/SHA256SUMS).
+From the repository root, check them with
+`cd docs/evidence/screenshots && sha256sum -c SHA256SUMS`.
 
 | Image | Description |
 | --- | --- |

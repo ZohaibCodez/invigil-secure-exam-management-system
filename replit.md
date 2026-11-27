@@ -13,6 +13,15 @@ A role-based examination platform focused on fair timing, resilient answer savin
 - `pnpm --filter @workspace/api-server run seed:demo` — explicit fictional demo seed; requires `DEMO_MODE=true`
 - Authentication requires `SESSION_SECRET`; published origins must set `BETTER_AUTH_URL`.
 
+## Live deployment
+
+- Primary live app: https://invigil-secure-exam-management-syst.vercel.app/
+- Hosting: Vercel; database: Neon PostgreSQL, as confirmed by the user.
+- Use this URL as the live reference environment, not the Replit preview URL.
+- Do not replace the existing database or assume the workspace database is
+  separate from the live database. Database-writing regression tests require an
+  explicitly safe test target; public production checks should be read-only.
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
