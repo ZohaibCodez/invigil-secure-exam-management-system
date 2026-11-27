@@ -18,8 +18,8 @@ export const researchSources = [
     url: 'https://www.ucl.ac.uk/study/current-students/exams-and-assessments/support-during-your-remote-online-assessment',
     kind: 'University operational guidance',
     finding: 'UCL explicitly provides a reporting route for technical failures, upload problems, and question errors. Submitted evidence is considered before outcome decisions.',
-    response: 'Examora records examination events and server save receipts. A structured technical-incident review with candidate statements would be a useful next extension.',
-    limitation: 'The guidance establishes a real support need; it is not an outage case report or an endorsement of Examora. A formal appeal and evidence-review workflow is not implemented.',
+    response: 'Examora records examination events and server save receipts. Candidates can file a technical-incident statement that a person reviews against the server record.',
+    limitation: 'The guidance establishes a real support need; it is not an outage case report or an endorsement of Examora. Examora’s incident review records a recommendation only; it is not a formal institutional appeals process.',
   },
   {
     id: 'dartmouth',
@@ -84,9 +84,9 @@ export const innovationDirections = [
   {
     challenge: '5.4',
     title: 'A fair technical-incident review',
-    status: 'Research-backed proposal',
+    status: 'Implemented review workflow',
     body: 'Combine server acceptance times, acknowledged revisions, examiner decisions, and a candidate statement in an access-controlled incident dossier. Require a recorded reason for any remedy.',
-    next: 'Not implemented. Local timestamps, screenshots, hashes, and browser logs alone cannot prove that an offline answer was authored before the deadline. Review must preserve the published grading policy.',
+    next: 'Implemented: candidates may file one immutable statement per real attempt; staff record one immutable decision (no action, supervised resit recommended, or referred for review) with a required reason, visible to both. Server save receipts are shown separately from unverified browser reports. A decision never changes the deadline, answers, score, or publication and never creates a resit; published grades stay locked. Browser logs alone still cannot prove an offline answer was authored before the deadline.',
     sources: ['support', 'dartmouth'],
   },
 ] as const;

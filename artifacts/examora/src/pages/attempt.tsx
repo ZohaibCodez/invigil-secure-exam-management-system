@@ -38,6 +38,7 @@ import {
   type EventInput,
 } from '@workspace/api-client-react';
 import { Seal, ErrorState } from '@/components/kit';
+import { IncidentReview } from '@/components/incident-review';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
@@ -498,6 +499,7 @@ export default function AttemptPage() {
             </div>
           )}
           {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes remain on this device only. They were not confirmed by the server before the attempt closed. Notes are not graded.</p>}
+          {!attempt.sandbox && <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" className="mt-5" />}
           <Button asChild className="mt-7 w-full"><Link href={attempt.sandbox ? `/exams/${attempt.examId}` : '/'} data-testid="link-after-submit">{attempt.sandbox ? 'Back to exam configuration' : 'Back to overview'}</Link></Button>
         </motion.div>
       </div>
@@ -696,6 +698,12 @@ export default function AttemptPage() {
           )}
         </AnimatePresence>
       </div>
+
+      {!attempt.sandbox && (
+        <div className="mx-auto max-w-3xl px-4 pb-10">
+          <IncidentReview key={attempt.id} attemptId={attempt.id} mode="candidate" />
+        </div>
+      )}
 
       <AlertDialog open={submitOpen} onOpenChange={(o) => submitStage !== 'submitting' && submitStage !== 'syncing' && setSubmitOpen(o)}>
         <AlertDialogContent className={cn(night && 'dark')}>

@@ -3,6 +3,7 @@ import healthRouter from "./health";
 import sessionRouter from "./session";
 import examRouter from "./exams";
 import attemptRouter from "./attempts";
+import incidentReviewRouter from "./incident-review";
 import peopleRouter from "./people";
 import insightsRouter from "./insights";
 import reportsRouter, { publicReports } from "./reports";
@@ -17,6 +18,7 @@ router.use(reportsRouter);
 router.use(authenticated);
 router.use(examRouter);
 router.use(attemptRouter);
+router.use(incidentReviewRouter);
 router.use(peopleRouter);
 router.use(insightsRouter);
 

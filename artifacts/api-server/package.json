@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "test:incident-review": "tsx --test src/incident-review.test.ts",
     "seed:demo": "tsx src/seed.ts",
     "dev": "export NODE_ENV=development && pnpm run build && pnpm run start",
     "build": "node ./build.mjs",

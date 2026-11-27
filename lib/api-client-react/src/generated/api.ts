@@ -42,6 +42,10 @@ import type {
   HealthStatus,
   ImportInput,
   ImportResult,
+  IncidentCase,
+  IncidentDecisionInput,
+  IncidentDossier,
+  IncidentStatementInput,
   Message,
   Monitor,
   Question,
@@ -2214,6 +2218,267 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getRecordEventMutationOptions(options), queryClient);
+    }
+
+export const getGetIncidentDossierUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/incident-review`
+}
+
+export const getIncidentDossier = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<IncidentDossier> => {
+
+  return customFetch<IncidentDossier>(getGetIncidentDossierUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetIncidentDossierQueryKey = (id: string,) => {
+    return [
+    `/api/attempts/${id}/incident-review`
+    ] as const;
+    }
+
+
+export const getGetIncidentDossierQueryOptions = <TData = Awaited<ReturnType<typeof getIncidentDossier>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetIncidentDossierQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getIncidentDossier>>> = ({ signal }) => getIncidentDossier(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetIncidentDossierQueryResult = NonNullable<Awaited<ReturnType<typeof getIncidentDossier>>>
+export type GetIncidentDossierQueryError = ErrorType<unknown>
+
+
+export function useGetIncidentDossier<TData = Awaited<ReturnType<typeof getIncidentDossier>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIncidentDossier>>,
+          TError,
+          Awaited<ReturnType<typeof getIncidentDossier>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIncidentDossier<TData = Awaited<ReturnType<typeof getIncidentDossier>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIncidentDossier>>,
+          TError,
+          Awaited<ReturnType<typeof getIncidentDossier>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetIncidentDossier<TData = Awaited<ReturnType<typeof getIncidentDossier>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetIncidentDossier<TData = Awaited<ReturnType<typeof getIncidentDossier>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getIncidentDossier>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetIncidentDossierQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getSubmitIncidentStatementUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/incident-review`
+}
+
+export const submitIncidentStatement = async (id: string,
+    incidentStatementInput: IncidentStatementInput, options?: Parameters<typeof customFetch>[1]): Promise<IncidentCase> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IncidentCase>(getSubmitIncidentStatementUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(incidentStatementInput)
+  }
+);}
+
+
+
+
+
+export const getSubmitIncidentStatementMutationKey = () => ['submitIncidentStatement'] as const;
+
+export const getSubmitIncidentStatementMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitIncidentStatement>>, TError,SubmitIncidentStatementMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof submitIncidentStatement>>, TError,SubmitIncidentStatementMutationVariables, TContext> => {
+
+const mutationKey = getSubmitIncidentStatementMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof submitIncidentStatement>>, SubmitIncidentStatementMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  submitIncidentStatement(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SubmitIncidentStatementMutationResult = NonNullable<Awaited<ReturnType<typeof submitIncidentStatement>>>
+    export type SubmitIncidentStatementMutationBody = BodyType<IncidentStatementInput>
+    export type SubmitIncidentStatementMutationError = ErrorType<unknown>
+    export type SubmitIncidentStatementMutationVariables = {id: string;data: BodyType<IncidentStatementInput>}
+
+    export const useSubmitIncidentStatement = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof submitIncidentStatement>>, TError,SubmitIncidentStatementMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof submitIncidentStatement>>,
+        TError,
+        SubmitIncidentStatementMutationVariables,
+        TContext
+      > => {
+      return useMutation(getSubmitIncidentStatementMutationOptions(options), queryClient);
+    }
+
+export const getReviewIncidentUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/incident-review`
+}
+
+export const reviewIncident = async (id: string,
+    incidentDecisionInput: IncidentDecisionInput, options?: Parameters<typeof customFetch>[1]): Promise<IncidentCase> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<IncidentCase>(getReviewIncidentUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(incidentDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getReviewIncidentMutationKey = () => ['reviewIncident'] as const;
+
+export const getReviewIncidentMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewIncident>>, TError,ReviewIncidentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reviewIncident>>, TError,ReviewIncidentMutationVariables, TContext> => {
+
+const mutationKey = getReviewIncidentMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reviewIncident>>, ReviewIncidentMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  reviewIncident(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReviewIncidentMutationResult = NonNullable<Awaited<ReturnType<typeof reviewIncident>>>
+    export type ReviewIncidentMutationBody = BodyType<IncidentDecisionInput>
+    export type ReviewIncidentMutationError = ErrorType<unknown>
+    export type ReviewIncidentMutationVariables = {id: string;data: BodyType<IncidentDecisionInput>}
+
+    export const useReviewIncident = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reviewIncident>>, TError,ReviewIncidentMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof reviewIncident>>,
+        TError,
+        ReviewIncidentMutationVariables,
+        TContext
+      > => {
+      return useMutation(getReviewIncidentMutationOptions(options), queryClient);
     }
 
 export const getGradeAttemptUrl = (id: string,) => {

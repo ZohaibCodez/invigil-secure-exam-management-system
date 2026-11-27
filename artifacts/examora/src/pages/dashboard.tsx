@@ -90,6 +90,11 @@ function CandidateExamCard({ exam, index }: { exam: Exam; index: number }) {
           </div>
         )}
       </div>
+      {(st === 'submitted' || st === 'graded') && exam.attemptId && (
+        <Button variant="ghost" size="sm" asChild className="mt-2 w-full">
+          <Link href={`/attempts/${exam.attemptId}`} data-testid={`link-incident-review-${exam.id}`}>Technical problem or review decision</Link>
+        </Button>
+      )}
     </motion.article>
   );
 }

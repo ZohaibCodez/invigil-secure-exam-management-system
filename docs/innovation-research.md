@@ -85,7 +85,7 @@ without intentional access by the student.
 They do not automatically deduct marks, generate a cheating verdict, or
 disqualify a candidate.
 
-**Needed extension: challenge 5.4.** A structured technical-incident review:
+**Implemented extension: challenge 5.4.** A structured technical-incident review:
 
 - Candidate statement attached to the relevant examination and attempt.
 - Server save receipt/revision timeline separated from client-reported events.
@@ -94,12 +94,43 @@ disqualify a candidate.
   accepting unverified late work.
 - Role-scoped access and minimal disclosure of personal information.
 
-**Status:** proposed, not implemented.
+**Status:** implemented. Candidates can submit one immutable statement per real
+attempt, including after submission. Authorized examiners/admins record one final
+decision with their identity, time, reason, and disposition. Identical retries
+return the existing record; conflicting submissions cannot replace it.
+
+Server save operations now retain the persisted question revision numbers.
+Older receipts without revision metadata are explicitly marked unavailable.
+Browser events and any timestamps in their text remain unverified; the event's
+server receipt time does not verify when the claimed event occurred.
+
+Dispositions are advisory: no action, supervised resit recommended, or referred
+for further review. A recommendation does not create a resit, accept late
+answers, extend a deadline, change scores, or unlock published grades. Any
+supervised resit must be arranged separately under institutional policy.
 
 **Acceptance criteria:** another candidate cannot access a case; duplicated
 submissions do not create competing decisions; each decision identifies its
 reviewer and reason; client-reported timestamps remain explicitly unverified;
 no decision silently modifies locked published grades.
+
+**Verification (27 November 2026).** The PostgreSQL-backed route regression
+check passed for candidate/examiner isolation, identical and conflicting
+submissions, concurrent reviewers, historical receipt handling, persisted
+revision numbers, rejected late saves, and locked published grades.
+An unauthenticated HTTP request to the dossier returned 401.
+A signed-in browser pass on a dedicated fictional real-attempt fixture
+confirmed statement persistence after reload, retained text when the panel is
+collapsed, examiner decisions with reviewer/time/reason, and the candidate's
+view of the final outcome. The browser check compared examination and attempt
+records before/after the decision: answers, deadline, score, status, scratchpad,
+and publication were unchanged. Test fixtures were removed afterward.
+
+The browser pass also found a pre-existing session-screen refresh problem:
+successful sign-in and sign-out may require a manual page reload before the
+interface reflects the server session. The review journey passed using that
+workaround; the session-screen issue is not fixed by this incident-review work.
+This verification is not an independent high-stakes evaluation.
 
 **Evidence limitation.** EFF participated in challenging the investigation.
 Its account is a documented technical/advocacy analysis, not a controlled study.

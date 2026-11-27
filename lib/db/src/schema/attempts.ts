@@ -45,4 +45,5 @@ export const saveOperations = pgTable("save_operations", {
   attemptId: text("attempt_id").notNull().references(() => attempts.id, { onDelete: "cascade" }),
   operationId: text("operation_id").notNull(),
   savedAt: timestamp("saved_at", { withTimezone: true }).notNull().defaultNow(),
+  revisions: jsonb("revisions").$type<{ questionId: string; revision: number }[]>(),
 }, (t) => [uniqueIndex("save_operation_unique").on(t.attemptId, t.operationId)]);

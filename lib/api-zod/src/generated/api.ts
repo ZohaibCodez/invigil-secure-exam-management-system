@@ -906,6 +906,101 @@ export const RecordEventResponse = zod.object({
 })
 
 
+export const getIncidentDossierPathIdMax = 150;
+
+
+
+export const GetIncidentDossierParams = zod.object({
+  "id": zod.coerce.string().min(1).max(getIncidentDossierPathIdMax)
+})
+
+export const GetIncidentDossierResponse = zod.object({
+  "attemptId": zod.string(),
+  "deadline": zod.string(),
+  "resultsPublished": zod.boolean(),
+  "case": zod.union([zod.object({
+  "id": zod.string(),
+  "statement": zod.string(),
+  "submittedAt": zod.string(),
+  "reviewerName": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "disposition": zod.union([zod.literal('no_action'),zod.literal('supervised_resit_recommended'),zod.literal('referred_for_review'),zod.literal(null)]).nullable()
+}),zod.null()]),
+  "serverSaves": zod.array(zod.object({
+  "operationId": zod.string(),
+  "savedAt": zod.string(),
+  "revisions": zod.array(zod.object({
+  "questionId": zod.string(),
+  "revision": zod.int()
+})).nullable()
+})),
+  "browserEvents": zod.array(zod.object({
+  "id": zod.string(),
+  "type": zod.string(),
+  "detail": zod.string(),
+  "receivedAt": zod.string().describe('Server receipt time only; browser claims and embedded timestamps are unverified.')
+}))
+})
+
+
+export const submitIncidentStatementPathIdMax = 150;
+
+
+
+export const SubmitIncidentStatementParams = zod.object({
+  "id": zod.coerce.string().min(1).max(submitIncidentStatementPathIdMax)
+})
+
+export const submitIncidentStatementBodyStatementMin = 10;
+export const submitIncidentStatementBodyStatementMax = 5000;
+
+
+
+export const SubmitIncidentStatementBody = zod.object({
+  "statement": zod.string().min(submitIncidentStatementBodyStatementMin).max(submitIncidentStatementBodyStatementMax)
+})
+
+export const SubmitIncidentStatementResponse = zod.object({
+  "id": zod.string(),
+  "statement": zod.string(),
+  "submittedAt": zod.string(),
+  "reviewerName": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "disposition": zod.union([zod.literal('no_action'),zod.literal('supervised_resit_recommended'),zod.literal('referred_for_review'),zod.literal(null)]).nullable()
+})
+
+
+export const reviewIncidentPathIdMax = 150;
+
+
+
+export const ReviewIncidentParams = zod.object({
+  "id": zod.coerce.string().min(1).max(reviewIncidentPathIdMax)
+})
+
+export const reviewIncidentBodyReasonMin = 10;
+export const reviewIncidentBodyReasonMax = 5000;
+
+
+
+export const ReviewIncidentBody = zod.object({
+  "reason": zod.string().min(reviewIncidentBodyReasonMin).max(reviewIncidentBodyReasonMax),
+  "disposition": zod.enum(['no_action', 'supervised_resit_recommended', 'referred_for_review'])
+})
+
+export const ReviewIncidentResponse = zod.object({
+  "id": zod.string(),
+  "statement": zod.string(),
+  "submittedAt": zod.string(),
+  "reviewerName": zod.string().nullable(),
+  "reviewedAt": zod.string().nullable(),
+  "reason": zod.string().nullable(),
+  "disposition": zod.union([zod.literal('no_action'),zod.literal('supervised_resit_recommended'),zod.literal('referred_for_review'),zod.literal(null)]).nullable()
+})
+
+
 export const GradeAttemptParams = zod.object({
   "id": zod.coerce.string()
 })

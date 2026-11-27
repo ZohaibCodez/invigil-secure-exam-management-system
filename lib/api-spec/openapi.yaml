@@ -314,6 +314,43 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Message" }
+  /attempts/{id}/incident-review:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string, minLength: 1, maxLength: 150 } }
+    get:
+      operationId: getIncidentDossier
+      responses:
+        "200":
+          description: Owner or authorized examiner dossier, with evidence sources separated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IncidentDossier" }
+    put:
+      operationId: submitIncidentStatement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IncidentStatementInput" }
+      responses:
+        "200":
+          description: Immutable statement recorded, or identical retry
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IncidentCase" }
+    post:
+      operationId: reviewIncident
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/IncidentDecisionInput" }
+      responses:
+        "200":
+          description: Immutable examiner disposition recorded, without changing answers or grades
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/IncidentCase" }
   /attempts/{id}/grade:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -504,6 +541,64 @@ components:
         operationId: { type: string, minLength: 8, maxLength: 100 }
         answers: { type: array, items: { $ref: "#/components/schemas/Answer" }, maxItems: 200 }
         scratchpad: { type: string, maxLength: 50000 }
+    IncidentStatementInput:
+      type: object
+      required: [statement]
+      properties:
+        statement: { type: string, minLength: 10, maxLength: 5000 }
+    IncidentDecisionInput:
+      type: object
+      required: [reason, disposition]
+      properties:
+        reason: { type: string, minLength: 10, maxLength: 5000 }
+        disposition: { type: string, enum: [no_action, supervised_resit_recommended, referred_for_review] }
+    IncidentCase:
+      type: object
+      required: [id, statement, submittedAt, reviewerName, reviewedAt, reason, disposition]
+      properties:
+        id: { type: string }
+        statement: { type: string }
+        submittedAt: { type: string }
+        reviewerName: { type: [string, "null"] }
+        reviewedAt: { type: [string, "null"] }
+        reason: { type: [string, "null"] }
+        disposition: { type: [string, "null"], enum: [no_action, supervised_resit_recommended, referred_for_review, null] }
+    AcceptedRevision:
+      type: object
+      required: [questionId, revision]
+      properties:
+        questionId: { type: string }
+        revision: { type: integer }
+    ServerSaveEvidence:
+      type: object
+      required: [operationId, savedAt, revisions]
+      properties:
+        operationId: { type: string }
+        savedAt: { type: string }
+        revisions:
+          type: [array, "null"]
+          items: { $ref: "#/components/schemas/AcceptedRevision" }
+    BrowserEventEvidence:
+      type: object
+      required: [id, type, detail, receivedAt]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        detail: { type: string }
+        receivedAt: { type: string, description: "Server receipt time only; browser claims and embedded timestamps are unverified." }
+    IncidentDossier:
+      type: object
+      required: [attemptId, deadline, resultsPublished, case, serverSaves, browserEvents]
+      properties:
+        attemptId: { type: string }
+        deadline: { type: string }
+        resultsPublished: { type: boolean }
+        case:
+          oneOf:
+            - { $ref: "#/components/schemas/IncidentCase" }
+            - { type: "null" }
+        serverSaves: { type: array, items: { $ref: "#/components/schemas/ServerSaveEvidence" } }
+        browserEvents: { type: array, items: { $ref: "#/components/schemas/BrowserEventEvidence" } }
     SaveReceipt:
       type: object
       required: [savedAt, accepted, serverNow]

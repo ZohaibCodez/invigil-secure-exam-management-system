@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
+export * from './acceptedRevision';
 export * from './activity';
 export * from './analytics';
 export * from './announcement';
@@ -15,6 +16,7 @@ export * from './answerBatch';
 export * from './attempt';
 export * from './attemptInput';
 export * from './attemptStatus';
+export * from './browserEventEvidence';
 export * from './dashboard';
 export * from './enrollmentInput';
 export * from './eventInput';
@@ -34,6 +36,12 @@ export * from './importInputRowsItem';
 export * from './importIssue';
 export * from './importResult';
 export * from './incident';
+export * from './incidentCase';
+export * from './incidentCaseDisposition';
+export * from './incidentDecisionInput';
+export * from './incidentDecisionInputDisposition';
+export * from './incidentDossier';
+export * from './incidentStatementInput';
 export * from './message';
 export * from './monitor';
 export * from './monitoredAttempt';
@@ -47,6 +55,7 @@ export * from './reportVerification';
 export * from './result';
 export * from './saveReceipt';
 export * from './scoreBucket';
+export * from './serverSaveEvidence';
 export * from './sessionInfo';
 export * from './user';
 export * from './userInput';

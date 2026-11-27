@@ -45,7 +45,11 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
       if (index < 0) answers.push(accepted); else answers[index] = accepted;
     }
     await tx.update(attempts).set({ answers, lastSavedAt: now, ...(input.scratchpad !== undefined ? { scratchpad: input.scratchpad } : {}) }).where(eq(attempts.id, a.id));
-    await tx.insert(saveOperations).values({ id: randomUUID(), attemptId: a.id, operationId: input.operationId, savedAt: now });
+    await tx.insert(saveOperations).values({
+      id: randomUUID(), attemptId: a.id, operationId: input.operationId, savedAt: now,
+      // Record the persisted revisions, not stale revisions claimed by a tab.
+      revisions: answers.map(({ questionId, revision }) => ({ questionId, revision })),
+    });
     return { savedAt: now.toISOString(), accepted: true, serverNow: now.toISOString() };
   });
   if (!receipt) { res.status(409).json({ error: "The attempt is closed. Only answers confirmed by the server before the deadline count." }); return; }

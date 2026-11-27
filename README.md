@@ -265,6 +265,34 @@ Important scenarios:
 - Sandbox activity is excluded from actual results and analytics.
 - PDF downloads are authorized; verification reveals minimal information.
 
+## Technical-incident review
+
+Candidates can open **Had a technical problem?** on a real attempt, including
+after submission via **Technical problem or review decision** on their dashboard.
+One immutable statement is retained per attempt. In **Monitor**, the owning
+examiner (or an administrator) selects the candidate and records a final
+disposition with a reason. The candidate can return to see the reviewer's name,
+decision time, reason, and outcome.
+
+Server save receipt times and persisted revision numbers are shown separately
+from unverified browser reports. Historical receipts may lack revision details.
+A server receipt confirms acceptance, not when offline work was authored.
+Reviews do not credit late work, modify answers or marks, extend deadlines,
+unlock published grades, or create resits. Supervised resit recommendations
+require separate institutional arrangements.
+
+After pulling schema changes, apply them explicitly with
+`pnpm --filter @workspace/db run push` in development before starting the API.
+The PostgreSQL-backed regression check creates and removes its own fictional
+fixtures in the configured development database:
+
+```bash
+pnpm --filter @workspace/api-server run test:incident-review
+```
+
+It checks cross-candidate/examiner isolation, duplicate and competing decisions,
+server revision evidence, late-answer rejection, and published-grade protection.
+
 ## Competition submission freeze
 
 The supplied guide forbids **commits, pushes, builds, and deployments after the

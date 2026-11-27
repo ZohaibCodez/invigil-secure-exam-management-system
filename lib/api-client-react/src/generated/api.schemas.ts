@@ -260,6 +260,87 @@ export interface AnswerBatch {
   scratchpad?: string;
 }
 
+export interface IncidentStatementInput {
+  /**
+     * @minLength 10
+     * @maxLength 5000
+     */
+  statement: string;
+}
+
+export type IncidentDecisionInputDisposition = typeof IncidentDecisionInputDisposition[keyof typeof IncidentDecisionInputDisposition];
+
+
+export const IncidentDecisionInputDisposition = {
+  no_action: 'no_action',
+  supervised_resit_recommended: 'supervised_resit_recommended',
+  referred_for_review: 'referred_for_review',
+} as const;
+
+export interface IncidentDecisionInput {
+  /**
+     * @minLength 10
+     * @maxLength 5000
+     */
+  reason: string;
+  disposition: IncidentDecisionInputDisposition;
+}
+
+/**
+ * @nullable
+ */
+export type IncidentCaseDisposition = typeof IncidentCaseDisposition[keyof typeof IncidentCaseDisposition] | null;
+
+
+export const IncidentCaseDisposition = {
+  no_action: 'no_action',
+  supervised_resit_recommended: 'supervised_resit_recommended',
+  referred_for_review: 'referred_for_review',
+} as const;
+
+export interface IncidentCase {
+  id: string;
+  statement: string;
+  submittedAt: string;
+  /** @nullable */
+  reviewerName: string | null;
+  /** @nullable */
+  reviewedAt: string | null;
+  /** @nullable */
+  reason: string | null;
+  /** @nullable */
+  disposition: IncidentCaseDisposition;
+}
+
+export interface AcceptedRevision {
+  questionId: string;
+  revision: number;
+}
+
+export interface ServerSaveEvidence {
+  operationId: string;
+  savedAt: string;
+  /** @nullable */
+  revisions: AcceptedRevision[] | null;
+}
+
+export interface BrowserEventEvidence {
+  id: string;
+  type: string;
+  detail: string;
+  /** Server receipt time only; browser claims and embedded timestamps are unverified. */
+  receivedAt: string;
+}
+
+export interface IncidentDossier {
+  attemptId: string;
+  deadline: string;
+  resultsPublished: boolean;
+  case: IncidentCase | null;
+  serverSaves: ServerSaveEvidence[];
+  browserEvents: BrowserEventEvidence[];
+}
+
 export interface SaveReceipt {
   savedAt: string;
   serverNow: string;

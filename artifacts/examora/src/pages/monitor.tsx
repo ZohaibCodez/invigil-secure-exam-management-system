@@ -11,6 +11,7 @@ import {
   getGetMonitorQueryKey,
   getGetExamQueryKey,
 } from '@workspace/api-client-react';
+import { IncidentReview } from '@/components/incident-review';
 import { PageHeader, Panel, EmptyState, ErrorState, SkeletonRows, StatusPill, Meter, Stat } from '@/components/kit';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -48,6 +49,8 @@ export default function Monitor() {
   const m = useGetMonitor(examId, { query: { queryKey: getGetMonitorQueryKey(examId), enabled: !!examId, refetchInterval: 5000 } });
   const announce = useCreateAnnouncement();
   const [msg, setMsg] = useState('');
+  const [picked, setPicked] = useState<string | null>(null);
+  useEffect(() => setPicked(null), [examId]);
   const now = useNow();
   const exam = live.find((e) => e.id === examId);
   const data = m.data;
@@ -92,7 +95,7 @@ export default function Monitor() {
                   {data.attempts.map((a) => {
                     const left = new Date(a.deadline).getTime() - now;
                     return (
-                      <li key={a.id} data-testid={`row-attempt-${a.id}`} className="grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1.4fr_1.2fr_90px_110px_auto] md:items-center">
+                      <li key={a.id} role="button" tabIndex={0} aria-label={`Review technical incidents for ${a.candidateName}`} aria-pressed={picked === a.id} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPicked(a.id); } }} data-testid={`row-attempt-${a.id}`} onClick={() => setPicked(a.id)} className={`cursor-pointer transition-colors hover:bg-muted/40 ${picked === a.id ? 'bg-muted/60 shadow-[inset_3px_0_0_hsl(var(--accent))]' : ''} grid grid-cols-[1fr_auto] gap-3 px-4 py-3 md:grid-cols-[1.4fr_1.2fr_90px_110px_auto] md:items-center`}>
                         <div className="min-w-0"><div className="truncate text-sm font-medium">{a.candidateName}</div><div className="truncate text-xs text-muted-foreground">{a.email}</div></div>
                         <div className="order-last col-span-2 md:order-none md:col-span-1">
                           <div className="mb-1 flex justify-between text-[11px] text-muted-foreground tnum"><span>Answered</span><span>{a.answered}/{a.questionCount}</span></div>
@@ -110,6 +113,18 @@ export default function Monitor() {
                 </ul>
               )}
             </Panel>
+            {data.attempts.length > 0 && (
+              <div className="xl:col-span-2">
+                {picked && data.attempts.some((a) => a.id === picked) ? (
+                  <div>
+                    <div className="mb-2 font-mono text-[10.5px] uppercase tracking-[0.16em] text-muted-foreground" data-testid="text-review-candidate">Reviewing · {data.attempts.find((a) => a.id === picked)?.candidateName}</div>
+                    <IncidentReview key={picked} attemptId={picked} mode="staff" defaultOpen />
+                  </div>
+                ) : (
+                  <p className="rounded-xl border border-dashed p-4 text-center text-xs text-muted-foreground" data-testid="text-review-hint">Select a candidate above to open their technical-incident dossier.</p>
+                )}
+              </div>
+            )}
             <div className="space-y-6">
               <Panel title="Announce">
                 <Textarea data-testid="input-monitor-announcement" rows={3} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder="Message every candidate in this exam" maxLength={2000} />
