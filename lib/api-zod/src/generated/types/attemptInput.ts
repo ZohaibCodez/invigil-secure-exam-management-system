@@ -16,5 +16,6 @@ export interface AttemptInput {
   admissionId?: string;
   instructionsRead?: boolean;
   deviceReady?: boolean;
+  policyAcknowledged?: boolean;
   subjectsConfirmed?: boolean;
 }

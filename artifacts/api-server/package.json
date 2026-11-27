@@ -6,8 +6,9 @@
   "scripts": {
     "test:blueprint": "tsx --test src/blueprint.test.ts",
     "test:incident-review": "tsx --test src/incident-review.test.ts",
+    "test:integrity": "tsx --test src/integrity.test.ts",
     "seed:demo": "tsx src/seed.ts",
-    "dev": "export NODE_ENV=development && pnpm run build && exec node --enable-source-maps ./dist/index.mjs",
+    "dev": "export NODE_ENV=development && exec tsx watch src/index.ts",
     "build": "node ./build.mjs",
     "build:vercel": "pnpm run typecheck && node ./build.mjs --vercel",
     "start": "node --enable-source-maps ./dist/index.mjs",

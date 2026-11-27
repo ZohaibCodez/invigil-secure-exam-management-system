@@ -12,4 +12,5 @@ export type SaveReceiptConflict = typeof SaveReceiptConflict[keyof typeof SaveRe
 export const SaveReceiptConflict = {
   answer: 'answer',
   scratchpad: 'scratchpad',
+  operation: 'operation',
 } as const;

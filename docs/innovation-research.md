@@ -10,7 +10,8 @@ published research, institutional guidance, and vendor documentation.
 The strongest current demonstration is challenge **5.3, failure resilience**:
 show a draft becoming pending during a brief interruption, reconnect within the
 server deadline, obtain a server receipt, reload, and recover the accepted work.
-Then show that changing the browser clock cannot extend server acceptance.
+Then show that late work is rejected after the original closing time elapses
+naturally; there is no need to manipulate a deadline or a clock.
 
 Do not call autosave itself an invention: established products already provide it.
 Examora's practical differentiator is the integration and explanation of local
@@ -40,10 +41,10 @@ A real-browser sandbox check on 27 November 2026, with no answer edits, confirme
 - Unsent notes alone triggered the unload warning; server confirmation cleared
   it. Injected HTTP 500 responses retained the failed/retrying status, and
   automatic retries recovered without another edit after the failure ended.
-- Moving only the test sandbox's server deadline into the past, then reloading
-  with the browser clock one hour earlier, closed the attempt without accepting
-  pending notes. A new scratchpad-only save returned HTTP 409 and left the
-  server's last confirmed notes unchanged. Unconfirmed notes stayed on device.
+- Historical sandbox checks included simulated expiry. The current integrated
+  server regression instead waits for an originally configured short closing
+  window to expire naturally, rejects late saves with HTTP 409, and confirms
+  the deadline and previously accepted work are unchanged.
 
 Offline simulation used a browser offline flag and blocked API requests while
 leaving the session endpoint reachable. This verifies cached-attempt recovery,
@@ -154,6 +155,47 @@ proctoring system has the same disparities.
 compulsory biometric collection, or punitive automatic decisions from browser
 focus events. These would require evidence and policies that this application
 does not have.
+
+### Implemented policy and explanation workflow
+
+Examiners can configure closed-book or open-book policies prohibiting AI,
+AI allowed with disclosure, or AI allowed under explicitly stated conditions.
+Resources, disclosure requirement and a content-derived policy version are
+frozen at publication. New real attempts require affirmative acknowledgement
+of that version on the server. Each attempt retains its snapshot and the
+server acknowledgement time. Sandbox previews never create candidate attestations.
+Historical no-policy exams and active attempts retain their original rules.
+
+Candidates explicitly save assistance disclosures within their original attempt.
+Missing required disclosure is transparently labelled after submission or expiry;
+it does not block deadline finalization or deduct marks. Disclosure versions
+reject stale competing saves. This is an online, explicit-save workflow, not an
+extension of answer/scratchpad offline recovery.
+
+After submission, authorized examiners can ask for an explanation of an assigned
+question, with a distinct 1–168-hour window. Candidate responses and reasoned
+outcomes are immutable, access-controlled and visible to the candidate. A decision
+waits for a response or expiry of that separate window. Review records identify
+the requester/reviewer and times. Identical retries return the recorded result;
+conflicting requests, responses and outcomes cannot replace it.
+
+“Satisfactory” is an advisory assessment of the explanation, not proof of
+independent authorship. “Further review” refers to the institution's existing
+process, not a new misconduct/grade decision system. Technical incidents still
+use the existing statement and incident-decision workflow. Neither review type
+edits the original answers, deadline, score or published grades.
+
+**Verification:** PostgreSQL-backed integrated regressions passed for versioned
+policy enforcement, acknowledgement, legacy access, missing disclosure on
+natural expiry, separate review expiry, immutable explanations, attribution,
+candidate/examiner isolation and unchanged locked examination records.
+See [the integrated verification record](integrity-verification.md) for the
+browser scope, reproducible commands and a fictional-data demonstration.
+
+**Research boundary:** the Frontiers and EFF sources motivate privacy and caution
+about telemetry. They do not validate this policy/explanation design or endorse
+Examora. Policy acknowledgement and human review are operational safeguards,
+not a demonstrated solution to detecting external generative AI.
 
 ## 4. Randomized content can create unequal papers
 

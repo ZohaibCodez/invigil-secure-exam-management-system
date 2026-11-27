@@ -9,4 +9,6 @@
 export interface DisclosureInput {
   /** @maxLength 5000 */
   disclosure: string;
+  /** @minimum 0 */
+  version: number;
 }

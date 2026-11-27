@@ -67,6 +67,7 @@ export * from './incidentDecisionInputDisposition';
 export * from './incidentDossier';
 export * from './incidentStatementInput';
 export * from './integrityRecord';
+export * from './integrityRecordDisclosureStatus';
 export * from './message';
 export * from './monitor';
 export * from './monitoredAttempt';

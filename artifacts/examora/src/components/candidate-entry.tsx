@@ -214,6 +214,7 @@ export function CandidateEntry({ exam }: { exam: Exam }) {
         data: {
           sandbox: false,
           policyVersion: policy?.version,
+          ...(policy && ack ? { policyAcknowledged: true } : {}),
           ...(e ? { entryVersion: e.entryVersion } : {}),
           ...(s?.requireProctorApproval && admission ? { admissionId: admission.id } : {}),
           ...(strict ? { instructionsRead, deviceReady: !!s?.requireReadiness && deviceReady, subjectsConfirmed: !!s?.confirmSubjects && subjectsConfirmed } : {}),

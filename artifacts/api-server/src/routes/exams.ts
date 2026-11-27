@@ -116,7 +116,7 @@ router.post("/exams/:id/enrollments", async (req, res): Promise<void> => {
 router.post("/exams/:id/start", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser, false);
   const input = StartAttemptBody.parse(req.body ?? {});
-  const { sandbox = false, policyVersion } = input;
+  const { sandbox = false, policyVersion, policyAcknowledged } = input;
   if (sandbox) requireStaff(req.appUser);
   if (!sandbox && req.appUser.role !== "candidate") throw new HttpError(403, "Use sandbox mode to preview an examination.");
   const a = await db.transaction(async tx => {
@@ -127,7 +127,7 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
     }
     const now = await databaseNow(tx);
     if (!sandbox && (e!.status === "draft" || e!.status === "completed" || now < e!.startsAt || now >= e!.endsAt)) throw new HttpError(403, "The examination is not currently available.");
-    if (!sandbox && e!.assistancePolicy && policyVersion !== e!.assistancePolicy.version) throw new HttpError(400, "Read and acknowledge the current assistance policy before starting.");
+    if (!sandbox && e!.assistancePolicy && (policyAcknowledged !== true || policyVersion !== e!.assistancePolicy.version)) throw new HttpError(400, "Read and explicitly acknowledge the current assistance policy before starting.");
     const deliverySettings = settingsFor(e!.deliverySettings);
     let admissionId: string | null = null;
     if (!sandbox) {

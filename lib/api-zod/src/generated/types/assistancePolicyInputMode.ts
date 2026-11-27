@@ -13,4 +13,5 @@ export const AssistancePolicyInputMode = {
   closed_book: 'closed_book',
   open_book: 'open_book',
   ai_disclosed: 'ai_disclosed',
+  ai_conditional: 'ai_conditional',
 } as const;

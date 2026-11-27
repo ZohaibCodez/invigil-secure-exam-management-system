@@ -27,7 +27,7 @@ export function objectiveScore(q: QuestionData, value: string) {
   const selected = selectedOptions(value);
   return selected.length === q.correctAnswers.length && q.correctAnswers.every(id => selected.includes(id)) ? q.marks : 0;
 }
-export async function databaseNow(tx: Tx) {
+export async function databaseNow(tx: Pick<Tx, "execute">) {
   const result = await tx.execute(sql`SELECT clock_timestamp() AS now`);
   return new Date((result.rows[0] as { now: Date }).now);
 }

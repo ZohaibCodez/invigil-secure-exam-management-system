@@ -15,7 +15,7 @@ export type QuestionData = {
   explanation?: string;
 };
 export type AssistancePolicyData = {
-  mode: "closed_book" | "open_book" | "ai_disclosed";
+  mode: "closed_book" | "open_book" | "ai_disclosed" | "ai_conditional";
   resources: string;
   requireDisclosure: boolean;
   version: string;

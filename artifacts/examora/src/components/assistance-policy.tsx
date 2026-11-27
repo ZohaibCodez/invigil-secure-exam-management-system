@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { BookLock, BookOpen, Sparkles, Loader2, Lock, Check, Trash2 } from 'lucide-react';
+import { BookLock, BookOpen, Sparkles, ShieldQuestion, Loader2, Lock, Check, Trash2 } from 'lucide-react';
 import {
   useUpdateExam,
   getGetExamQueryKey,
@@ -21,6 +21,7 @@ export const POLICY_MODES: Record<AssistancePolicyInputMode, { label: string; bo
   closed_book: { label: 'Closed book', body: 'Only the resources listed below. No notes, search or AI tools.', Icon: BookLock },
   open_book: { label: 'Open book', body: 'Notes and listed references allowed. No AI writing tools.', Icon: BookOpen },
   ai_disclosed: { label: 'AI with disclosure', body: 'AI tools allowed, provided the candidate describes how they were used.', Icon: Sparkles },
+  ai_conditional: { label: 'AI under conditions', body: 'AI tools allowed only under the resources and conditions stated below.', Icon: ShieldQuestion },
 };
 
 export function PolicySummary({ policy, className }: { policy: AssistancePolicy; className?: string }) {
@@ -30,12 +31,12 @@ export function PolicySummary({ policy, className }: { policy: AssistancePolicy;
       <div className="flex flex-wrap items-center gap-2">
         <m.Icon className="h-4 w-4 text-accent" />
         <span className="font-display text-xl" data-testid="text-policy-mode">{m.label}</span>
-        <span className="ml-auto min-w-0 max-w-full break-all font-mono text-[10px] uppercase tracking-wider text-muted-foreground">v {policy.version}</span>
+        <span className="ml-auto min-w-0 max-w-full break-all font-mono text-[10px] uppercase tracking-wider text-muted-foreground" data-testid="text-policy-version">v {policy.version}</span>
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">{m.body}</p>
+      <p className="mt-1 text-xs text-muted-foreground">{policy.mode === 'ai_disclosed' && !policy.requireDisclosure ? 'AI was permitted under this historical policy. Its original disclosure setting is retained below.' : m.body}</p>
       <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Permitted resources</div>
       <p className="mt-1 whitespace-pre-wrap text-sm" data-testid="text-policy-resources">{policy.resources}</p>
-      <p className="mt-3 text-[11.5px] text-muted-foreground">{policy.requireDisclosure ? 'A written disclosure of any assistance is required.' : 'A disclosure is optional.'}</p>
+      <p className="mt-3 text-[11.5px] text-muted-foreground">{policy.requireDisclosure ? 'A written disclosure of any assistance is required.' : 'A disclosure is optional under this recorded version.'}</p>
     </div>
   );
 }
@@ -51,9 +52,11 @@ export function AssistancePolicyEditor({ exam }: { exam: ExamDetail }) {
   const [err, setErr] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
   const editable = exam.status === 'draft';
+  const forced = mode === 'ai_disclosed';
+  const effReq = forced || requireDisclosure;
   const n = resources.trim().length;
   const valid = !enabled || (n >= 5 && n <= 5000);
-  const dirty = enabled !== !!p || (enabled && (mode !== p?.mode || resources.trim() !== (p?.resources ?? '') || requireDisclosure !== p?.requireDisclosure));
+  const dirty = enabled !== !!p || (enabled && (mode !== p?.mode || resources.trim() !== (p?.resources ?? '') || effReq !== p?.requireDisclosure));
 
   if (!editable) {
     return (
@@ -67,7 +70,7 @@ export function AssistancePolicyEditor({ exam }: { exam: ExamDetail }) {
   const save = (removing = false) => {
     setErr(null);
     setSaved(false);
-    const policy = removing || !enabled ? null : { mode, resources: resources.trim(), requireDisclosure };
+    const policy = removing || !enabled ? null : { mode, resources: resources.trim(), requireDisclosure: effReq };
     update.mutate(
       {
         id: exam.id,
@@ -98,7 +101,7 @@ export function AssistancePolicyEditor({ exam }: { exam: ExamDetail }) {
       </label>
       {enabled && (
         <div className="mt-4 space-y-4">
-          <div role="radiogroup" aria-label="Assistance mode" className="grid gap-2 sm:grid-cols-3">
+          <div role="radiogroup" aria-label="Assistance mode" className="grid gap-2 sm:grid-cols-2">
             {(Object.keys(POLICY_MODES) as AssistancePolicyInputMode[]).map((k) => {
               const M = POLICY_MODES[k];
               const on = mode === k;
@@ -112,14 +115,14 @@ export function AssistancePolicyEditor({ exam }: { exam: ExamDetail }) {
             })}
           </div>
           <div>
-            <label htmlFor="policy-resources" className="text-xs font-medium">Permitted resources</label>
+            <label htmlFor="policy-resources" className="text-xs font-medium">{mode === 'ai_conditional' ? 'Permitted resources and conditions' : 'Permitted resources'}</label>
             <Textarea id="policy-resources" rows={3} value={resources} maxLength={5000} onChange={(e) => { setResources(e.target.value); setSaved(false); }} data-testid="input-policy-resources"
               placeholder="e.g. One double-sided A4 sheet of handwritten notes; scientific calculator." className="mt-1" />
             <div className={cn('mt-1 font-mono text-[10.5px] tnum', n > 0 && n < 5 ? 'text-accent' : 'text-muted-foreground')}>{n}/5000{n < 5 ? ' · at least 5 characters' : ''}</div>
           </div>
-          <label className="flex cursor-pointer items-center gap-3 text-sm">
-            <Checkbox checked={requireDisclosure} onCheckedChange={(c) => { setRequire(!!c); setSaved(false); }} data-testid="checkbox-require-disclosure" />
-            Require a written disclosure of any assistance used
+          <label className={cn('flex items-center gap-3 text-sm', forced ? 'cursor-not-allowed opacity-80' : 'cursor-pointer')}>
+            <Checkbox checked={effReq} disabled={forced} onCheckedChange={(c) => { setRequire(!!c); setSaved(false); }} data-testid="checkbox-require-disclosure" />
+            <span>Require a written disclosure of any assistance used{forced && <span className="block text-xs text-muted-foreground">Always required for AI with disclosure.</span>}</span>
           </label>
         </div>
       )}

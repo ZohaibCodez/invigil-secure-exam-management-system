@@ -7,6 +7,7 @@
  */
 import type { AssistancePolicy } from './assistancePolicy';
 import type { AuthorshipReview } from './authorshipReview';
+import type { IntegrityRecordDisclosureStatus } from './integrityRecordDisclosureStatus';
 
 export interface IntegrityRecord {
   attemptId: string;
@@ -14,6 +15,9 @@ export interface IntegrityRecord {
   /** @nullable */
   acknowledgedAt: string | null;
   disclosure: string;
+  /** @minimum 0 */
+  disclosureVersion: number;
+  disclosureStatus: IntegrityRecordDisclosureStatus;
   reviews: AuthorshipReview[];
   serverNow: string;
   attemptStatus: string;
