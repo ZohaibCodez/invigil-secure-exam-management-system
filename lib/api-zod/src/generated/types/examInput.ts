@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AssistancePolicyInput } from './assistancePolicyInput';
+import type { DeliverySettings } from './deliverySettings';
 
 export interface ExamInput {
   /**
@@ -36,4 +37,5 @@ export interface ExamInput {
      */
   passPercent?: number;
   assistancePolicy?: AssistancePolicyInput | null;
+  deliverySettings?: DeliverySettings;
 }

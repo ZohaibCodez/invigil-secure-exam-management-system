@@ -1,7 +1,7 @@
 import { Router, type IRouter } from "express";
 import { and, eq, inArray, sql } from "@workspace/db";
 import { randomUUID } from "node:crypto";
-import { db, exams, enrollments, attempts, users, announcements } from "@workspace/db";
+import { db, exams, enrollments, attempts, users, announcements, admissions } from "@workspace/db";
 import {
   GetExamResponse, ListExamsResponse, CreateExamResponse, CreateExamBody, UpdateExamBody,
   ExamActionBody, EnrollCandidatesBody, StartAttemptBody, CreateAnnouncementBody,
@@ -12,6 +12,7 @@ import { examView, examValues, getAnnouncements, shuffled } from "../lib/examina
 import { attemptView, databaseNow, finalizeIfExpired, finalizeLocked, reportToken } from "../lib/attempts";
 import { checkBlueprint, generateForm, quotaTotals } from "../lib/blueprint";
 import { blueprintReport, eligiblePool } from "../lib/blueprint-report";
+import { settingsFor, entryVersion, requiresEntryAcknowledgement } from "../lib/delivery";
 
 const router: IRouter = Router();
 router.get("/exams", async (req, res): Promise<void> => {
@@ -114,7 +115,8 @@ router.post("/exams/:id/enrollments", async (req, res): Promise<void> => {
 });
 router.post("/exams/:id/start", async (req, res): Promise<void> => {
   const exam = await ownedExam(paramId(req), req.appUser, false);
-  const { sandbox = false, policyVersion } = StartAttemptBody.parse(req.body ?? {});
+  const input = StartAttemptBody.parse(req.body ?? {});
+  const { sandbox = false, policyVersion } = input;
   if (sandbox) requireStaff(req.appUser);
   if (!sandbox && req.appUser.role !== "candidate") throw new HttpError(403, "Use sandbox mode to preview an examination.");
   const a = await db.transaction(async tx => {
@@ -126,6 +128,26 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
     const now = await databaseNow(tx);
     if (!sandbox && (e!.status === "draft" || e!.status === "completed" || now < e!.startsAt || now >= e!.endsAt)) throw new HttpError(403, "The examination is not currently available.");
     if (!sandbox && e!.assistancePolicy && policyVersion !== e!.assistancePolicy.version) throw new HttpError(400, "Read and acknowledge the current assistance policy before starting.");
+    const deliverySettings = settingsFor(e!.deliverySettings);
+    let admissionId: string | null = null;
+    if (!sandbox) {
+      const version = entryVersion(e!);
+      if ((input.entryVersion !== undefined && input.entryVersion !== version) ||
+          (requiresEntryAcknowledgement(deliverySettings) && (input.entryVersion !== version || !input.instructionsRead)))
+        throw new HttpError(409, "Read and confirm the current examination entry rules before starting.");
+      if (deliverySettings.requireReadiness && !input.deviceReady)
+        throw new HttpError(400, "Confirm that you have checked your device before starting.");
+      if (deliverySettings.confirmSubjects && !input.subjectsConfirmed)
+        throw new HttpError(400, "Confirm your subject combination before starting.");
+      if (deliverySettings.requireProctorApproval) {
+        if (!input.admissionId) throw new HttpError(403, "An authorized invigilator must approve your entry QR first.");
+        const [grant] = await tx.select().from(admissions).where(eq(admissions.id, input.admissionId)).for("update");
+        if (!grant || grant.examId !== e!.id || grant.candidateId !== req.appUser.id ||
+            grant.status !== "approved" || now >= grant.expiresAt)
+          throw new HttpError(403, "Admission is missing, expired, already used or belongs to another candidate.");
+        admissionId = grant.id;
+      }
+    }
     if (!e!.questionSnapshot.length) throw new HttpError(400, "Assign questions before starting a preview.");
     const { pool, issues } = await eligiblePool(e!, req.appUser, tx);
     const check = checkBlueprint(e!.blueprint, pool);
@@ -138,7 +160,16 @@ router.post("/exams/:id/start", async (req, res): Promise<void> => {
       id: randomUUID(), examId: exam.id, userId: req.appUser.id, sandbox, questions: frozen, blueprint: e!.blueprint,
       totalMarks: check.totalMarks, startedAt: now, deadline, lastSavedAt: now,
       policySnapshot: e!.assistancePolicy, acknowledgedAt: !sandbox && e!.assistancePolicy ? now : null,
+      deliverySettings,
+      entryAttestation: !sandbox && input.instructionsRead ? {
+        entryVersion: entryVersion(e!), instructionsRead: true,
+        deviceReady: !!input.deviceReady, subjectsConfirmed: !!input.subjectsConfirmed,
+        recordedAt: now.toISOString(), admissionId,
+      } : null,
     }).returning();
+    if (admissionId) await tx.update(admissions).set({
+      status: "consumed", consumedAt: now, attemptId: row!.id,
+    }).where(eq(admissions.id, admissionId));
     return row!;
   });
   res.json(await attemptView(await finalizeIfExpired(a.id), req.appUser));

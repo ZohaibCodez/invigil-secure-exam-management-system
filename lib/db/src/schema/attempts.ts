@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, boolean, integer, doublePrecision, jsonb, uni
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
 import { exams, type QuestionData, type AssistancePolicyData, type BlueprintQuota } from "./exams";
+import type { DeliverySettings, EntryAttestation } from "./delivery-settings";
 
 export type AnswerData = {
   questionId: string;
@@ -10,6 +11,7 @@ export type AnswerData = {
   revision: number;
   score: number | null;
   feedback: string | null;
+  lockedAt?: string | null;
 };
 export const attempts = pgTable("attempts", {
   id: text("id").primaryKey(),
@@ -25,6 +27,11 @@ export const attempts = pgTable("attempts", {
   policySnapshot: jsonb("policy_snapshot").$type<AssistancePolicyData | null>(),
   acknowledgedAt: timestamp("acknowledged_at", { withTimezone: true }),
   disclosure: text("disclosure").notNull().default(""),
+  deliverySettings: jsonb("delivery_settings").$type<DeliverySettings>().notNull().default({
+    requireProctorApproval: false, requireReadiness: false, confirmSubjects: false,
+    lockOnSave: false, minimumAttemptPercent: 0, venue: "", sessionLabel: "",
+  }),
+  entryAttestation: jsonb("entry_attestation").$type<EntryAttestation | null>(),
   totalMarks: doublePrecision("total_marks").notNull(),
   score: doublePrecision("score"),
   startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),

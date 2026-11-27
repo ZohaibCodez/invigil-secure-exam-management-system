@@ -5,6 +5,7 @@ import examRouter from "./exams";
 import attemptRouter from "./attempts";
 import incidentReviewRouter from "./incident-review";
 import integrityRouter from "./integrity";
+import admissionsRouter from "./admissions";
 import peopleRouter from "./people";
 import insightsRouter from "./insights";
 import reportsRouter, { publicReports } from "./reports";
@@ -21,6 +22,7 @@ router.use(examRouter);
 router.use(attemptRouter);
 router.use(incidentReviewRouter);
 router.use(integrityRouter);
+router.use(admissionsRouter);
 router.use(peopleRouter);
 router.use(insightsRouter);
 

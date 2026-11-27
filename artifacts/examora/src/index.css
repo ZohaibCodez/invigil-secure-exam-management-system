@@ -451,3 +451,16 @@ body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index
 .sweep { animation: sweep 40s linear infinite; }
 .exam-font-sm { --exam-size: 15px } .exam-font-md { --exam-size: 17px } .exam-font-lg { --exam-size: 20px }
 .exam-text { font-size: var(--exam-size, 17px); line-height: 1.65; }
+
+.entry-print { display: none; }
+@media print {
+  body * { visibility: hidden !important; }
+  body::before { display: none; }
+  .entry-print, .entry-print * { visibility: visible !important; }
+  .entry-print { display: block !important; position: absolute; inset: 0; padding: 24px; background: white; color: black; }
+}
+@keyframes lock-in { 0% { transform: scale(.6); opacity: 0 } 60% { transform: scale(1.12); opacity: 1 } 100% { transform: scale(1) } }
+.lock-in { animation: lock-in .38s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+}

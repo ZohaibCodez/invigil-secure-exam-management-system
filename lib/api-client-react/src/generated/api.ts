@@ -25,6 +25,8 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  Admission,
+  AdmissionDecisionInput,
   Analytics,
   Announcement,
   AnnouncementInput,
@@ -40,6 +42,7 @@ import type {
   Dashboard,
   DisclosureInput,
   EnrollmentInput,
+  EntryInformation,
   EventInput,
   Exam,
   ExamActionInput,
@@ -57,6 +60,7 @@ import type {
   Message,
   Monitor,
   Question,
+  QuestionCommitInput,
   QuestionInput,
   ReportVerification,
   Result,
@@ -1227,6 +1231,525 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
         TContext
       > => {
       return useMutation(getStartAttemptMutationOptions(options), queryClient);
+    }
+
+export const getGetEntryInformationUrl = (id: string,) => {
+
+
+
+
+  return `/api/exams/${id}/entry-information`
+}
+
+export const getEntryInformation = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<EntryInformation> => {
+
+  return customFetch<EntryInformation>(getGetEntryInformationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetEntryInformationQueryKey = (id: string,) => {
+    return [
+    `/api/exams/${id}/entry-information`
+    ] as const;
+    }
+
+
+export const getGetEntryInformationQueryOptions = <TData = Awaited<ReturnType<typeof getEntryInformation>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEntryInformationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEntryInformation>>> = ({ signal }) => getEntryInformation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetEntryInformationQueryResult = NonNullable<Awaited<ReturnType<typeof getEntryInformation>>>
+export type GetEntryInformationQueryError = ErrorType<unknown>
+
+
+export function useGetEntryInformation<TData = Awaited<ReturnType<typeof getEntryInformation>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEntryInformation>>,
+          TError,
+          Awaited<ReturnType<typeof getEntryInformation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEntryInformation<TData = Awaited<ReturnType<typeof getEntryInformation>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getEntryInformation>>,
+          TError,
+          Awaited<ReturnType<typeof getEntryInformation>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetEntryInformation<TData = Awaited<ReturnType<typeof getEntryInformation>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetEntryInformation<TData = Awaited<ReturnType<typeof getEntryInformation>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getEntryInformation>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetEntryInformationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getListAdmissionsUrl = (id: string,) => {
+
+
+
+
+  return `/api/exams/${id}/admissions`
+}
+
+export const listAdmissions = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Admission[]> => {
+
+  return customFetch<Admission[]>(getListAdmissionsUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListAdmissionsQueryKey = (id: string,) => {
+    return [
+    `/api/exams/${id}/admissions`
+    ] as const;
+    }
+
+
+export const getListAdmissionsQueryOptions = <TData = Awaited<ReturnType<typeof listAdmissions>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListAdmissionsQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listAdmissions>>> = ({ signal }) => listAdmissions(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListAdmissionsQueryResult = NonNullable<Awaited<ReturnType<typeof listAdmissions>>>
+export type ListAdmissionsQueryError = ErrorType<unknown>
+
+
+export function useListAdmissions<TData = Awaited<ReturnType<typeof listAdmissions>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listAdmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdmissions<TData = Awaited<ReturnType<typeof listAdmissions>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listAdmissions>>,
+          TError,
+          Awaited<ReturnType<typeof listAdmissions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListAdmissions<TData = Awaited<ReturnType<typeof listAdmissions>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useListAdmissions<TData = Awaited<ReturnType<typeof listAdmissions>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listAdmissions>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListAdmissionsQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getRequestAdmissionUrl = (id: string,) => {
+
+
+
+
+  return `/api/exams/${id}/admissions`
+}
+
+export const requestAdmission = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Admission> => {
+
+  return customFetch<Admission>(getRequestAdmissionUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+
+export const getRequestAdmissionMutationKey = () => ['requestAdmission'] as const;
+
+export const getRequestAdmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAdmission>>, TError,RequestAdmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof requestAdmission>>, TError,RequestAdmissionMutationVariables, TContext> => {
+
+const mutationKey = getRequestAdmissionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof requestAdmission>>, RequestAdmissionMutationVariables> = (props) => {
+          const {id} = props ?? {};
+
+          return  requestAdmission(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RequestAdmissionMutationResult = NonNullable<Awaited<ReturnType<typeof requestAdmission>>>
+
+    export type RequestAdmissionMutationError = ErrorType<unknown>
+    export type RequestAdmissionMutationVariables = {id: string}
+
+    export const useRequestAdmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof requestAdmission>>, TError,RequestAdmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof requestAdmission>>,
+        TError,
+        RequestAdmissionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRequestAdmissionMutationOptions(options), queryClient);
+    }
+
+export const getGetAdmissionUrl = (id: string,) => {
+
+
+
+
+  return `/api/admissions/${id}`
+}
+
+export const getAdmission = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<Admission> => {
+
+  return customFetch<Admission>(getGetAdmissionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetAdmissionQueryKey = (id: string,) => {
+    return [
+    `/api/admissions/${id}`
+    ] as const;
+    }
+
+
+export const getGetAdmissionQueryOptions = <TData = Awaited<ReturnType<typeof getAdmission>>, TError = ErrorType<unknown>>(id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAdmissionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdmission>>> = ({ signal }) => getAdmission(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdmissionQueryResult = NonNullable<Awaited<ReturnType<typeof getAdmission>>>
+export type GetAdmissionQueryError = ErrorType<unknown>
+
+
+export function useGetAdmission<TData = Awaited<ReturnType<typeof getAdmission>>, TError = ErrorType<unknown>>(
+ id: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdmission>>,
+          TError,
+          Awaited<ReturnType<typeof getAdmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdmission<TData = Awaited<ReturnType<typeof getAdmission>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdmission>>,
+          TError,
+          Awaited<ReturnType<typeof getAdmission>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdmission<TData = Awaited<ReturnType<typeof getAdmission>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+
+export function useGetAdmission<TData = Awaited<ReturnType<typeof getAdmission>>, TError = ErrorType<unknown>>(
+ id: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdmission>>, TError, TData>>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetAdmissionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getDecideAdmissionUrl = (id: string,) => {
+
+
+
+
+  return `/api/admissions/${id}/decision`
+}
+
+export const decideAdmission = async (id: string,
+    admissionDecisionInput: AdmissionDecisionInput, options?: Parameters<typeof customFetch>[1]): Promise<Admission> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Admission>(getDecideAdmissionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(admissionDecisionInput)
+  }
+);}
+
+
+
+
+
+export const getDecideAdmissionMutationKey = () => ['decideAdmission'] as const;
+
+export const getDecideAdmissionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAdmission>>, TError,DecideAdmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof decideAdmission>>, TError,DecideAdmissionMutationVariables, TContext> => {
+
+const mutationKey = getDecideAdmissionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof decideAdmission>>, DecideAdmissionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  decideAdmission(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DecideAdmissionMutationResult = NonNullable<Awaited<ReturnType<typeof decideAdmission>>>
+    export type DecideAdmissionMutationBody = BodyType<AdmissionDecisionInput>
+    export type DecideAdmissionMutationError = ErrorType<unknown>
+    export type DecideAdmissionMutationVariables = {id: string;data: BodyType<AdmissionDecisionInput>}
+
+    export const useDecideAdmission = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof decideAdmission>>, TError,DecideAdmissionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof decideAdmission>>,
+        TError,
+        DecideAdmissionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getDecideAdmissionMutationOptions(options), queryClient);
+    }
+
+export const getCommitQuestionUrl = (id: string,) => {
+
+
+
+
+  return `/api/attempts/${id}/commit-question`
+}
+
+export const commitQuestion = async (id: string,
+    questionCommitInput: QuestionCommitInput, options?: Parameters<typeof customFetch>[1]): Promise<Attempt> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return customFetch<Attempt>(getCommitQuestionUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(questionCommitInput)
+  }
+);}
+
+
+
+
+
+export const getCommitQuestionMutationKey = () => ['commitQuestion'] as const;
+
+export const getCommitQuestionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof commitQuestion>>, TError,CommitQuestionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof commitQuestion>>, TError,CommitQuestionMutationVariables, TContext> => {
+
+const mutationKey = getCommitQuestionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof commitQuestion>>, CommitQuestionMutationVariables> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  commitQuestion(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CommitQuestionMutationResult = NonNullable<Awaited<ReturnType<typeof commitQuestion>>>
+    export type CommitQuestionMutationBody = BodyType<QuestionCommitInput>
+    export type CommitQuestionMutationError = ErrorType<unknown>
+    export type CommitQuestionMutationVariables = {id: string;data: BodyType<QuestionCommitInput>}
+
+    export const useCommitQuestion = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof commitQuestion>>, TError,CommitQuestionMutationVariables, TContext>, request?: SecondParameter<typeof customFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof commitQuestion>>,
+        TError,
+        CommitQuestionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getCommitQuestionMutationOptions(options), queryClient);
     }
 
 export const getGetMonitorUrl = (id: string,) => {

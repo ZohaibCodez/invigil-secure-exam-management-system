@@ -159,6 +159,79 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Attempt" }
+  /exams/{id}/entry-information:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: getEntryInformation
+      responses:
+        "200":
+          description: Authorized candidate entry information without question contents or credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EntryInformation" }
+  /exams/{id}/admissions:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: listAdmissions
+      responses:
+        "200":
+          description: Recent requests visible only to the owning examiner or an administrator
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Admission" } }
+    post:
+      operationId: requestAdmission
+      responses:
+        "200":
+          description: New or existing unexpired request; never starts an exam timer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Admission" }
+  /admissions/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    get:
+      operationId: getAdmission
+      responses:
+        "200":
+          description: Candidate-owned or authorized examiner view of an admission request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Admission" }
+  /admissions/{id}/decision:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: decideAdmission
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AdmissionDecisionInput" }
+      responses:
+        "200":
+          description: Auditable authorized decision; possessing a QR does not authorize this action
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Admission" }
+  /attempts/{id}/commit-question:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: string } }
+    post:
+      operationId: commitQuestion
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/QuestionCommitInput" }
+      responses:
+        "200":
+          description: Server-confirmed immutable answer in an opt-in save-and-lock examination
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Attempt" }
   /exams/{id}/monitor:
     parameters:
       - { name: id, in: path, required: true, schema: { type: string } }
@@ -645,6 +718,75 @@ components:
           anyOf:
             - { $ref: "#/components/schemas/AssistancePolicyInput" }
             - { type: "null" }
+        deliverySettings: { $ref: "#/components/schemas/DeliverySettings" }
+    DeliverySettings:
+      type: object
+      required: [requireProctorApproval, requireReadiness, confirmSubjects, lockOnSave, minimumAttemptPercent, venue, sessionLabel]
+      properties:
+        requireProctorApproval: { type: boolean }
+        requireReadiness: { type: boolean }
+        confirmSubjects: { type: boolean }
+        lockOnSave: { type: boolean }
+        minimumAttemptPercent: { type: integer, minimum: 0, maximum: 100 }
+        venue: { type: string, maxLength: 200 }
+        sessionLabel: { type: string, maxLength: 100 }
+    EntryInformation:
+      type: object
+      required: [examId, examTitle, candidateId, candidateName, subjects, questionCount, totalMarks, duration, startsAt, endsAt, serverNow, entryVersion, settings]
+      properties:
+        examId: { type: string }
+        examTitle: { type: string }
+        candidateId: { type: string }
+        candidateName: { type: string }
+        subjects: { type: array, items: { type: string } }
+        questionCount: { type: integer }
+        totalMarks: { type: number }
+        duration: { type: integer }
+        startsAt: { type: string }
+        endsAt: { type: string }
+        serverNow: { type: string }
+        entryVersion: { type: string }
+        settings: { $ref: "#/components/schemas/DeliverySettings" }
+    Admission:
+      type: object
+      required: [id, examId, examTitle, candidateId, candidateName, status, requestedAt, expiresAt, decidedAt, reviewerName, reason, serverNow]
+      properties:
+        id: { type: string }
+        examId: { type: string }
+        examTitle: { type: string }
+        candidateId: { type: string }
+        candidateName: { type: string }
+        status: { type: string, enum: [pending, approved, denied, consumed, expired] }
+        requestedAt: { type: string }
+        expiresAt: { type: string }
+        decidedAt: { type: [string, "null"] }
+        reviewerName: { type: [string, "null"] }
+        reason: { type: string }
+        serverNow: { type: string }
+    AdmissionDecisionInput:
+      type: object
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [approve, deny] }
+        reason: { type: string, maxLength: 1000 }
+    EntryAttestation:
+      type: object
+      required: [entryVersion, instructionsRead, deviceReady, subjectsConfirmed, recordedAt, admissionId]
+      properties:
+        entryVersion: { type: string }
+        instructionsRead: { type: boolean }
+        deviceReady: { type: boolean }
+        subjectsConfirmed: { type: boolean }
+        recordedAt: { type: string }
+        admissionId: { type: [string, "null"] }
+    QuestionCommitInput:
+      type: object
+      required: [questionId, value, markedForReview, revision]
+      properties:
+        questionId: { type: string }
+        value: { type: string, maxLength: 20000 }
+        markedForReview: { type: boolean }
+        revision: { type: integer, minimum: 0 }
     AssistancePolicyInput:
       type: object
       required: [mode, resources, requireDisclosure]
@@ -685,6 +827,8 @@ components:
           anyOf:
             - { $ref: "#/components/schemas/AssistancePolicy" }
             - { type: "null" }
+        deliverySettings: { $ref: "#/components/schemas/DeliverySettings" }
+        entryVersion: { type: string }
     ExamDetail:
       allOf:
         - { $ref: "#/components/schemas/Exam" }
@@ -709,6 +853,11 @@ components:
       properties:
         sandbox: { type: boolean, default: false }
         policyVersion: { type: string, maxLength: 100 }
+        entryVersion: { type: string, maxLength: 100 }
+        admissionId: { type: string, maxLength: 100 }
+        instructionsRead: { type: boolean }
+        deviceReady: { type: boolean }
+        subjectsConfirmed: { type: boolean }
     Answer:
       type: object
       required: [questionId, value, markedForReview, revision]
@@ -719,6 +868,7 @@ components:
         revision: { type: integer, minimum: 0 }
         score: { type: [number, "null"] }
         feedback: { type: [string, "null"] }
+        lockedAt: { type: [string, "null"] }
     AnswerBatch:
       type: object
       required: [answers, operationId]
@@ -815,6 +965,11 @@ components:
         scratchpad: { type: string }
         scratchpadVersion: { type: integer, minimum: 0 }
         announcements: { type: array, items: { $ref: "#/components/schemas/Announcement" } }
+        deliverySettings: { $ref: "#/components/schemas/DeliverySettings" }
+        entryAttestation:
+          anyOf:
+            - { $ref: "#/components/schemas/EntryAttestation" }
+            - { type: "null" }
     DisclosureInput:
       type: object
       required: [disclosure]

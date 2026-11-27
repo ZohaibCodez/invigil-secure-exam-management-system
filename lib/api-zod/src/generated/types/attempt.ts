@@ -8,6 +8,8 @@
 import type { Announcement } from './announcement';
 import type { Answer } from './answer';
 import type { AttemptStatus } from './attemptStatus';
+import type { DeliverySettings } from './deliverySettings';
+import type { EntryAttestation } from './entryAttestation';
 import type { Question } from './question';
 
 export interface Attempt {
@@ -31,4 +33,6 @@ export interface Attempt {
   /** @minimum 0 */
   scratchpadVersion?: number;
   announcements: Announcement[];
+  deliverySettings?: DeliverySettings;
+  entryAttestation?: EntryAttestation | null;
 }

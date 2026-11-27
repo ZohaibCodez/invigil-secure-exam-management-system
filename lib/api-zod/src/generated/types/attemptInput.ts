@@ -10,4 +10,11 @@ export interface AttemptInput {
   sandbox?: boolean;
   /** @maxLength 100 */
   policyVersion?: string;
+  /** @maxLength 100 */
+  entryVersion?: string;
+  /** @maxLength 100 */
+  admissionId?: string;
+  instructionsRead?: boolean;
+  deviceReady?: boolean;
+  subjectsConfirmed?: boolean;
 }

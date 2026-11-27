@@ -17,6 +17,8 @@ A role-based examination platform focused on fair timing, resilient answer savin
 
 - Primary live app: https://invigil-secure-exam-management-syst.vercel.app/
 - Hosting: Vercel; database: Neon PostgreSQL, as confirmed by the user.
+- On 2026-11-27, the user confirmed the live database contains only fictional
+  demo data and approved uniquely named fixtures for live workflow verification.
 - Use this URL as the live reference environment, not the Replit preview URL.
 - Do not replace the existing database or assume the workspace database is
   separate from the live database. Database-writing regression tests require an
@@ -60,6 +62,8 @@ PDFs and minimal public verification; imports and question analytics.
 - Author all commits as Zohaib, not Replit Agent.
 - UI/UX must be professional, modern and creative, with micro-interactions, transitions and restrained animation.
 - Keep the application deployable on free tiers such as Vercel and Neon.
+- Preserve every PDF-required feature when adding reference-video functionality
+  and new UI/UX; additions must not remove existing required capabilities.
 
 ## Gotchas
 

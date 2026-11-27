@@ -12,6 +12,7 @@ This directory contains shareable evidence from development verification on
 | Sign-in browser follow-up | [Detailed report](reports/sign-in-2026-11-27.md) |
 | Automated regression checks | [Commands and outcomes](reports/regression-checks.md) |
 | Public Vercel deployment checks | [Read-only HTTP results](reports/live-smoke-2026-11-27.md) |
+| Live candidate-to-published-result journey | [Workflow results and limitations](reports/live-workflow-2026-11-27.md) |
 | Five screenshots returned by the browser tester | Retained as Replit observation images; no file export was exposed |
 | Replit interactive test replay | Review in the original Replit testing session; not exported here |
 | Downloadable video, Playwright trace or HAR from these runs | Not created by the recorded test setup |

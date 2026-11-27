@@ -22,3 +22,5 @@ export * from "./exams";
 export * from "./attempts";
 export * from "./incident-cases";
 export * from "./authorship";
+export * from "./delivery-settings";
+export * from "./admissions";

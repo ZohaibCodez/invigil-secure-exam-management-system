@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, boolean, integer, doublePrecision, jsonb, primaryKey, index, check } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { users } from "./auth";
+import type { DeliverySettings } from "./delivery-settings";
 
 export type QuestionData = {
   id: string;
@@ -49,6 +50,10 @@ export const exams = pgTable("exams", {
   blueprint: jsonb("blueprint").$type<BlueprintQuota[]>().notNull().default([]),
   resultsPublished: boolean("results_published").notNull().default(false),
   assistancePolicy: jsonb("assistance_policy").$type<AssistancePolicyData | null>(),
+  deliverySettings: jsonb("delivery_settings").$type<DeliverySettings>().notNull().default({
+    requireProctorApproval: false, requireReadiness: false, confirmSubjects: false,
+    lockOnSave: false, minimumAttemptPercent: 0, venue: "", sessionLabel: "",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 }, (t) => [
   index("exams_owner_idx").on(t.ownerId),

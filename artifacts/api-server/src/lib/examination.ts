@@ -4,6 +4,7 @@ import { db, exams, enrollments, attempts, announcements, questions, type Questi
 import { HttpError, type AppUser } from "./access";
 import { CreateExamBody, CreateQuestionBody } from "@workspace/api-zod";
 import { quotaTotals } from "./blueprint";
+import { settingsFor, entryVersion } from "./delivery";
 
 export type ExamRow = typeof exams.$inferSelect;
 export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -48,6 +49,7 @@ export async function examValues(input: unknown, user: AppUser, tx: Tx, previous
     duration: data.duration, startsAt, endsAt, questionSnapshot,
     totalMarks: quotaTotals(previous?.blueprint ?? [], questionSnapshot).totalMarks,
     randomize: data.randomize ?? true, passPercent: data.passPercent ?? 50, assistancePolicy,
+    deliverySettings: settingsFor(data.deliverySettings ?? previous?.deliverySettings),
   };
 }
 export function examStatus(e: ExamRow) {
@@ -68,6 +70,7 @@ export async function examView(e: ExamRow, user: AppUser) {
     submittedCount: submitted.filter(a => a.status !== "active").length, resultsPublished: e.resultsPublished,
     randomize: e.randomize, passPercent: e.passPercent, attemptId: own[0]?.id ?? null,
     attemptStatus: own[0]?.status ?? null, createdAt: e.createdAt.toISOString(), assistancePolicy: e.assistancePolicy,
+    deliverySettings: settingsFor(e.deliverySettings), entryVersion: entryVersion(e),
   };
 }
 export async function getAnnouncements(examId: string) {

@@ -29,6 +29,13 @@ export const GetSessionResponse = zod.object({
 export const getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMin = 5;
 export const getDashboardResponseExamsItemAssistancePolicyOneOneResourcesMax = 5000;
 
+export const getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMin = 0;
+export const getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const getDashboardResponseExamsItemDeliverySettingsVenueMax = 200;
+
+export const getDashboardResponseExamsItemDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const GetDashboardResponse = zod.object({
@@ -64,7 +71,17 @@ export const GetDashboardResponse = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMin).max(getDashboardResponseExamsItemDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(getDashboardResponseExamsItemDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(getDashboardResponseExamsItemDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 })),
   "activity": zod.array(zod.object({
   "id": zod.string(),
@@ -78,6 +95,13 @@ export const GetDashboardResponse = zod.object({
 
 export const listExamsResponseAssistancePolicyOneOneResourcesMin = 5;
 export const listExamsResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+export const listExamsResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const listExamsResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const listExamsResponseDeliverySettingsVenueMax = 200;
+
+export const listExamsResponseDeliverySettingsSessionLabelMax = 100;
 
 
 
@@ -106,7 +130,17 @@ export const ListExamsResponseItem = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(listExamsResponseDeliverySettingsMinimumAttemptPercentMin).max(listExamsResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(listExamsResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(listExamsResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 })
 export const ListExamsResponse = zod.array(ListExamsResponseItem)
 
@@ -131,6 +165,13 @@ export const createExamBodyPassPercentMax = 100;
 export const createExamBodyAssistancePolicyOneResourcesMin = 5;
 export const createExamBodyAssistancePolicyOneResourcesMax = 5000;
 
+export const createExamBodyDeliverySettingsMinimumAttemptPercentMin = 0;
+export const createExamBodyDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const createExamBodyDeliverySettingsVenueMax = 200;
+
+export const createExamBodyDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const CreateExamBody = zod.object({
@@ -147,11 +188,27 @@ export const CreateExamBody = zod.object({
   "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
   "resources": zod.string().min(createExamBodyAssistancePolicyOneResourcesMin).max(createExamBodyAssistancePolicyOneResourcesMax),
   "requireDisclosure": zod.boolean()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(createExamBodyDeliverySettingsMinimumAttemptPercentMin).max(createExamBodyDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(createExamBodyDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(createExamBodyDeliverySettingsSessionLabelMax)
+}).optional()
 })
 
 export const createExamResponseAssistancePolicyOneOneResourcesMin = 5;
 export const createExamResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+export const createExamResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const createExamResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const createExamResponseDeliverySettingsVenueMax = 200;
+
+export const createExamResponseDeliverySettingsSessionLabelMax = 100;
 
 
 
@@ -180,7 +237,17 @@ export const CreateExamResponse = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(createExamResponseDeliverySettingsMinimumAttemptPercentMin).max(createExamResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(createExamResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(createExamResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 })
 
 
@@ -190,6 +257,13 @@ export const GetExamParams = zod.object({
 
 export const getExamResponseOneAssistancePolicyOneOneResourcesMin = 5;
 export const getExamResponseOneAssistancePolicyOneOneResourcesMax = 5000;
+
+export const getExamResponseOneDeliverySettingsMinimumAttemptPercentMin = 0;
+export const getExamResponseOneDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const getExamResponseOneDeliverySettingsVenueMax = 200;
+
+export const getExamResponseOneDeliverySettingsSessionLabelMax = 100;
 
 export const getExamResponseTwoQuestionsItemOneTextMin = 5;
 export const getExamResponseTwoQuestionsItemOneTextMax = 10000;
@@ -233,7 +307,17 @@ export const GetExamResponse = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(getExamResponseOneDeliverySettingsMinimumAttemptPercentMin).max(getExamResponseOneDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(getExamResponseOneDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(getExamResponseOneDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 }).and(zod.object({
   "questions": zod.array(zod.object({
   "text": zod.string().min(getExamResponseTwoQuestionsItemOneTextMin).max(getExamResponseTwoQuestionsItemOneTextMax),
@@ -291,6 +375,13 @@ export const updateExamBodyPassPercentMax = 100;
 export const updateExamBodyAssistancePolicyOneResourcesMin = 5;
 export const updateExamBodyAssistancePolicyOneResourcesMax = 5000;
 
+export const updateExamBodyDeliverySettingsMinimumAttemptPercentMin = 0;
+export const updateExamBodyDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const updateExamBodyDeliverySettingsVenueMax = 200;
+
+export const updateExamBodyDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const UpdateExamBody = zod.object({
@@ -307,11 +398,27 @@ export const UpdateExamBody = zod.object({
   "mode": zod.enum(['closed_book', 'open_book', 'ai_disclosed']),
   "resources": zod.string().min(updateExamBodyAssistancePolicyOneResourcesMin).max(updateExamBodyAssistancePolicyOneResourcesMax),
   "requireDisclosure": zod.boolean()
-}),zod.null()]).optional()
+}),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(updateExamBodyDeliverySettingsMinimumAttemptPercentMin).max(updateExamBodyDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(updateExamBodyDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(updateExamBodyDeliverySettingsSessionLabelMax)
+}).optional()
 })
 
 export const updateExamResponseAssistancePolicyOneOneResourcesMin = 5;
 export const updateExamResponseAssistancePolicyOneOneResourcesMax = 5000;
+
+export const updateExamResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const updateExamResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const updateExamResponseDeliverySettingsVenueMax = 200;
+
+export const updateExamResponseDeliverySettingsSessionLabelMax = 100;
 
 
 
@@ -340,7 +447,17 @@ export const UpdateExamResponse = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(updateExamResponseDeliverySettingsMinimumAttemptPercentMin).max(updateExamResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(updateExamResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(updateExamResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 })
 
 
@@ -550,6 +667,13 @@ export const ExamActionBody = zod.object({
 export const examActionResponseAssistancePolicyOneOneResourcesMin = 5;
 export const examActionResponseAssistancePolicyOneOneResourcesMax = 5000;
 
+export const examActionResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const examActionResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const examActionResponseDeliverySettingsVenueMax = 200;
+
+export const examActionResponseDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const ExamActionResponse = zod.object({
@@ -577,7 +701,17 @@ export const ExamActionResponse = zod.object({
   "requireDisclosure": zod.boolean()
 }).and(zod.object({
   "version": zod.string()
-})),zod.null()]).optional()
+})),zod.null()]).optional(),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(examActionResponseDeliverySettingsMinimumAttemptPercentMin).max(examActionResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(examActionResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(examActionResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryVersion": zod.string().optional()
 })
 
 
@@ -605,11 +739,20 @@ export const StartAttemptParams = zod.object({
 export const startAttemptBodySandboxDefault = false;
 export const startAttemptBodyPolicyVersionMax = 100;
 
+export const startAttemptBodyEntryVersionMax = 100;
+
+export const startAttemptBodyAdmissionIdMax = 100;
+
 
 
 export const StartAttemptBody = zod.object({
   "sandbox": zod.boolean().default(startAttemptBodySandboxDefault),
-  "policyVersion": zod.string().max(startAttemptBodyPolicyVersionMax).optional()
+  "policyVersion": zod.string().max(startAttemptBodyPolicyVersionMax).optional(),
+  "entryVersion": zod.string().max(startAttemptBodyEntryVersionMax).optional(),
+  "admissionId": zod.string().max(startAttemptBodyAdmissionIdMax).optional(),
+  "instructionsRead": zod.boolean().optional(),
+  "deviceReady": zod.boolean().optional(),
+  "subjectsConfirmed": zod.boolean().optional()
 })
 
 export const startAttemptResponseQuestionsItemOneTextMin = 5;
@@ -632,6 +775,13 @@ export const startAttemptResponseAnswersItemValueMax = 20000;
 export const startAttemptResponseAnswersItemRevisionMin = 0;
 
 export const startAttemptResponseScratchpadVersionMin = 0;
+
+export const startAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const startAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const startAttemptResponseDeliverySettingsVenueMax = 200;
+
+export const startAttemptResponseDeliverySettingsSessionLabelMax = 100;
 
 
 
@@ -667,7 +817,8 @@ export const StartAttemptResponse = zod.object({
   "markedForReview": zod.boolean(),
   "revision": zod.int().min(startAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
-  "feedback": zod.string().nullish()
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -678,7 +829,264 @@ export const StartAttemptResponse = zod.object({
   "id": zod.string(),
   "message": zod.string(),
   "createdAt": zod.string()
-}))
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(startAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(startAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(startAttemptResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(startAttemptResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional()
+})
+
+
+export const GetEntryInformationParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const getEntryInformationResponseSettingsMinimumAttemptPercentMin = 0;
+export const getEntryInformationResponseSettingsMinimumAttemptPercentMax = 100;
+
+export const getEntryInformationResponseSettingsVenueMax = 200;
+
+export const getEntryInformationResponseSettingsSessionLabelMax = 100;
+
+
+
+export const GetEntryInformationResponse = zod.object({
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateId": zod.string(),
+  "candidateName": zod.string(),
+  "subjects": zod.array(zod.string()),
+  "questionCount": zod.int(),
+  "totalMarks": zod.number(),
+  "duration": zod.int(),
+  "startsAt": zod.string(),
+  "endsAt": zod.string(),
+  "serverNow": zod.string(),
+  "entryVersion": zod.string(),
+  "settings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(getEntryInformationResponseSettingsMinimumAttemptPercentMin).max(getEntryInformationResponseSettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(getEntryInformationResponseSettingsVenueMax),
+  "sessionLabel": zod.string().max(getEntryInformationResponseSettingsSessionLabelMax)
+})
+})
+
+
+export const ListAdmissionsParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const ListAdmissionsResponseItem = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateId": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'denied', 'consumed', 'expired']),
+  "requestedAt": zod.string(),
+  "expiresAt": zod.string(),
+  "decidedAt": zod.string().nullable(),
+  "reviewerName": zod.string().nullable(),
+  "reason": zod.string(),
+  "serverNow": zod.string()
+})
+export const ListAdmissionsResponse = zod.array(ListAdmissionsResponseItem)
+
+
+export const RequestAdmissionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const RequestAdmissionResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateId": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'denied', 'consumed', 'expired']),
+  "requestedAt": zod.string(),
+  "expiresAt": zod.string(),
+  "decidedAt": zod.string().nullable(),
+  "reviewerName": zod.string().nullable(),
+  "reason": zod.string(),
+  "serverNow": zod.string()
+})
+
+
+export const GetAdmissionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetAdmissionResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateId": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'denied', 'consumed', 'expired']),
+  "requestedAt": zod.string(),
+  "expiresAt": zod.string(),
+  "decidedAt": zod.string().nullable(),
+  "reviewerName": zod.string().nullable(),
+  "reason": zod.string(),
+  "serverNow": zod.string()
+})
+
+
+export const DecideAdmissionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const decideAdmissionBodyReasonMax = 1000;
+
+
+
+export const DecideAdmissionBody = zod.object({
+  "decision": zod.enum(['approve', 'deny']),
+  "reason": zod.string().max(decideAdmissionBodyReasonMax).optional()
+})
+
+export const DecideAdmissionResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateId": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['pending', 'approved', 'denied', 'consumed', 'expired']),
+  "requestedAt": zod.string(),
+  "expiresAt": zod.string(),
+  "decidedAt": zod.string().nullable(),
+  "reviewerName": zod.string().nullable(),
+  "reason": zod.string(),
+  "serverNow": zod.string()
+})
+
+
+export const CommitQuestionParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const commitQuestionBodyValueMax = 20000;
+
+export const commitQuestionBodyRevisionMin = 0;
+
+
+
+export const CommitQuestionBody = zod.object({
+  "questionId": zod.string(),
+  "value": zod.string().max(commitQuestionBodyValueMax),
+  "markedForReview": zod.boolean(),
+  "revision": zod.int().min(commitQuestionBodyRevisionMin)
+})
+
+export const commitQuestionResponseQuestionsItemOneTextMin = 5;
+export const commitQuestionResponseQuestionsItemOneTextMax = 10000;
+
+export const commitQuestionResponseQuestionsItemOneCategoryMax = 100;
+
+export const commitQuestionResponseQuestionsItemOneMarksMax = 1000;
+
+export const commitQuestionResponseQuestionsItemOneOptionsItemTextMax = 2000;
+
+export const commitQuestionResponseQuestionsItemOneOptionsMax = 10;
+
+export const commitQuestionResponseQuestionsItemOneCorrectAnswersMax = 10;
+
+export const commitQuestionResponseQuestionsItemOneExplanationMax = 5000;
+
+export const commitQuestionResponseAnswersItemValueMax = 20000;
+
+export const commitQuestionResponseAnswersItemRevisionMin = 0;
+
+export const commitQuestionResponseScratchpadVersionMin = 0;
+
+export const commitQuestionResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const commitQuestionResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const commitQuestionResponseDeliverySettingsVenueMax = 200;
+
+export const commitQuestionResponseDeliverySettingsSessionLabelMax = 100;
+
+
+
+export const CommitQuestionResponse = zod.object({
+  "id": zod.string(),
+  "examId": zod.string(),
+  "examTitle": zod.string(),
+  "candidateName": zod.string(),
+  "status": zod.enum(['active', 'submitted', 'graded']),
+  "startedAt": zod.string(),
+  "deadline": zod.string(),
+  "serverNow": zod.string(),
+  "submittedAt": zod.string().nullish(),
+  "questions": zod.array(zod.object({
+  "text": zod.string().min(commitQuestionResponseQuestionsItemOneTextMin).max(commitQuestionResponseQuestionsItemOneTextMax),
+  "type": zod.enum(['single', 'multiple', 'written']),
+  "category": zod.string().min(1).max(commitQuestionResponseQuestionsItemOneCategoryMax),
+  "difficulty": zod.enum(['easy', 'medium', 'hard']),
+  "marks": zod.number().min(1).max(commitQuestionResponseQuestionsItemOneMarksMax),
+  "options": zod.array(zod.object({
+  "id": zod.string(),
+  "text": zod.string().min(1).max(commitQuestionResponseQuestionsItemOneOptionsItemTextMax)
+})).max(commitQuestionResponseQuestionsItemOneOptionsMax),
+  "correctAnswers": zod.array(zod.string()).max(commitQuestionResponseQuestionsItemOneCorrectAnswersMax),
+  "explanation": zod.string().max(commitQuestionResponseQuestionsItemOneExplanationMax).optional()
+}).and(zod.object({
+  "id": zod.string(),
+  "createdAt": zod.string().optional()
+}))),
+  "answers": zod.array(zod.object({
+  "questionId": zod.string(),
+  "value": zod.string().max(commitQuestionResponseAnswersItemValueMax).describe('Written text or JSON array of selected option IDs'),
+  "markedForReview": zod.boolean(),
+  "revision": zod.int().min(commitQuestionResponseAnswersItemRevisionMin),
+  "score": zod.number().nullish(),
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
+})),
+  "sandbox": zod.boolean(),
+  "totalMarks": zod.number(),
+  "score": zod.number().nullish(),
+  "scratchpad": zod.string(),
+  "scratchpadVersion": zod.int().min(commitQuestionResponseScratchpadVersionMin).optional(),
+  "announcements": zod.array(zod.object({
+  "id": zod.string(),
+  "message": zod.string(),
+  "createdAt": zod.string()
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(commitQuestionResponseDeliverySettingsMinimumAttemptPercentMin).max(commitQuestionResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(commitQuestionResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(commitQuestionResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional()
 })
 
 
@@ -1013,6 +1421,13 @@ export const getAttemptResponseAnswersItemRevisionMin = 0;
 
 export const getAttemptResponseScratchpadVersionMin = 0;
 
+export const getAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const getAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const getAttemptResponseDeliverySettingsVenueMax = 200;
+
+export const getAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const GetAttemptResponse = zod.object({
@@ -1047,7 +1462,8 @@ export const GetAttemptResponse = zod.object({
   "markedForReview": zod.boolean(),
   "revision": zod.int().min(getAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
-  "feedback": zod.string().nullish()
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1058,7 +1474,24 @@ export const GetAttemptResponse = zod.object({
   "id": zod.string(),
   "message": zod.string(),
   "createdAt": zod.string()
-}))
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(getAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(getAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(getAttemptResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(getAttemptResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional()
 })
 
 
@@ -1089,7 +1522,8 @@ export const SaveAnswersBody = zod.object({
   "markedForReview": zod.boolean(),
   "revision": zod.int().min(saveAnswersBodyAnswersItemRevisionMin),
   "score": zod.number().nullish(),
-  "feedback": zod.string().nullish()
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
 })).max(saveAnswersBodyAnswersMax),
   "scratchpad": zod.string().max(saveAnswersBodyScratchpadMax).optional(),
   "scratchpadVersion": zod.int().min(saveAnswersBodyScratchpadVersionMin).optional()
@@ -1133,6 +1567,13 @@ export const submitAttemptResponseAnswersItemRevisionMin = 0;
 
 export const submitAttemptResponseScratchpadVersionMin = 0;
 
+export const submitAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const submitAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const submitAttemptResponseDeliverySettingsVenueMax = 200;
+
+export const submitAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const SubmitAttemptResponse = zod.object({
@@ -1167,7 +1608,8 @@ export const SubmitAttemptResponse = zod.object({
   "markedForReview": zod.boolean(),
   "revision": zod.int().min(submitAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
-  "feedback": zod.string().nullish()
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1178,7 +1620,24 @@ export const SubmitAttemptResponse = zod.object({
   "id": zod.string(),
   "message": zod.string(),
   "createdAt": zod.string()
-}))
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(submitAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(submitAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(submitAttemptResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(submitAttemptResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional()
 })
 
 
@@ -1511,6 +1970,13 @@ export const gradeAttemptResponseAnswersItemRevisionMin = 0;
 
 export const gradeAttemptResponseScratchpadVersionMin = 0;
 
+export const gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMin = 0;
+export const gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMax = 100;
+
+export const gradeAttemptResponseDeliverySettingsVenueMax = 200;
+
+export const gradeAttemptResponseDeliverySettingsSessionLabelMax = 100;
+
 
 
 export const GradeAttemptResponse = zod.object({
@@ -1545,7 +2011,8 @@ export const GradeAttemptResponse = zod.object({
   "markedForReview": zod.boolean(),
   "revision": zod.int().min(gradeAttemptResponseAnswersItemRevisionMin),
   "score": zod.number().nullish(),
-  "feedback": zod.string().nullish()
+  "feedback": zod.string().nullish(),
+  "lockedAt": zod.string().nullish()
 })),
   "sandbox": zod.boolean(),
   "totalMarks": zod.number(),
@@ -1556,7 +2023,24 @@ export const GradeAttemptResponse = zod.object({
   "id": zod.string(),
   "message": zod.string(),
   "createdAt": zod.string()
-}))
+})),
+  "deliverySettings": zod.object({
+  "requireProctorApproval": zod.boolean(),
+  "requireReadiness": zod.boolean(),
+  "confirmSubjects": zod.boolean(),
+  "lockOnSave": zod.boolean(),
+  "minimumAttemptPercent": zod.int().min(gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMin).max(gradeAttemptResponseDeliverySettingsMinimumAttemptPercentMax),
+  "venue": zod.string().max(gradeAttemptResponseDeliverySettingsVenueMax),
+  "sessionLabel": zod.string().max(gradeAttemptResponseDeliverySettingsSessionLabelMax)
+}).optional(),
+  "entryAttestation": zod.union([zod.object({
+  "entryVersion": zod.string(),
+  "instructionsRead": zod.boolean(),
+  "deviceReady": zod.boolean(),
+  "subjectsConfirmed": zod.boolean(),
+  "recordedAt": zod.string(),
+  "admissionId": zod.string().nullable()
+}),zod.null()]).optional()
 })
 
 

@@ -2,9 +2,10 @@ import { Router, type IRouter } from "express";
 import { and, eq } from "@workspace/db";
 import { randomUUID } from "node:crypto";
 import { db, attempts, exams, saveOperations, incidents, type AnswerData } from "@workspace/db";
-import { SaveAnswersBody, RecordEventBody, GradeAttemptBody, GetAttemptResponse } from "@workspace/api-zod";
+import { SaveAnswersBody, RecordEventBody, GradeAttemptBody, GetAttemptResponse, CommitQuestionBody } from "@workspace/api-zod";
 import { paramId, HttpError, requireStaff } from "../lib/access";
-import { authorizedAttempt, finalizeIfExpired, attemptView, databaseNow, finalizeLocked, validateAnswer } from "../lib/attempts";
+import { authorizedAttempt, finalizeIfExpired, attemptView, databaseNow, finalizeLocked, validateAnswer, hasAnswer } from "../lib/attempts";
+import { settingsFor } from "../lib/delivery";
 
 const router: IRouter = Router();
 router.get("/attempts/:id", async (req, res): Promise<void> => {
@@ -36,6 +37,8 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
       if (!Number.isSafeInteger(incoming.revision)) throw new HttpError(400, "Invalid answer revision.");
       const index = answers.findIndex(ans => ans.questionId === incoming.questionId);
       const old = answers[index];
+      if (old?.lockedAt && incoming.value !== old.value)
+        return { savedAt: locked!.lastSavedAt.toISOString(), accepted: false, conflict: "answer", scratchpadVersion: locked!.scratchpadVersion, serverNow: now.toISOString() };
       if (old && incoming.revision <= old.revision) {
         if (incoming.value !== old.value || incoming.markedForReview !== old.markedForReview) {
           // A stale tab is recoverable: distinguish it from a closed attempt.
@@ -44,7 +47,7 @@ router.put("/attempts/:id/answers", async (req, res): Promise<void> => {
         }
         continue;
       }
-      const accepted: AnswerData = { questionId: incoming.questionId, value: incoming.value, markedForReview: incoming.markedForReview, revision: incoming.revision, score: null, feedback: null };
+      const accepted: AnswerData = { questionId: incoming.questionId, value: incoming.value, markedForReview: incoming.markedForReview, revision: incoming.revision, score: null, feedback: null, lockedAt: old?.lockedAt ?? null };
       if (index < 0) answers.push(accepted); else answers[index] = accepted;
     }
     const scratchpadVersion = locked!.scratchpadVersion + (input.scratchpad !== undefined ? 1 : 0);
@@ -64,9 +67,53 @@ router.post("/attempts/:id/submit", async (req, res): Promise<void> => {
   const a = await authorizedAttempt(paramId(req), req.appUser, true);
   const result = await db.transaction(async tx => {
     const [locked] = await tx.select().from(attempts).where(eq(attempts.id, a.id)).for("update");
+    const now = await databaseNow(tx);
+    const minimum = settingsFor(locked!.deliverySettings).minimumAttemptPercent;
+    if (locked!.status === "active" && now < locked!.deadline && minimum > 0) {
+      const answered = locked!.questions.filter(q => hasAnswer(q, locked!.answers.find(ans => ans.questionId === q.id)?.value)).length;
+      const needed = Math.ceil(locked!.questions.length * minimum / 100);
+      if (answered < needed) throw new HttpError(409, `This examination requires ${needed} answered questions before manual submission. Expiry still finalizes accepted answers automatically.`);
+    }
     return finalizeLocked(tx, locked!);
   });
   res.json(await attemptView(result, req.appUser));
+});
+router.post("/attempts/:id/commit-question", async (req, res): Promise<void> => {
+  const original = await authorizedAttempt(paramId(req), req.appUser, true);
+  const input = CommitQuestionBody.parse(req.body);
+  const result = await db.transaction(async tx => {
+    const [locked] = await tx.select().from(attempts).where(eq(attempts.id, original.id)).for("update");
+    const now = await databaseNow(tx);
+    if (locked!.status !== "active" || now >= locked!.deadline) {
+      if (locked!.status === "active") await finalizeLocked(tx, locked!);
+      return null;
+    }
+    if (!settingsFor(locked!.deliverySettings).lockOnSave)
+      throw new HttpError(409, "Save-and-lock is not enabled for this attempt.");
+    const question = locked!.questions.find(q => q.id === input.questionId);
+    if (!question) throw new HttpError(400, "This question is not assigned to the attempt.");
+    validateAnswer(input.value, question);
+    if (!hasAnswer(question, input.value)) throw new HttpError(400, "Choose or write an answer before locking it. Use Skip for a blank question.");
+    if (!Number.isSafeInteger(input.revision)) throw new HttpError(400, "Invalid answer revision.");
+    const previous = locked!.answers.find(ans => ans.questionId === question.id);
+    if (previous?.lockedAt) {
+      if (previous.value !== input.value) throw new HttpError(409, "This answer was already locked and cannot be changed.");
+      return locked!;
+    }
+    if (previous && input.revision < previous.revision)
+      throw new HttpError(409, "A newer answer is on the server. Reload before locking.");
+    const answer: AnswerData = {
+      questionId: question.id, value: input.value, markedForReview: input.markedForReview,
+      revision: Math.max(input.revision, (previous?.revision ?? 0) + 1),
+      score: null, feedback: null, lockedAt: now.toISOString(),
+    };
+    const answers = [...locked!.answers.filter(ans => ans.questionId !== question.id), answer];
+    const [updated] = await tx.update(attempts).set({ answers, lastSavedAt: now })
+      .where(eq(attempts.id, original.id)).returning();
+    return updated!;
+  });
+  if (!result) { res.status(409).json({ error: "The attempt is closed. No new answer was locked." }); return; }
+  res.json(GetAttemptResponse.parse(await attemptView(result, req.appUser)));
 });
 router.post("/attempts/:id/events", async (req, res): Promise<void> => {
   const a = await authorizedAttempt(paramId(req), req.appUser, true);

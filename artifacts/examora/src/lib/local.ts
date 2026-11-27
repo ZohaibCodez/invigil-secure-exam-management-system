@@ -6,6 +6,8 @@ export interface LocalAnswer {
   value: string;
   markedForReview: boolean;
   revision: number;
+  /** Server-confirmed immutable lock time (save-and-lock mode). Never set locally. */
+  lockedAt?: string | null;
 }
 export interface AttemptDraft {
   answers: Record<string, LocalAnswer>;
@@ -18,6 +20,8 @@ export interface AttemptDraft {
   scratchVersion?: number;
   lastSyncedAt: string | null;
   current: number;
+  /** Question IDs the candidate has actually opened. */
+  visited?: string[];
 }
 export interface Prefs {
   examFont: 'sm' | 'md' | 'lg';

@@ -3,6 +3,7 @@ import { and, eq, inArray, sql } from "@workspace/db";
 import { db, attempts, exams, users, type AnswerData, type QuestionData } from "@workspace/db";
 import { HttpError, ownedExam, type AppUser } from "./access";
 import { getAnnouncements, type Tx } from "./examination";
+import { settingsFor } from "./delivery";
 
 export type AttemptRow = typeof attempts.$inferSelect;
 export function selectedOptions(value: string) {
@@ -39,6 +40,7 @@ export async function finalizeLocked(tx: Tx, attempt: AttemptRow) {
       questionId: q.id, value, markedForReview: a?.markedForReview ?? false, revision: a?.revision ?? 0,
       score: q.type === "written" ? (hasAnswer(q, value) ? null : 0) : objectiveScore(q, value),
       feedback: null,
+      lockedAt: a?.lockedAt ?? null,
     };
   });
   const complete = answers.every(a => a.score !== null);
@@ -86,6 +88,7 @@ export async function attemptView(a: AttemptRow, user: AppUser) {
     answers: a.answers.map(ans => reveal ? ans : { ...ans, score: null, feedback: null }),
     sandbox: a.sandbox, totalMarks: a.totalMarks, score: reveal ? a.score : null,
     scratchpad: a.scratchpad, scratchpadVersion: a.scratchpadVersion, announcements: await getAnnouncements(a.examId),
+    deliverySettings: settingsFor(a.deliverySettings), entryAttestation: a.entryAttestation,
   };
 }
 export const reportToken = () => randomBytes(24).toString("hex");

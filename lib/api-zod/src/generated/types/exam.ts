@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { AssistancePolicy } from './assistancePolicy';
+import type { DeliverySettings } from './deliverySettings';
 import type { ExamStatus } from './examStatus';
 
 export interface Exam {
@@ -30,4 +31,6 @@ export interface Exam {
   attemptStatus?: string | null;
   createdAt?: string;
   assistancePolicy?: AssistancePolicy | null;
+  deliverySettings?: DeliverySettings;
+  entryVersion?: string;
 }

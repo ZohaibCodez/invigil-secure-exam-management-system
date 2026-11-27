@@ -241,6 +241,22 @@ export interface AssistancePolicyInput {
   requireDisclosure: boolean;
 }
 
+export interface DeliverySettings {
+  requireProctorApproval: boolean;
+  requireReadiness: boolean;
+  confirmSubjects: boolean;
+  lockOnSave: boolean;
+  /**
+     * @minimum 0
+     * @maximum 100
+     */
+  minimumAttemptPercent: number;
+  /** @maxLength 200 */
+  venue: string;
+  /** @maxLength 100 */
+  sessionLabel: string;
+}
+
 export interface ExamInput {
   /**
      * @minLength 3
@@ -270,6 +286,84 @@ export interface ExamInput {
      */
   passPercent?: number;
   assistancePolicy?: AssistancePolicyInput | null;
+  deliverySettings?: DeliverySettings;
+}
+
+export interface EntryInformation {
+  examId: string;
+  examTitle: string;
+  candidateId: string;
+  candidateName: string;
+  subjects: string[];
+  questionCount: number;
+  totalMarks: number;
+  duration: number;
+  startsAt: string;
+  endsAt: string;
+  serverNow: string;
+  entryVersion: string;
+  settings: DeliverySettings;
+}
+
+export type AdmissionStatus = typeof AdmissionStatus[keyof typeof AdmissionStatus];
+
+
+export const AdmissionStatus = {
+  pending: 'pending',
+  approved: 'approved',
+  denied: 'denied',
+  consumed: 'consumed',
+  expired: 'expired',
+} as const;
+
+export interface Admission {
+  id: string;
+  examId: string;
+  examTitle: string;
+  candidateId: string;
+  candidateName: string;
+  status: AdmissionStatus;
+  requestedAt: string;
+  expiresAt: string;
+  /** @nullable */
+  decidedAt: string | null;
+  /** @nullable */
+  reviewerName: string | null;
+  reason: string;
+  serverNow: string;
+}
+
+export type AdmissionDecisionInputDecision = typeof AdmissionDecisionInputDecision[keyof typeof AdmissionDecisionInputDecision];
+
+
+export const AdmissionDecisionInputDecision = {
+  approve: 'approve',
+  deny: 'deny',
+} as const;
+
+export interface AdmissionDecisionInput {
+  decision: AdmissionDecisionInputDecision;
+  /** @maxLength 1000 */
+  reason?: string;
+}
+
+export interface EntryAttestation {
+  entryVersion: string;
+  instructionsRead: boolean;
+  deviceReady: boolean;
+  subjectsConfirmed: boolean;
+  recordedAt: string;
+  /** @nullable */
+  admissionId: string | null;
+}
+
+export interface QuestionCommitInput {
+  questionId: string;
+  /** @maxLength 20000 */
+  value: string;
+  markedForReview: boolean;
+  /** @minimum 0 */
+  revision: number;
 }
 
 export type AssistancePolicy = AssistancePolicyInput & {
@@ -308,6 +402,8 @@ export interface Exam {
   attemptStatus?: string | null;
   createdAt?: string;
   assistancePolicy?: AssistancePolicy | null;
+  deliverySettings?: DeliverySettings;
+  entryVersion?: string;
 }
 
 export interface Announcement {
@@ -347,6 +443,13 @@ export interface AttemptInput {
   sandbox?: boolean;
   /** @maxLength 100 */
   policyVersion?: string;
+  /** @maxLength 100 */
+  entryVersion?: string;
+  /** @maxLength 100 */
+  admissionId?: string;
+  instructionsRead?: boolean;
+  deviceReady?: boolean;
+  subjectsConfirmed?: boolean;
 }
 
 export interface Answer {
@@ -363,6 +466,8 @@ export interface Answer {
   score?: number | null;
   /** @nullable */
   feedback?: string | null;
+  /** @nullable */
+  lockedAt?: string | null;
 }
 
 export interface AnswerBatch {
@@ -507,6 +612,8 @@ export interface Attempt {
   /** @minimum 0 */
   scratchpadVersion?: number;
   announcements: Announcement[];
+  deliverySettings?: DeliverySettings;
+  entryAttestation?: EntryAttestation | null;
 }
 
 export interface DisclosureInput {

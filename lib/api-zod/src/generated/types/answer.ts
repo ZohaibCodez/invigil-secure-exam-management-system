@@ -20,4 +20,6 @@ export interface Answer {
   score?: number | null;
   /** @nullable */
   feedback?: string | null;
+  /** @nullable */
+  lockedAt?: string | null;
 }
