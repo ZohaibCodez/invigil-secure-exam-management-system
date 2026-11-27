@@ -591,6 +591,8 @@ paths:
   /analytics:
     get:
       operationId: getAnalytics
+      parameters:
+        - { name: examId, in: query, required: false, schema: { type: string, maxLength: 100 }, description: "Limit statistics to one examination" }
       responses:
         "200":
           description: Actual submission analytics
@@ -670,6 +672,7 @@ components:
         options: { type: array, items: { $ref: "#/components/schemas/QuestionOption" }, maxItems: 10 }
         correctAnswers: { type: array, items: { type: string }, maxItems: 10 }
         explanation: { type: string, maxLength: 5000 }
+        scoring: { type: string, enum: [exact, partial], default: exact, description: "Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0." }
     Question:
       allOf:
         - { $ref: "#/components/schemas/QuestionInput" }
@@ -1226,6 +1229,21 @@ components:
         skipped: { type: integer }
         correct: { type: integer }
         accuracy: { type: number }
+        observedDifficulty: { type: [string, "null"], enum: [easy, medium, hard, null], description: "From accuracy: 70%+ easy, 40-69% medium, below 40% hard. Null below 2 responses." }
+        difficultyMismatch: { type: boolean, description: "Observed difficulty differs from the label" }
+        commonWrong:
+          anyOf:
+            - { $ref: "#/components/schemas/WrongOption" }
+            - { type: "null" }
+    WrongOption:
+      type: object
+      description: Most frequently chosen incorrect option
+      required: [optionId, text, count, share]
+      properties:
+        optionId: { type: string }
+        text: { type: string }
+        count: { type: integer }
+        share: { type: number, description: "Percentage of responses that chose this option" }
     Analytics:
       type: object
       required: [totalAttempts, averageScore, passRate, completionRate, questions, distribution]
@@ -1236,6 +1254,21 @@ components:
         completionRate: { type: number }
         questions: { type: array, items: { $ref: "#/components/schemas/QuestionMetric" } }
         distribution: { type: array, items: { $ref: "#/components/schemas/ScoreBucket" } }
+        exams: { type: array, items: { $ref: "#/components/schemas/ExamSummary" } }
+    ExamSummary:
+      type: object
+      description: Examination-level performance from graded, non-sandbox submissions (percentages).
+      required: [examId, title, submissions, graded, mean, median, highest, lowest, passRate]
+      properties:
+        examId: { type: string }
+        title: { type: string }
+        submissions: { type: integer }
+        graded: { type: integer }
+        mean: { type: [number, "null"] }
+        median: { type: [number, "null"] }
+        highest: { type: [number, "null"] }
+        lowest: { type: [number, "null"] }
+        passRate: { type: [number, "null"] }
     ScoreBucket:
       type: object
       required: [label, count]

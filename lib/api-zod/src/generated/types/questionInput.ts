@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { QuestionInputDifficulty } from './questionInputDifficulty';
+import type { QuestionInputScoring } from './questionInputScoring';
 import type { QuestionInputType } from './questionInputType';
 import type { QuestionOption } from './questionOption';
 
@@ -33,4 +34,6 @@ export interface QuestionInput {
   correctAnswers: string[];
   /** @maxLength 5000 */
   explanation?: string;
+  /** Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0. */
+  scoring?: QuestionInputScoring;
 }

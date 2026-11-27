@@ -5,6 +5,7 @@
  * Examora secure examination platform
  * OpenAPI spec version: 1.0.0
  */
+import type { ExamSummary } from './examSummary';
 import type { QuestionMetric } from './questionMetric';
 import type { ScoreBucket } from './scoreBucket';
 
@@ -15,4 +16,5 @@ export interface Analytics {
   completionRate: number;
   questions: QuestionMetric[];
   distribution: ScoreBucket[];
+  exams?: ExamSummary[];
 }

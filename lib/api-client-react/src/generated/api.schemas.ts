@@ -101,6 +101,17 @@ export const QuestionInputDifficulty = {
   hard: 'hard',
 } as const;
 
+/**
+ * Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.
+ */
+export type QuestionInputScoring = typeof QuestionInputScoring[keyof typeof QuestionInputScoring];
+
+
+export const QuestionInputScoring = {
+  exact: 'exact',
+  partial: 'partial',
+} as const;
+
 export interface QuestionInput {
   /**
      * @minLength 5
@@ -125,6 +136,8 @@ export interface QuestionInput {
   correctAnswers: string[];
   /** @maxLength 5000 */
   explanation?: string;
+  /** Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0. */
+  scoring?: QuestionInputScoring;
 }
 
 export type Question = QuestionInput & {
@@ -898,6 +911,30 @@ export interface Dashboard {
   activity: Activity[];
 }
 
+/**
+ * From accuracy: 70%+ easy, 40-69% medium, below 40% hard. Null below 2 responses.
+ * @nullable
+ */
+export type QuestionMetricObservedDifficulty = typeof QuestionMetricObservedDifficulty[keyof typeof QuestionMetricObservedDifficulty] | null;
+
+
+export const QuestionMetricObservedDifficulty = {
+  easy: 'easy',
+  medium: 'medium',
+  hard: 'hard',
+} as const;
+
+/**
+ * Most frequently chosen incorrect option
+ */
+export interface WrongOption {
+  optionId: string;
+  text: string;
+  count: number;
+  /** Percentage of responses that chose this option */
+  share: number;
+}
+
 export interface QuestionMetric {
   id: string;
   text: string;
@@ -907,11 +944,39 @@ export interface QuestionMetric {
   skipped: number;
   correct: number;
   accuracy: number;
+  /**
+     * From accuracy: 70%+ easy, 40-69% medium, below 40% hard. Null below 2 responses.
+     * @nullable
+     */
+  observedDifficulty?: QuestionMetricObservedDifficulty;
+  /** Observed difficulty differs from the label */
+  difficultyMismatch?: boolean;
+  commonWrong?: WrongOption | null;
 }
 
 export interface ScoreBucket {
   label: string;
   count: number;
+}
+
+/**
+ * Examination-level performance from graded, non-sandbox submissions (percentages).
+ */
+export interface ExamSummary {
+  examId: string;
+  title: string;
+  submissions: number;
+  graded: number;
+  /** @nullable */
+  mean: number | null;
+  /** @nullable */
+  median: number | null;
+  /** @nullable */
+  highest: number | null;
+  /** @nullable */
+  lowest: number | null;
+  /** @nullable */
+  passRate: number | null;
 }
 
 export interface Analytics {
@@ -921,6 +986,7 @@ export interface Analytics {
   completionRate: number;
   questions: QuestionMetric[];
   distribution: ScoreBucket[];
+  exams?: ExamSummary[];
 }
 
 export type ImportInputKind = typeof ImportInputKind[keyof typeof ImportInputKind];
@@ -959,4 +1025,12 @@ export interface ReportVerification {
   totalMarks: number;
   issuedAt: string;
 }
+
+export type GetAnalyticsParams = {
+/**
+ * Limit statistics to one examination
+ * @maxLength 100
+ */
+examId?: string;
+};
 

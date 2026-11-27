@@ -29,7 +29,8 @@ export function validateQuestion(input: unknown): Omit<QuestionData, "id"> {
     if (!data.correctAnswers.length || data.correctAnswers.some(id => !data.options.some(o => o.id === id))) throw new HttpError(400, "Select valid correct options.");
     if (data.type === "single" && data.correctAnswers.length !== 1) throw new HttpError(400, "Single-answer questions need exactly one correct option.");
   }
-  return data;
+  // Partial credit only applies to multiple-select questions.
+  return { ...data, scoring: data.type === "multiple" && data.scoring === "partial" ? "partial" : "exact" };
 }
 export async function examValues(input: unknown, user: AppUser, tx: Tx, previous?: ExamRow) {
   const data = CreateExamBody.parse(input);

@@ -298,7 +298,7 @@ export const getExamResponseTwoQuestionsItemOneCorrectAnswersMax = 10;
 
 export const getExamResponseTwoQuestionsItemOneExplanationMax = 5000;
 
-
+export const getExamResponseTwoQuestionsItemOneScoringDefault = `exact`;
 
 export const GetExamResponse = zod.object({
   "id": zod.string(),
@@ -350,7 +350,8 @@ export const GetExamResponse = zod.object({
   "text": zod.string().min(1).max(getExamResponseTwoQuestionsItemOneOptionsItemTextMax)
 })).max(getExamResponseTwoQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(getExamResponseTwoQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(getExamResponseTwoQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(getExamResponseTwoQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(getExamResponseTwoQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -803,6 +804,7 @@ export const startAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const startAttemptResponseQuestionsItemOneExplanationMax = 5000;
 
+export const startAttemptResponseQuestionsItemOneScoringDefault = `exact`;
 export const startAttemptResponseAnswersItemValueMax = 20000;
 
 export const startAttemptResponseAnswersItemRevisionMin = 0;
@@ -845,7 +847,8 @@ export const StartAttemptResponse = zod.object({
   "text": zod.string().min(1).max(startAttemptResponseQuestionsItemOneOptionsItemTextMax)
 })).max(startAttemptResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(startAttemptResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(startAttemptResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(startAttemptResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(startAttemptResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1070,6 +1073,7 @@ export const commitQuestionResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const commitQuestionResponseQuestionsItemOneExplanationMax = 5000;
 
+export const commitQuestionResponseQuestionsItemOneScoringDefault = `exact`;
 export const commitQuestionResponseAnswersItemValueMax = 20000;
 
 export const commitQuestionResponseAnswersItemRevisionMin = 0;
@@ -1112,7 +1116,8 @@ export const CommitQuestionResponse = zod.object({
   "text": zod.string().min(1).max(commitQuestionResponseQuestionsItemOneOptionsItemTextMax)
 })).max(commitQuestionResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(commitQuestionResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(commitQuestionResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(commitQuestionResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(commitQuestionResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1244,7 +1249,7 @@ export const listQuestionsResponseOneCorrectAnswersMax = 10;
 
 export const listQuestionsResponseOneExplanationMax = 5000;
 
-
+export const listQuestionsResponseOneScoringDefault = `exact`;
 
 export const ListQuestionsResponseItem = zod.object({
   "text": zod.string().min(listQuestionsResponseOneTextMin).max(listQuestionsResponseOneTextMax),
@@ -1257,7 +1262,8 @@ export const ListQuestionsResponseItem = zod.object({
   "text": zod.string().min(1).max(listQuestionsResponseOneOptionsItemTextMax)
 })).max(listQuestionsResponseOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(listQuestionsResponseOneCorrectAnswersMax),
-  "explanation": zod.string().max(listQuestionsResponseOneExplanationMax).optional()
+  "explanation": zod.string().max(listQuestionsResponseOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(listQuestionsResponseOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1280,7 +1286,7 @@ export const createQuestionBodyCorrectAnswersMax = 10;
 
 export const createQuestionBodyExplanationMax = 5000;
 
-
+export const createQuestionBodyScoringDefault = `exact`;
 
 export const CreateQuestionBody = zod.object({
   "text": zod.string().min(createQuestionBodyTextMin).max(createQuestionBodyTextMax),
@@ -1293,7 +1299,8 @@ export const CreateQuestionBody = zod.object({
   "text": zod.string().min(1).max(createQuestionBodyOptionsItemTextMax)
 })).max(createQuestionBodyOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(createQuestionBodyCorrectAnswersMax),
-  "explanation": zod.string().max(createQuestionBodyExplanationMax).optional()
+  "explanation": zod.string().max(createQuestionBodyExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(createQuestionBodyScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 })
 
 export const createQuestionResponseOneTextMin = 5;
@@ -1311,7 +1318,7 @@ export const createQuestionResponseOneCorrectAnswersMax = 10;
 
 export const createQuestionResponseOneExplanationMax = 5000;
 
-
+export const createQuestionResponseOneScoringDefault = `exact`;
 
 export const CreateQuestionResponse = zod.object({
   "text": zod.string().min(createQuestionResponseOneTextMin).max(createQuestionResponseOneTextMax),
@@ -1324,7 +1331,8 @@ export const CreateQuestionResponse = zod.object({
   "text": zod.string().min(1).max(createQuestionResponseOneOptionsItemTextMax)
 })).max(createQuestionResponseOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(createQuestionResponseOneCorrectAnswersMax),
-  "explanation": zod.string().max(createQuestionResponseOneExplanationMax).optional()
+  "explanation": zod.string().max(createQuestionResponseOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(createQuestionResponseOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1350,7 +1358,7 @@ export const updateQuestionBodyCorrectAnswersMax = 10;
 
 export const updateQuestionBodyExplanationMax = 5000;
 
-
+export const updateQuestionBodyScoringDefault = `exact`;
 
 export const UpdateQuestionBody = zod.object({
   "text": zod.string().min(updateQuestionBodyTextMin).max(updateQuestionBodyTextMax),
@@ -1363,7 +1371,8 @@ export const UpdateQuestionBody = zod.object({
   "text": zod.string().min(1).max(updateQuestionBodyOptionsItemTextMax)
 })).max(updateQuestionBodyOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(updateQuestionBodyCorrectAnswersMax),
-  "explanation": zod.string().max(updateQuestionBodyExplanationMax).optional()
+  "explanation": zod.string().max(updateQuestionBodyExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(updateQuestionBodyScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 })
 
 export const updateQuestionResponseOneTextMin = 5;
@@ -1381,7 +1390,7 @@ export const updateQuestionResponseOneCorrectAnswersMax = 10;
 
 export const updateQuestionResponseOneExplanationMax = 5000;
 
-
+export const updateQuestionResponseOneScoringDefault = `exact`;
 
 export const UpdateQuestionResponse = zod.object({
   "text": zod.string().min(updateQuestionResponseOneTextMin).max(updateQuestionResponseOneTextMax),
@@ -1394,7 +1403,8 @@ export const UpdateQuestionResponse = zod.object({
   "text": zod.string().min(1).max(updateQuestionResponseOneOptionsItemTextMax)
 })).max(updateQuestionResponseOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(updateQuestionResponseOneCorrectAnswersMax),
-  "explanation": zod.string().max(updateQuestionResponseOneExplanationMax).optional()
+  "explanation": zod.string().max(updateQuestionResponseOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(updateQuestionResponseOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1504,6 +1514,7 @@ export const getAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const getAttemptResponseQuestionsItemOneExplanationMax = 5000;
 
+export const getAttemptResponseQuestionsItemOneScoringDefault = `exact`;
 export const getAttemptResponseAnswersItemValueMax = 20000;
 
 export const getAttemptResponseAnswersItemRevisionMin = 0;
@@ -1546,7 +1557,8 @@ export const GetAttemptResponse = zod.object({
   "text": zod.string().min(1).max(getAttemptResponseQuestionsItemOneOptionsItemTextMax)
 })).max(getAttemptResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(getAttemptResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(getAttemptResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(getAttemptResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(getAttemptResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1681,6 +1693,7 @@ export const submitAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const submitAttemptResponseQuestionsItemOneExplanationMax = 5000;
 
+export const submitAttemptResponseQuestionsItemOneScoringDefault = `exact`;
 export const submitAttemptResponseAnswersItemValueMax = 20000;
 
 export const submitAttemptResponseAnswersItemRevisionMin = 0;
@@ -1723,7 +1736,8 @@ export const SubmitAttemptResponse = zod.object({
   "text": zod.string().min(1).max(submitAttemptResponseQuestionsItemOneOptionsItemTextMax)
 })).max(submitAttemptResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(submitAttemptResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(submitAttemptResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(submitAttemptResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(submitAttemptResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1860,6 +1874,7 @@ export const superviseAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const superviseAttemptResponseQuestionsItemOneExplanationMax = 5000;
 
+export const superviseAttemptResponseQuestionsItemOneScoringDefault = `exact`;
 export const superviseAttemptResponseAnswersItemValueMax = 20000;
 
 export const superviseAttemptResponseAnswersItemRevisionMin = 0;
@@ -1902,7 +1917,8 @@ export const SuperviseAttemptResponse = zod.object({
   "text": zod.string().min(1).max(superviseAttemptResponseQuestionsItemOneOptionsItemTextMax)
 })).max(superviseAttemptResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(superviseAttemptResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(superviseAttemptResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(superviseAttemptResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(superviseAttemptResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -1982,6 +1998,7 @@ export const suggestAiGradesResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const suggestAiGradesResponseQuestionsItemOneExplanationMax = 5000;
 
+export const suggestAiGradesResponseQuestionsItemOneScoringDefault = `exact`;
 export const suggestAiGradesResponseAnswersItemValueMax = 20000;
 
 export const suggestAiGradesResponseAnswersItemRevisionMin = 0;
@@ -2024,7 +2041,8 @@ export const SuggestAiGradesResponse = zod.object({
   "text": zod.string().min(1).max(suggestAiGradesResponseQuestionsItemOneOptionsItemTextMax)
 })).max(suggestAiGradesResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(suggestAiGradesResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(suggestAiGradesResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(suggestAiGradesResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(suggestAiGradesResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -2411,6 +2429,7 @@ export const gradeAttemptResponseQuestionsItemOneCorrectAnswersMax = 10;
 
 export const gradeAttemptResponseQuestionsItemOneExplanationMax = 5000;
 
+export const gradeAttemptResponseQuestionsItemOneScoringDefault = `exact`;
 export const gradeAttemptResponseAnswersItemValueMax = 20000;
 
 export const gradeAttemptResponseAnswersItemRevisionMin = 0;
@@ -2453,7 +2472,8 @@ export const GradeAttemptResponse = zod.object({
   "text": zod.string().min(1).max(gradeAttemptResponseQuestionsItemOneOptionsItemTextMax)
 })).max(gradeAttemptResponseQuestionsItemOneOptionsMax),
   "correctAnswers": zod.array(zod.string()).max(gradeAttemptResponseQuestionsItemOneCorrectAnswersMax),
-  "explanation": zod.string().max(gradeAttemptResponseQuestionsItemOneExplanationMax).optional()
+  "explanation": zod.string().max(gradeAttemptResponseQuestionsItemOneExplanationMax).optional(),
+  "scoring": zod.enum(['exact', 'partial']).default(gradeAttemptResponseQuestionsItemOneScoringDefault).describe('Multiple-select only. exact = all-or-nothing; partial = (correct picks - wrong picks) / correct options x marks, never below 0.')
 }).and(zod.object({
   "id": zod.string(),
   "createdAt": zod.string().optional()
@@ -2531,6 +2551,14 @@ export const ListResultsResponseItem = zod.object({
 export const ListResultsResponse = zod.array(ListResultsResponseItem)
 
 
+export const getAnalyticsQueryExamIdMax = 100;
+
+
+
+export const GetAnalyticsQueryParams = zod.object({
+  "examId": zod.coerce.string().max(getAnalyticsQueryExamIdMax).optional().describe('Limit statistics to one examination')
+})
+
 export const GetAnalyticsResponse = zod.object({
   "totalAttempts": zod.int(),
   "averageScore": zod.number(),
@@ -2544,12 +2572,31 @@ export const GetAnalyticsResponse = zod.object({
   "attempts": zod.int(),
   "skipped": zod.int(),
   "correct": zod.int(),
-  "accuracy": zod.number()
+  "accuracy": zod.number(),
+  "observedDifficulty": zod.union([zod.literal('easy'),zod.literal('medium'),zod.literal('hard'),zod.literal(null)]).nullish().describe('From accuracy: 70%+ easy, 40-69% medium, below 40% hard. Null below 2 responses.'),
+  "difficultyMismatch": zod.boolean().optional().describe('Observed difficulty differs from the label'),
+  "commonWrong": zod.union([zod.object({
+  "optionId": zod.string(),
+  "text": zod.string(),
+  "count": zod.int(),
+  "share": zod.number().describe('Percentage of responses that chose this option')
+}).describe('Most frequently chosen incorrect option'),zod.null()]).optional()
 })),
   "distribution": zod.array(zod.object({
   "label": zod.string(),
   "count": zod.int()
-}))
+})),
+  "exams": zod.array(zod.object({
+  "examId": zod.string(),
+  "title": zod.string(),
+  "submissions": zod.int(),
+  "graded": zod.int(),
+  "mean": zod.number().nullable(),
+  "median": zod.number().nullable(),
+  "highest": zod.number().nullable(),
+  "lowest": zod.number().nullable(),
+  "passRate": zod.number().nullable()
+}).describe('Examination-level performance from graded, non-sandbox submissions (percentages).')).optional()
 })
 
 

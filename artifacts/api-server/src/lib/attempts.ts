@@ -25,6 +25,14 @@ export function hasAnswer(q: QuestionData, value?: string) {
 }
 export function objectiveScore(q: QuestionData, value: string) {
   const selected = selectedOptions(value);
+  if (q.type === "multiple" && q.scoring === "partial") {
+    // Each correct pick earns its share of the marks; each wrong pick cancels one share.
+    // Never negative, so guessing cannot cost more than the question is worth.
+    const right = selected.filter(id => q.correctAnswers.includes(id)).length;
+    const wrong = selected.length - right;
+    const earned = Math.max(0, right - wrong) / q.correctAnswers.length * q.marks;
+    return Math.round(earned * 100) / 100;
+  }
   return selected.length === q.correctAnswers.length && q.correctAnswers.every(id => selected.includes(id)) ? q.marks : 0;
 }
 export async function databaseNow(tx: Pick<Tx, "execute">) {

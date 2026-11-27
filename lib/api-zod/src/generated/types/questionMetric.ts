@@ -5,6 +5,8 @@
  * Examora secure examination platform
  * OpenAPI spec version: 1.0.0
  */
+import type { QuestionMetricObservedDifficulty } from './questionMetricObservedDifficulty';
+import type { WrongOption } from './wrongOption';
 
 export interface QuestionMetric {
   id: string;
@@ -15,4 +17,12 @@ export interface QuestionMetric {
   skipped: number;
   correct: number;
   accuracy: number;
+  /**
+     * From accuracy: 70%+ easy, 40-69% medium, below 40% hard. Null below 2 responses.
+     * @nullable
+     */
+  observedDifficulty?: QuestionMetricObservedDifficulty;
+  /** Observed difficulty differs from the label */
+  difficultyMismatch?: boolean;
+  commonWrong?: WrongOption | null;
 }

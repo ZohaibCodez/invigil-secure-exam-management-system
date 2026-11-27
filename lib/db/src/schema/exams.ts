@@ -13,6 +13,8 @@ export type QuestionData = {
   options: { id: string; text: string }[];
   correctAnswers: string[];
   explanation?: string;
+  /** Multiple-select marking rule. Missing means "exact" (all-or-nothing), as before. */
+  scoring?: "exact" | "partial";
 };
 export type AssistancePolicyData = {
   mode: "closed_book" | "open_book" | "ai_disclosed" | "ai_conditional";
