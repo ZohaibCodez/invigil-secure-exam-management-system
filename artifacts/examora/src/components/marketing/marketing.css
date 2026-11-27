@@ -42,3 +42,33 @@
   .mk .card-lift:hover, .mk .btn-verm:hover { transform: none; }
   .mk * { scroll-behavior: auto !important; }
 }
+
+/* ---- Cutting-edge motion layer ---- */
+@keyframes mk-bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-6px) } }
+.mk .float-bob { animation: mk-bob 5s ease-in-out infinite; }
+@keyframes mk-drift-a { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(-30px,20px) scale(1.12) } }
+@keyframes mk-drift-b { 0%,100% { transform: translate(0,0) scale(1) } 50% { transform: translate(24px,-18px) scale(1.08) } }
+.mk .glow-a { animation: mk-drift-a 12s ease-in-out infinite; }
+.mk .glow-b { animation: mk-drift-b 14s ease-in-out infinite; }
+/* Rotating light beam around a card border */
+@property --mk-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+@keyframes mk-spin { to { --mk-angle: 360deg; } }
+.mk .beam-border { position: relative; isolation: isolate; }
+.mk .beam-border::before {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; z-index: -1; padding: 1px;
+  background: conic-gradient(from var(--mk-angle), transparent 0deg, hsl(var(--verm)) 60deg, transparent 120deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  animation: mk-spin 6s linear infinite;
+}
+.mk .dot-grid {
+  background-image: radial-gradient(hsl(var(--paper) / .14) 1px, transparent 1px); background-size: 22px 22px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%); mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+}
+.mk .text-gradient { background: linear-gradient(90deg, hsl(var(--paper)) 0%, hsl(var(--verm)) 55%, hsl(28 100% 65%) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.mk .foot-link { display: inline-flex; align-items: center; gap: .35rem; color: hsl(var(--paper) / .72); transition: color .2s, transform .2s; }
+.mk .foot-link:hover { color: hsl(var(--paper)); transform: translateX(2px); }
+.mk .foot-link svg { opacity: 0; transform: translateX(-4px); transition: opacity .2s, transform .2s; }
+.mk .foot-link:hover svg { opacity: 1; transform: translateX(0); color: hsl(var(--verm)); }
+@media (prefers-reduced-motion: reduce) {
+  .mk .float-bob, .mk .glow-a, .mk .glow-b, .mk .beam-border::before { animation: none; }
+}

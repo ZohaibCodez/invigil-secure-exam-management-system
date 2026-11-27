@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { ArrowUp, ArrowUpRight, Menu, X } from 'lucide-react';
 import { Logo } from '@/components/kit';
 import './marketing.css';
 
@@ -80,31 +80,37 @@ export function MarketingHeader() {
 }
 
 export function MarketingFooter() {
+  const product = [['Save ledger', '/welcome#ledger'], ['Workflow', '/welcome#workflow'], ['Integrity', '/welcome#integrity'], ['Known limits', '/welcome#limits']];
   return (
-    <footer className="ink ink-grid">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_1fr_1fr] md:px-8">
+    <footer className="ink relative overflow-hidden">
+      <div className="h-px bg-gradient-to-r from-transparent via-[hsl(var(--verm)/.6)] to-transparent" aria-hidden />
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 md:grid-cols-[1.5fr_1fr_1fr] md:px-8">
         <div>
           <Logo tone="dark" height={56} />
-          <p className="mt-4 max-w-sm text-sm text-[hsl(var(--paper)/.65)]">An examination workspace that tells you what was saved on a device and what the server accepted. A hackathon project with documented safeguards and limitations.</p>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-[hsl(var(--paper)/.6)]">An examination workspace that tells you what was saved on a device and what the server accepted. Built for Web-e-Thon 2026 with documented safeguards and limitations.</p>
+          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-[hsl(var(--paper)/.12)] bg-[hsl(var(--paper)/.04)] px-3 py-1.5 text-xs text-[hsl(var(--paper)/.7)]">
+            <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--sage))] opacity-60" /><span className="relative inline-flex h-2 w-2 rounded-full bg-[hsl(var(--sage))]" /></span>
+            Server-timed · local-first · verifiable
+          </div>
         </div>
-        <nav aria-label="Footer: product" className="flex flex-col gap-2.5 text-sm">
-          <span className="eyebrow text-[hsl(var(--paper)/.45)]">Product</span>
-          <a href="/welcome#ledger" className="link-u w-fit">Save ledger</a>
-          <a href="/welcome#workflow" className="link-u w-fit">Workflow</a>
-          <a href="/welcome#integrity" className="link-u w-fit">Integrity</a>
-          <a href="/welcome#limits" className="link-u w-fit">Known limits</a>
+        <nav aria-label="Footer: product" className="flex flex-col gap-3 text-sm">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[hsl(var(--paper)/.4)]">Product</span>
+          {product.map(([l, h]) => <a key={l} href={h} className="foot-link w-fit">{l}<ArrowUpRight className="h-3.5 w-3.5" aria-hidden /></a>)}
         </nav>
-        <nav aria-label="Footer: pages" className="flex flex-col gap-2.5 text-sm">
-          <span className="eyebrow text-[hsl(var(--paper)/.45)]">Pages</span>
-          <Link href="/welcome" className="link-u w-fit" data-testid="link-footer-welcome">Overview</Link>
-          <Link href="/research" className="link-u w-fit" data-testid="link-footer-research">Research & sources</Link>
-          <Link href="/login" className="link-u w-fit" data-testid="link-footer-login">Sign in</Link>
+        <nav aria-label="Footer: pages" className="flex flex-col gap-3 text-sm">
+          <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[hsl(var(--paper)/.4)]">Pages</span>
+          <Link href="/welcome" className="foot-link w-fit" data-testid="link-footer-welcome">Overview<ArrowUpRight className="h-3.5 w-3.5" aria-hidden /></Link>
+          <Link href="/research" className="foot-link w-fit" data-testid="link-footer-research">Research &amp; sources<ArrowUpRight className="h-3.5 w-3.5" aria-hidden /></Link>
+          <Link href="/login" className="foot-link w-fit" data-testid="link-footer-login">Sign in<ArrowUpRight className="h-3.5 w-3.5" aria-hidden /></Link>
         </nav>
       </div>
-      <div className="border-t border-[hsl(var(--paper)/.1)]">
-        <div className="mx-auto flex max-w-7xl flex-wrap justify-between gap-2 px-5 py-5 mono text-[11px] text-[hsl(var(--paper)/.45)] md:px-8">
-          <span>Examora · examination workspace</span>
-          <span>No biometrics. No automated cheating scores.</span>
+      <div className="border-t border-[hsl(var(--paper)/.08)]">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-5 text-xs text-[hsl(var(--paper)/.45)] md:px-8">
+          <span>© 2026 Examora · Examination with confidence</span>
+          <span className="hidden sm:inline">No biometrics. No automated cheating scores.</span>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="group inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--paper)/.15)] px-3 py-1.5 transition-colors hover:border-[hsl(var(--verm)/.6)] hover:text-[hsl(var(--paper))]" data-testid="button-back-to-top">
+            Back to top <ArrowUp className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5" aria-hidden />
+          </button>
         </div>
       </div>
     </footer>

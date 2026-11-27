@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowRight, ArrowUpRight, Check, Minus } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, Minus, Clock3, HardDrive, QrCode } from 'lucide-react';
 import { innovationDirections } from '@/content/research';
 import { Reveal } from './chrome';
 
@@ -161,17 +161,40 @@ export function Directions() {
 }
 
 export function ClosingCta() {
+  const trust = [
+    { icon: Clock3, title: 'Server-timed', body: 'One deadline, kept by the server.' },
+    { icon: HardDrive, title: 'Local-first answers', body: 'Writing continues through outages.' },
+    { icon: QrCode, title: 'Verifiable reports', body: 'Every result carries a QR check.' },
+  ];
   return (
-    <section className="ink relative overflow-hidden py-28 md:py-36" aria-labelledby="cta-title">
-      <div className="absolute -right-24 -top-24 h-96 w-96 rounded-full bg-[hsl(var(--verm))] opacity-90" aria-hidden />
-      <div className="relative mx-auto max-w-7xl px-5 md:px-8">
+    <section className="ink relative overflow-hidden py-24 md:py-32" aria-labelledby="cta-title">
+      <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden />
+      <div className="glow-a pointer-events-none absolute -right-32 -top-40 h-[30rem] w-[30rem] rounded-full bg-[hsl(var(--verm)/.35)] blur-[120px]" aria-hidden />
+      <div className="glow-b pointer-events-none absolute -bottom-40 -left-32 h-[28rem] w-[28rem] rounded-full bg-[hsl(214_90%_55%/.18)] blur-[120px]" aria-hidden />
+      <div className="relative mx-auto max-w-6xl px-5 md:px-8">
         <Reveal>
-          <h2 id="cta-title" className="serif max-w-4xl text-[clamp(3rem,8vw,6.5rem)] leading-[0.95]">Calm exams. <span className="italic text-[hsl(var(--paper)/.55)]">Accountable records.</span></h2>
-        </Reveal>
-        <Reveal delay={0.1}>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/login" className="btn-verm group inline-flex items-center gap-2 rounded-full px-7 py-4 font-medium" data-testid="link-cta-signin">Sign in to Examora <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden /></Link>
-            <Link href="/research" className="btn-ghost inline-flex items-center rounded-full px-7 py-4 font-medium hover:bg-[hsl(var(--paper))] hover:text-[hsl(var(--ink))]" data-testid="link-cta-research">Review the research</Link>
+          <div className="beam-border rounded-[2rem] border border-[hsl(var(--paper)/.1)] bg-[hsl(var(--paper)/.04)] p-8 backdrop-blur-xl md:p-14">
+            <div className="grid items-end gap-10 lg:grid-cols-[1.4fr_1fr]">
+              <div>
+                <h2 id="cta-title" className="serif text-[clamp(2.4rem,5.5vw,4.25rem)] leading-[1.02]">
+                  Calm exams.<br /><span className="text-gradient">Accountable records.</span>
+                </h2>
+                <p className="mt-5 max-w-lg text-[hsl(var(--paper)/.7)]">Start with the seeded demo accounts. Every number you see is computed from real submissions in the database.</p>
+                <div className="mt-9 flex flex-wrap gap-3">
+                  <Link href="/login" className="btn-verm group inline-flex items-center gap-2 rounded-full px-7 py-4 font-medium" data-testid="link-cta-signin">Sign in to Examora <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden /></Link>
+                  <Link href="/research" className="group inline-flex items-center gap-2 rounded-full border border-[hsl(var(--paper)/.25)] px-7 py-4 font-medium transition-colors hover:border-[hsl(var(--paper)/.6)] hover:bg-[hsl(var(--paper)/.06)]" data-testid="link-cta-research">Review the research <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden /></Link>
+                </div>
+              </div>
+              <ul className="space-y-3">
+                {trust.map((t, i) => (
+                  <motion.li key={t.title} initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.15 + i * 0.1, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    className="group flex items-center gap-4 rounded-2xl border border-[hsl(var(--paper)/.08)] bg-[hsl(var(--paper)/.03)] p-4 transition-colors hover:border-[hsl(var(--verm)/.4)] hover:bg-[hsl(var(--paper)/.06)]">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[hsl(var(--verm)/.15)] text-[hsl(var(--verm))] transition-transform group-hover:scale-110"><t.icon className="h-5 w-5" /></span>
+                    <span><span className="block font-semibold">{t.title}</span><span className="text-sm text-[hsl(var(--paper)/.6)]">{t.body}</span></span>
+                  </motion.li>
+                ))}
+              </ul>
+            </div>
           </div>
         </Reveal>
       </div>
