@@ -1,0 +1,1 @@
+- [Post-merge service status](post-merge-service-status.md) — after merges, a failed replacement workflow can coexist with an older serving process; check HTTP and ownership before retrying.
