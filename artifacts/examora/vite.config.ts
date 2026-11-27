@@ -14,6 +14,10 @@ if (!rawPort) {
 }
 
 const port = Number(rawPort);
+// Local only: forward /api to the Express server so auth cookies stay same-origin.
+const apiProxy = process.env.API_PROXY
+  ? { '/api': { target: process.env.API_PROXY, changeOrigin: false } }
+  : undefined;
 
 if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
@@ -72,10 +76,12 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: apiProxy,
   },
   preview: {
     port,
     host: '0.0.0.0',
     allowedHosts: true,
+    proxy: apiProxy,
   },
 });
