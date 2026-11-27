@@ -1,6 +1,6 @@
-import { type ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Route, Switch, useLocation, Link, Router as WouterRouter } from 'wouter';
+import { Route, Switch, useLocation, Link, Redirect, Router as WouterRouter } from 'wouter';
 import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import { useGetSession, getGetSessionQueryKey, type User } from '@workspace/api-client-react';
@@ -26,6 +26,10 @@ import Analytics from '@/pages/analytics';
 import Imports from '@/pages/imports';
 import Settings from '@/pages/settings';
 import AttemptPage from '@/pages/attempt';
+import { RouteMetadata } from '@/components/route-metadata';
+
+const Landing = lazy(() => import('@/pages/landing'));
+const Research = lazy(() => import('@/pages/research'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 5000, refetchOnWindowFocus: true, retry: 1 } },
@@ -99,7 +103,16 @@ function SignedIn({ user }: { user: User }) {
 
 function Gate() {
   const [loc] = useLocation();
-  const s = useGetSession({ query: { queryKey: getGetSessionQueryKey(), refetchInterval: 60000, staleTime: 30000 } });
+  const publicRoute = loc === '/welcome' || loc === '/research';
+  const s = useGetSession({ query: { queryKey: getGetSessionQueryKey(), enabled: !publicRoute, refetchInterval: 60000, staleTime: 30000 } });
+  // Marketing content remains available even if the examination API is offline.
+  if (publicRoute || (loc === '/' && !s.data?.user)) {
+    return (
+      <PrefsProvider userId={null}>
+        {loc === '/research' ? <Research /> : <Landing />}
+      </PrefsProvider>
+    );
+  }
   if (loc.startsWith('/verify/') && !s.data?.user)
     return (
       <Switch>
@@ -114,6 +127,7 @@ function Gate() {
       </div>
     );
   const user = s.data.user;
+  if (user?.active && loc === '/login') return <Redirect to="/" replace />;
   return (
     <PrefsProvider userId={user?.id ?? null}>
       {user && user.active ? (
@@ -132,7 +146,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, '')}>
-          <Gate />
+          <RouteMetadata />
+          <Suspense fallback={<Splash />}>
+            <Gate />
+          </Suspense>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

@@ -1,0 +1,43 @@
+/* Scoped marketing styles — only apply under .mk */
+.mk {
+  --ink: 222 44% 11%;
+  --ink-2: 222 34% 17%;
+  --paper: 40 36% 95%;
+  --verm: 8 78% 52%;
+  --verm-deep: 6 70% 40%;
+  --sage: 158 32% 38%;
+  --amber: 38 82% 52%;
+  background: hsl(var(--paper));
+  color: hsl(var(--ink));
+  overflow-x: clip;
+}
+.mk .serif { font-family: var(--app-font-serif); font-weight: 400; letter-spacing: -0.015em; }
+.mk .mono { font-family: var(--app-font-mono); }
+.mk .eyebrow { font-family: var(--app-font-mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
+.mk .ink { background: hsl(var(--ink)); color: hsl(var(--paper)); }
+.mk .ink-grid {
+  background-image: linear-gradient(hsl(var(--paper)/.05) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--paper)/.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+.mk .paper-rule { background-image: repeating-linear-gradient(to bottom, transparent 0 35px, hsl(var(--ink)/.07) 35px 36px); }
+.mk .verm-text { color: hsl(var(--verm)); }
+.mk .link-u { background: linear-gradient(currentColor,currentColor) 0 100%/0 1px no-repeat; transition: background-size .35s cubic-bezier(.22,1,.36,1); }
+.mk .link-u:hover, .mk .link-u:focus-visible { background-size: 100% 1px; }
+.mk .btn-verm { background: hsl(var(--verm)); color: hsl(var(--paper)); box-shadow: 0 1px 0 hsl(var(--verm-deep)), 0 10px 30px -12px hsl(var(--verm)/.7); transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s; }
+.mk .btn-verm:hover { transform: translateY(-2px); box-shadow: 0 3px 0 hsl(var(--verm-deep)), 0 18px 34px -14px hsl(var(--verm)/.8); }
+.mk .btn-verm:active { transform: translateY(0); }
+.mk .btn-ghost { border: 1px solid currentColor; transition: background .25s, color .25s; }
+.mk .card-lift { transition: transform .4s cubic-bezier(.22,1,.36,1), box-shadow .4s; }
+.mk .card-lift:hover { transform: translateY(-4px); box-shadow: 0 24px 40px -28px hsl(var(--ink)/.45); }
+.mk :focus-visible { outline: 2px solid hsl(var(--verm)); outline-offset: 3px; border-radius: 4px; }
+@keyframes mk-marquee { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+.mk .marquee { animation: mk-marquee 48s linear infinite; }
+@keyframes mk-orbit { to { transform: rotate(360deg) } }
+.mk .orbit { animation: mk-orbit 60s linear infinite; transform-origin: center; }
+@keyframes mk-blink { 50% { opacity: .25 } }
+.mk .blink { animation: mk-blink 1.4s steps(2) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .mk .marquee, .mk .orbit, .mk .blink { animation: none; }
+  .mk .card-lift:hover, .mk .btn-verm:hover { transform: none; }
+  .mk * { scroll-behavior: auto !important; }
+}

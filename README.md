@@ -6,6 +6,10 @@ monitoring, grading, controlled publication, and verifiable PDF results.
 
 ## Implemented product
 
+- **Public website:** a detailed landing page at `/` for signed-out visitors
+  (always available at `/welcome`), sign-in at `/login`, and a source-linked
+  research and innovation assessment at `/research`. Signed-in users retain
+  the dashboard at `/`.
 - **Administrator:** create accounts, assign roles, deactivate access.
 - **Examiner:** question bank CRUD, draft exam creation and editing, question
   assignment, candidate enrollment, publication, isolated sandbox preview,
