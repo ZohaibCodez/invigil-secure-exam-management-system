@@ -19,9 +19,36 @@ non-punitive incident context in an accessible examination workflow.
 
 The implementation is not yet independently validated for high-stakes use.
 The scratchpad-only reload recovery scheduling gap identified in the coverage
-assessment remains open. Full offline launch, cross-device recovery of
-unsynchronized answers, and retrospective proof of offline authorship are not
-implemented.
+assessment has been corrected and browser-verified in an isolated sandbox.
+Locally retained notes now schedule synchronization after reload even when no
+answers are pending, without requiring another edit. Full offline launch,
+cross-device recovery of unsynchronized work, and retrospective proof of
+offline authorship are not implemented.
+
+### Scratchpad recovery verification
+
+A real-browser sandbox check on 27 November 2026, with no answer edits, confirmed:
+
+- Aborted scratchpad saves survived reload and were automatically retried.
+  Restoring connectivity without another edit produced a server receipt and
+  matching server text and local confirmed revision.
+- Clearing notes to an empty string survived failed-save/reload recovery and
+  reached the server as an empty string, not the previous notes.
+- A simulated offline reload restored cached notes and kept the status
+  **Offline · kept on device only** through repeated retry intervals. The
+  scratchpad and header explicitly identified notes as unsynchronized.
+- Unsent notes alone triggered the unload warning; server confirmation cleared
+  it. Injected HTTP 500 responses retained the failed/retrying status, and
+  automatic retries recovered without another edit after the failure ended.
+- Moving only the test sandbox's server deadline into the past, then reloading
+  with the browser clock one hour earlier, closed the attempt without accepting
+  pending notes. A new scratchpad-only save returned HTTP 409 and left the
+  server's last confirmed notes unchanged. Unconfirmed notes stayed on device.
+
+Offline simulation used a browser offline flag and blocked API requests while
+leaving the session endpoint reachable. This verifies cached-attempt recovery,
+not a fully disconnected application launch. These targeted checks do not
+establish cross-browser reliability or independent high-stakes validation.
 
 ## 1. Connectivity and submission failures
 

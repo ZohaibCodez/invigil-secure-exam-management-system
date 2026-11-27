@@ -81,6 +81,10 @@ function unsyncedIds(d: AttemptDraft) {
     .map((a) => a.questionId);
 }
 
+function hasPendingWork(d: AttemptDraft) {
+  return unsyncedIds(d).length > 0 || d.scratchRev > d.scratchConfirmed;
+}
+
 export default function AttemptPage() {
   const { id = '' } = useParams<{ id: string }>();
   const me = useMe();
@@ -223,7 +227,7 @@ export default function AttemptPage() {
       for (const a of dirty) confirmed[a.questionId] = Math.max(confirmed[a.questionId] ?? 0, a.revision);
       writeDraft({ ...cur, confirmed, scratchConfirmed: scratchDirty ? Math.max(cur.scratchConfirmed, sentScratchRev) : cur.scratchConfirmed, lastSyncedAt: receipt.savedAt });
       setSyncErr(null);
-      const stillDirty = unsyncedIds(draftRef.current).length > 0 || draftRef.current.scratchRev > draftRef.current.scratchConfirmed;
+      const stillDirty = hasPendingWork(draftRef.current);
       setSync(stillDirty ? 'pending' : 'saved');
       return !stillDirty;
     } catch (e) {
@@ -251,7 +255,7 @@ export default function AttemptPage() {
   const schedule = useCallback(
     (delay = 700) => {
       if (lockedRef.current) return;
-      setSync((s) => (s === 'saving' ? s : 'pending'));
+      setSync((s) => !navigator.onLine ? 'offline' : s === 'saving' || s === 'failed' ? s : 'pending');
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
         void flush().then((ok) => {
@@ -278,16 +282,19 @@ export default function AttemptPage() {
       writeDraft(d);
       setReady(true);
       const pending = unsyncedIds(d);
+      const scratchPending = d.scratchRev > d.scratchConfirmed;
       if (attempt.status === 'active') {
-        if (pending.length) {
-          pushEvent('recovery', `Restored ${pending.length} unsynced answer(s) from this device after reload.`);
+        if (hasPendingWork(d)) {
+          pushEvent('recovery', `Restored ${pending.length} unsynced answer(s)${scratchPending ? ' and unsynced scratchpad notes' : ''} from this device after reload.`);
           schedule(50);
         } else setSync('saved');
       } else {
         setLocked(true);
-        if (pending.length) {
+        lockedRef.current = true;
+        setSync('locked');
+        if (hasPendingWork(d)) {
           setLateWork(pending);
-          pushEvent('late-recovery', `${pending.length} local answer(s) found after submission; retained on device, not credited.`);
+          pushEvent('late-recovery', `${pending.length} local answer(s)${scratchPending ? ' and unsynced scratchpad notes' : ''} found after submission; retained on device, not credited.`);
         }
       }
     })();
@@ -322,15 +329,19 @@ export default function AttemptPage() {
       if (document.visibilityState === 'hidden') pushEvent('tab-hidden', `Exam tab hidden at ${new Date().toISOString()}`);
       else void flush();
     };
-    const off = () => pushEvent('offline', `Browser reported offline at ${new Date().toISOString()}`);
+    const off = () => {
+      if (!lockedRef.current && hasPendingWork(draftRef.current)) setSync('offline');
+      pushEvent('offline', `Browser reported offline at ${new Date().toISOString()}`);
+    };
     const on = () => {
       pushEvent('reconnected', `Browser back online at ${new Date().toISOString()}`);
       schedule(100);
       qc.invalidateQueries({ queryKey: getGetAttemptQueryKey(id) });
     };
     const unload = (e: BeforeUnloadEvent) => {
-      if (unsyncedIds(draftRef.current).length) {
+      if (hasPendingWork(draftRef.current)) {
         e.preventDefault();
+        e.returnValue = '';
       }
     };
     document.addEventListener('visibilitychange', vis);
@@ -416,6 +427,7 @@ export default function AttemptPage() {
   };
 
   const unsynced = useMemo(() => unsyncedIds(draft), [draft]);
+  const scratchPending = draft.scratchRev > draft.scratchConfirmed;
   const answeredCount = questions.filter((x) => isAnswered(draft.answers[x.id])).length;
   const flaggedCount = questions.filter((x) => draft.answers[x.id]?.markedForReview).length;
   const anns = attempt?.announcements ?? [];
@@ -463,6 +475,7 @@ export default function AttemptPage() {
         <m.icon className={cn('h-3.5 w-3.5', sync === 'saving' && 'animate-spin')} />
         <span className="hidden sm:inline">{m.text}</span>
         {unsynced.length > 0 && <span className="rounded bg-current/10 px-1 tnum">{unsynced.length}</span>}
+        {scratchPending && <span>Notes on device only</span>}
       </span>
     );
   };
@@ -484,6 +497,7 @@ export default function AttemptPage() {
               <span>{lateWork.length} answer(s) on this device never reached the server before the attempt closed. They are kept here, unverified, and are not credited. The examiner has been notified as context.</span>
             </div>
           )}
+          {scratchPending && <p className="mt-3 text-xs text-accent">Scratchpad notes remain on this device only. They were not confirmed by the server before the attempt closed. Notes are not graded.</p>}
           <Button asChild className="mt-7 w-full"><Link href={attempt.sandbox ? `/exams/${attempt.examId}` : '/'} data-testid="link-after-submit">{attempt.sandbox ? 'Back to exam configuration' : 'Back to overview'}</Link></Button>
         </motion.div>
       </div>
@@ -674,7 +688,7 @@ export default function AttemptPage() {
           {scratchOpen && (
             <motion.aside initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="xl:sticky xl:top-24 xl:self-start">
               <div className="rounded-xl border bg-card p-3">
-                <div className="mb-2 flex items-center justify-between text-xs"><span className="flex items-center gap-1.5 font-medium"><NotebookPen className="h-3.5 w-3.5" />Scratchpad</span><span className="text-muted-foreground">{draft.scratchRev > draft.scratchConfirmed ? 'on device' : 'synced'}</span></div>
+                <div className="mb-2 flex items-center justify-between text-xs"><span className="flex items-center gap-1.5 font-medium"><NotebookPen className="h-3.5 w-3.5" />Scratchpad</span><span className="text-muted-foreground">{scratchPending ? 'on device only · not synced' : 'synced'}</span></div>
                 <Textarea data-testid="input-scratchpad" value={draft.scratchpad} onChange={(e) => setScratch(e.target.value)} rows={16} maxLength={50000} className="ruled font-mono text-sm leading-8" placeholder="Working notes. Not graded." />
                 <p className="mt-2 text-[11px] text-muted-foreground">Not graded. Visible to examiners only as context.</p>
               </div>
@@ -686,11 +700,11 @@ export default function AttemptPage() {
       <AlertDialog open={submitOpen} onOpenChange={(o) => submitStage !== 'submitting' && submitStage !== 'syncing' && setSubmitOpen(o)}>
         <AlertDialogContent className={cn(night && 'dark')}>
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-3xl font-normal">{submitStage === 'unsynced' ? 'Some answers are not on the server' : 'Submit your attempt?'}</AlertDialogTitle>
+            <AlertDialogTitle className="font-display text-3xl font-normal">{submitStage === 'unsynced' ? 'Some work is not on the server' : 'Submit your attempt?'}</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-3 text-sm">
                 {submitStage === 'unsynced' ? (
-                  <p>{unsynced.length} answer(s) exist only on this device — the last send failed ({syncErr ?? 'network unavailable'}). You can retry, or submit using only what the server already has. Unsent answers will not be credited.</p>
+                  <p>{unsynced.length > 0 ? `${unsynced.length} answer(s) exist only on this device. ` : ''}{scratchPending ? 'Scratchpad notes exist only on this device. ' : ''}The last send failed ({syncErr ?? 'network unavailable'}). You can retry, or submit using only what the server already has. Unsent answers will not be credited; unsent notes stay on this device and are not graded.</p>
                 ) : (
                   <>
                     <div className="grid grid-cols-3 gap-2 text-center">
@@ -732,6 +746,7 @@ export default function AttemptPage() {
                 {submitM.isPending || sync === 'saving' ? 'Sending your last answers and submitting…' : attempt.status !== 'active' || locked ? 'Your attempt has been submitted with the answers the server received.' : 'Submitting…'}
               </p>
               {unsynced.length > 0 && locked && <p className="mt-3 rounded-lg bg-accent/10 p-2 text-xs text-accent">{unsynced.length} answer(s) didn't reach the server in time. They stay on this device, unverified, and won't be credited.</p>}
+              {scratchPending && locked && <p className="mt-3 text-xs text-accent">Scratchpad notes stay on this device only; the server did not confirm them before the attempt closed. Notes are not graded.</p>}
               <Button asChild className="mt-6 w-full" disabled={!locked}><Link href="/">Back to overview</Link></Button>
             </div>
           </motion.div>

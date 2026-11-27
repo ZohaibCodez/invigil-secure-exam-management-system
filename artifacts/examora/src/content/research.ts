@@ -62,7 +62,7 @@ export const innovationDirections = [
     title: 'Recover work without extending time',
     status: 'Implemented foundation',
     body: 'Per-device drafts, revisioned answer saves, server receipts, and a fixed server deadline reduce the impact of brief interruptions. Late local answers are retained as unverified and never automatically credited.',
-    next: 'Remaining: browser-based failure testing and a scratchpad-only recovery scheduling correction. No guaranteed cross-device recovery or fully offline launch.',
+    next: 'Scratchpad-only reload recovery, retry, offline pending status, and server deadline rejection have been browser-verified in a sandbox. Broader failure testing remains; there is no guaranteed cross-device recovery or fully offline launch.',
     sources: ['connectivity', 'support'],
   },
   {
