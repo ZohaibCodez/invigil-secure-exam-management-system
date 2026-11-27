@@ -42,7 +42,7 @@ lib/api-spec/openapi.yaml  Source-of-truth API contract
 lib/api-client-react/     Generated client hooks and types
 lib/api-zod/              Generated server validation
 lib/db/                   Drizzle schema and PostgreSQL pool
-api/[...path].mjs         Vercel serverless API adapter
+api/index.mjs             Vercel serverless API adapter
 vercel.json               Vercel SPA + API routing
 ```
 
