@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion';
 import { ArrowRight, ArrowUpRight, Check, Minus, Clock3, HardDrive, QrCode } from 'lucide-react';
 import { innovationDirections } from '@/content/research';
 import { Reveal } from './chrome';
@@ -40,15 +40,26 @@ const STEPS = [
   { role: 'Anyone', title: 'Verify', body: 'Result PDFs carry a QR code that resolves to a verification page, so a printed slip can be checked against the record.' },
 ];
 
+const STEP_MS = 5200;
+
 export function Workflow() {
   const [i, setI] = useState(0);
+  const [hold, setHold] = useState(false);
   const reduce = useReducedMotion();
+  const areaRef = useRef<HTMLDivElement>(null);
+  const inView = useInView(areaRef, { amount: 0.35 });
+  // Autoplay: the active tab's progress bar is a CSS animation; when it finishes, the next
+  // stage opens. Hover, keyboard focus or scrolling away pauses it, so timer and visual never drift.
+  const playing = !reduce && inView && !hold;
+  const next = () => setI((k) => (k + 1) % STEPS.length);
   const s = STEPS[i];
   return (
     <section id="workflow" className="scroll-mt-16 py-24 md:py-32" aria-labelledby="workflow-title">
       <div className="mx-auto max-w-7xl px-5 md:px-8">
         <Reveal delay={0.05}><h2 id="workflow-title" className="serif mt-4 max-w-3xl text-5xl leading-[1] md:text-6xl">From blank paper to a verifiable result.</h2></Reveal>
-        <div className="mt-14 grid gap-8 lg:grid-cols-[22rem_1fr]">
+        <div ref={areaRef} className="mt-14 grid gap-8 lg:grid-cols-[22rem_1fr]"
+          onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)}
+          onFocus={() => setHold(true)} onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setHold(false); }}>
           <div role="tablist" aria-label="Workflow stages" className="flex gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible">
             {STEPS.map((st, k) => (
               <button key={st.title} role="tab" type="button" id={`wf-tab-${k}`} aria-selected={k === i} aria-controls="wf-panel" tabIndex={k === i ? 0 : -1} onClick={() => setI(k)}
@@ -56,27 +67,42 @@ export function Workflow() {
                   const move = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
                   if (!move && event.key !== 'Home' && event.key !== 'End') return;
                   event.preventDefault();
-                  const next = event.key === 'Home' ? 0 : event.key === 'End' ? STEPS.length - 1 : (k + move + STEPS.length) % STEPS.length;
-                  setI(next);
-                  document.getElementById(`wf-tab-${next}`)?.focus();
+                  const n = event.key === 'Home' ? 0 : event.key === 'End' ? STEPS.length - 1 : (k + move + STEPS.length) % STEPS.length;
+                  setI(n);
+                  document.getElementById(`wf-tab-${n}`)?.focus();
                 }} data-testid={`tab-workflow-${k}`}
-                className={`group flex shrink-0 items-center gap-4 rounded-xl border px-4 py-3.5 text-left transition-colors duration-300 ${k === i ? 'border-[hsl(var(--ink))] bg-[hsl(var(--ink))] text-[hsl(var(--paper))]' : 'border-[hsl(var(--ink)/.12)] hover:border-[hsl(var(--ink)/.4)]'}`}>
-                <span className={`mono text-xs ${k === i ? 'verm-text' : 'opacity-40'}`}>0{k + 1}</span>
+                className={`group relative flex shrink-0 items-center gap-4 overflow-hidden rounded-xl border px-4 py-3.5 text-left transition-all duration-300 ${k === i ? 'border-[hsl(var(--ink))] bg-[hsl(var(--ink))] text-[hsl(var(--paper))] shadow-[0_18px_36px_-20px_hsl(var(--ink)/.7)] lg:translate-x-2' : 'border-[hsl(var(--ink)/.12)] bg-white/40 hover:border-[hsl(var(--ink)/.35)] hover:bg-white/80'}`}>
+                <span className={`mono text-xs transition-colors ${k === i ? 'verm-text' : 'opacity-40'}`}>0{k + 1}</span>
                 <span className="serif text-2xl">{st.title}</span>
                 <span className="mono ml-auto hidden text-[10px] uppercase tracking-wider opacity-60 sm:inline">{st.role}</span>
+                {k === i && !reduce && (
+                  <span key={i} aria-hidden onAnimationEnd={next}
+                    className="wf-progress absolute inset-x-0 bottom-0 h-[3px] origin-left bg-[hsl(var(--verm))]"
+                    style={{ animationDuration: `${STEP_MS}ms`, animationPlayState: playing ? 'running' : 'paused' }} />
+                )}
               </button>
             ))}
+            {!reduce && <p className="hidden px-1 pt-1 text-xs text-[hsl(var(--ink)/.45)] lg:block">{playing ? 'Playing · hover to pause' : 'Paused'}</p>}
           </div>
-          <div id="wf-panel" role="tabpanel" aria-labelledby={`wf-tab-${i}`} className="paper-rule relative min-h-[320px] overflow-hidden rounded-2xl border border-[hsl(var(--ink)/.12)] bg-[hsl(40_40%_98%)] p-8 md:p-12">
+          <div id="wf-panel" role="tabpanel" aria-labelledby={`wf-tab-${i}`} aria-live="polite" className="paper-rule relative min-h-[320px] overflow-hidden rounded-2xl border border-[hsl(var(--ink)/.12)] bg-white/70 p-8 shadow-[0_30px_60px_-40px_hsl(var(--ink)/.45)] backdrop-blur md:p-12">
+            <div className="glow-a pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[hsl(var(--verm)/.12)] blur-[70px]" aria-hidden />
             <AnimatePresence mode="wait">
-              <motion.div key={i} initial={reduce ? false : { opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }} transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}>
+              <motion.div key={i} className="relative" initial={reduce ? false : { opacity: 0, y: 18, filter: 'blur(6px)' }} animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }} exit={reduce ? { opacity: 0 } : { opacity: 0, y: -14, filter: 'blur(6px)' }} transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>
                 <span className="eyebrow text-[hsl(var(--ink)/.5)]">{s.role}</span>
-                <p className="serif mt-3 text-[clamp(3rem,7vw,5.5rem)] leading-none">{s.title}<span className="verm-text">.</span></p>
-                <p className="mt-6 max-w-xl text-lg leading-relaxed text-[hsl(var(--ink)/.72)]">{s.body}</p>
+                <p className="serif mt-3 flex text-[clamp(3rem,7vw,5.5rem)] leading-none" aria-label={s.title}>
+                  {s.title.split('').map((ch, n) => (
+                    <motion.span key={n} aria-hidden className="inline-block" initial={reduce ? false : { y: '0.5em', opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.05 + n * 0.035, duration: 0.45, ease: [0.22, 1, 0.36, 1] }}>{ch}</motion.span>
+                  ))}
+                  <motion.span aria-hidden className="verm-text inline-block" initial={reduce ? false : { scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.1 + s.title.length * 0.035, type: 'spring', stiffness: 500, damping: 18 }}>.</motion.span>
+                </p>
+                <motion.p className="mt-6 max-w-xl text-lg leading-relaxed text-[hsl(var(--ink)/.72)]" initial={reduce ? false : { opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.45 }}>{s.body}</motion.p>
               </motion.div>
             </AnimatePresence>
-            <div className="absolute bottom-6 right-8 flex gap-1.5" aria-hidden>
-              {STEPS.map((_, k) => <span key={k} className={`h-1 rounded-full transition-all duration-500 ${k === i ? 'w-8 bg-[hsl(var(--verm))]' : 'w-3 bg-[hsl(var(--ink)/.2)]'}`} />)}
+            <div className="absolute bottom-6 right-8 flex gap-1.5">
+              {STEPS.map((st, k) => (
+                <button key={k} type="button" aria-label={`Show ${st.title}`} onClick={() => setI(k)}
+                  className={`h-1.5 rounded-full transition-all duration-500 ${k === i ? 'w-8 bg-[hsl(var(--verm))]' : 'w-3 bg-[hsl(var(--ink)/.2)] hover:bg-[hsl(var(--ink)/.45)]'}`} />
+              ))}
             </div>
           </div>
         </div>

@@ -72,3 +72,7 @@
 @media (prefers-reduced-motion: reduce) {
   .mk .float-bob, .mk .glow-a, .mk .glow-b, .mk .beam-border::before { animation: none; }
 }
+
+/* Workflow autoplay progress (drives the stage change via animationend) */
+@keyframes mk-fill { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+.mk .wf-progress { animation-name: mk-fill; animation-timing-function: linear; animation-fill-mode: forwards; }
