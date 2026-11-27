@@ -73,16 +73,12 @@ import { clock, errMsg, errStatus, fmtDate, parseSelected } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { minimumRequired, withDefaults } from '@/lib/delivery';
 import { buildSections, QuestionTile, Legend, SectionBar, HelpButton, HelpDialog, type QState } from '@/components/attempt-sections';
+import { hasAnswerValue } from '@/lib/answer-state';
 
 type SyncState = 'idle' | 'pending' | 'saving' | 'saved' | 'failed' | 'offline' | 'locked';
 
 const emptyDraft = (): AttemptDraft => ({ answers: {}, confirmed: {}, scratchpad: '', scratchRev: 0, scratchConfirmed: 0, lastSyncedAt: null, current: 0 });
 
-function isAnswered(a?: LocalAnswer) {
-  if (!a) return false;
-  if (a.value.startsWith('[')) return parseSelected(a.value).length > 0;
-  return a.value.trim().length > 0;
-}
 function unsyncedIds(d: AttemptDraft) {
   return Object.values(d.answers)
     .filter((a) => a.revision > (d.confirmed[a.questionId] ?? 0))
@@ -446,6 +442,8 @@ export default function AttemptPage() {
 
   // ---------- editing ----------
   const questions = attempt?.questions ?? [];
+  const isAnswered = (a?: LocalAnswer) =>
+    hasAnswerValue(a?.value, questions.find(question => question.id === a?.questionId)?.type);
   const current = Math.min(draft.current, Math.max(0, questions.length - 1));
   const qn = questions[current];
   const readOnly = locked || !attempt || attempt.status !== 'active' || (remaining !== null && remaining <= 0 && !fromCache);
@@ -612,15 +610,16 @@ export default function AttemptPage() {
 
   if (submittedView && !timeUp) {
     return (
-      <div className={cn(wrap, 'ruled grid place-items-center p-6')}>
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg rounded-2xl border bg-card p-8 text-center">
+      <div className={cn(wrap, 'ruled grid grid-cols-[minmax(0,1fr)] place-items-center p-4 sm:p-6')}>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full min-w-0 max-w-lg rounded-2xl border bg-card p-4 text-center [overflow-wrap:anywhere] sm:p-8">
           <Seal size={44} className="mx-auto" />
           <h1 className="mt-5 font-display text-4xl">{attempt.sandbox ? 'Sandbox run finished' : 'Submitted'}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{attempt.examTitle}{attempt.submittedAt && <> · received by the server {fmtDate(attempt.submittedAt)}</>}</p>
           <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-            <div className="rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Answers on record</div><div className="font-display text-3xl tnum">{attempt.answers.filter((a) => a.value && a.value !== '[]').length}/{attempt.questions.length}</div></div>
-            <div className="rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Score</div><div className="font-display text-3xl tnum">{attempt.score != null ? `${attempt.score}/${attempt.totalMarks}` : '—'}</div>{attempt.score == null && <div className="text-[11px] text-muted-foreground">Released when your examiner publishes</div>}</div>
+            <div className="min-w-0 rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Answers on record</div><div className="font-display text-3xl tnum">{attempt.answers.filter((a) => hasAnswerValue(a.value, attempt.questions.find(question => question.id === a.questionId)?.type)).length}/{attempt.questions.length}</div></div>
+            <div className="min-w-0 rounded-lg border p-3"><div className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">Score</div><div className="font-display text-3xl tnum">{attempt.score != null ? `${attempt.score}/${attempt.totalMarks}` : '—'}</div>{attempt.score == null && <div className="text-[11px] text-muted-foreground">Released when your examiner publishes</div>}</div>
           </div>
+          {attempt.status === 'submitted' && <p className="mt-3 text-xs text-muted-foreground" data-testid="text-marking-pending">Written responses are awaiting examiner marking. Your submitted answers are on record.</p>}
           {lateWork.length > 0 && (
             <div className="mt-5 flex gap-2 rounded-lg border border-accent/30 bg-accent/5 p-3 text-left text-xs">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />

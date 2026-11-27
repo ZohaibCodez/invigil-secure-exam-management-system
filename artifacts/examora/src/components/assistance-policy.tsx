@@ -26,11 +26,11 @@ export const POLICY_MODES: Record<AssistancePolicyInputMode, { label: string; bo
 export function PolicySummary({ policy, className }: { policy: AssistancePolicy; className?: string }) {
   const m = POLICY_MODES[policy.mode];
   return (
-    <div className={cn('rounded-lg border bg-card p-4', className)} data-testid="card-policy-summary">
+    <div className={cn('min-w-0 rounded-lg border bg-card p-4 [overflow-wrap:anywhere]', className)} data-testid="card-policy-summary">
       <div className="flex flex-wrap items-center gap-2">
         <m.Icon className="h-4 w-4 text-accent" />
         <span className="font-display text-xl" data-testid="text-policy-mode">{m.label}</span>
-        <span className="ml-auto font-mono text-[10px] uppercase tracking-wider text-muted-foreground">v {policy.version}</span>
+        <span className="ml-auto min-w-0 max-w-full break-all font-mono text-[10px] uppercase tracking-wider text-muted-foreground">v {policy.version}</span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{m.body}</p>
       <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Permitted resources</div>
